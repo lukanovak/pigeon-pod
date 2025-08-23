@@ -10,7 +10,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import logo from '../assets/sparrow.svg';
+import logo from '../assets/pigeon.png';
 import { useForm } from '@mantine/form';
 import { API, showError, showSuccess } from '../helpers/index.js';
 import { useNavigate } from 'react-router-dom';

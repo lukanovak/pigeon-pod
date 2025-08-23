@@ -11,7 +11,7 @@ import {
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
-import logo from '../assets/sparrow.svg';
+import logo from '../assets/pigeon.png';
 import {
   IconBrandGithub,
   IconHome,
@@ -54,11 +54,6 @@ function Header() {
       to: '/system-setting',
       icon: IconSettings,
       requireAdmin: true,
-    },
-    {
-      name: t('header_about'),
-      to: '/about',
-      icon: IconInfoCircle,
     },
   ];
 
@@ -129,7 +124,7 @@ function Header() {
             variant="default"
             size="sm"
             component="a"
-            href="https://github.com/aizhimou/sparrow"
+            href="https://github.com/aizhimou/PigeonPod/"
             target="_blank"
           >
             <IconBrandGithub />

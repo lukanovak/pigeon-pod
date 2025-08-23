@@ -5,7 +5,6 @@ import { UserContext } from './context/User/UserContext.jsx';
 import LoginForm from './components/LoginForm.jsx';
 import Home from './pages/Home/index.jsx';
 import NotFound from './pages/NotFound/index.jsx';
-import About from './pages/About/index.jsx';
 import SystemSetting from './pages/SystemSetting/index.jsx';
 import UserSetting from './pages/UserSetting/index.jsx';
 import User from './pages/User/index.jsx';
@@ -61,14 +60,6 @@ function App() {
           element={
             <PrivateRoute>
               <UserSetting />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="about"
-          element={
-            <PrivateRoute>
-              <About />
             </PrivateRoute>
           }
         />

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserContext } from '../context/User/UserContext.jsx';
 import { API, showError } from '../helpers';
-import logo from '../assets/sparrow.svg';
+import logo from '../assets/pigeon.png';
 import {
   Anchor,
   Button,
@@ -131,7 +131,7 @@ const LoginForm = () => {
               type="submit"
               variant="gradient"
               loading={loading}
-              gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
+              gradient={{ from: '#ae2140', to: '#f28b96', deg: 90 }}
             >
               {t('login')}
             </Button>

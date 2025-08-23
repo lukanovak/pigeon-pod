@@ -13,7 +13,7 @@ import {
 import { useForm } from '@mantine/form';
 import { useTranslation } from 'react-i18next';
 
-import logo from '../assets/sparrow.svg';
+import logo from '../assets/pigeon.png';
 import { API, showError, showSuccess } from '../helpers/index.js';
 import { useNavigate } from 'react-router-dom';
 
