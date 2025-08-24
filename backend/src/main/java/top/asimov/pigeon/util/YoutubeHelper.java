@@ -16,7 +16,7 @@ import java.util.List;
 public class YoutubeHelper {
 
   // 替换为你的 API 密钥
-  public static final String API_KEY = "AIzaSyBNiC1-OwYusXLlXpkZzm5lfw3qjX3kgWY";
+  public static final String API_KEY = "";
   private static final String APPLICATION_NAME = "My YouTube App";
   private static final JacksonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
