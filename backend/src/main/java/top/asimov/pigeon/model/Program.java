@@ -3,6 +3,7 @@ package top.asimov.pigeon.model;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @TableName("program")
 public class Program {
     @TableId
@@ -20,5 +22,6 @@ public class Program {
     private String title;
     private String description;
     private LocalDateTime publishedAt;
-    private String coverUrl;
+    private String defaultCoverUrl;
+    private String maxCoverUrl;
 }

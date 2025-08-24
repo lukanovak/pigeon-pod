@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import top.asimov.pigeon.constant.ChannelSource;
 import top.asimov.pigeon.exception.BusinessException;
@@ -25,6 +26,7 @@ public class ChannelService {
     this.channelMapper = channelMapper;
   }
 
+  @Transactional
   public Channel fetchAndSaveChannel(Channel channel) {
     String channelSource = channel.getChannelSource();
     if (ObjectUtils.isEmpty(channelSource)) {
@@ -51,6 +53,14 @@ public class ChannelService {
       queryWrapper.like(Channel::getDescription, description);
     }
     return channelMapper.selectList(queryWrapper);
+  }
+
+  public Channel channelDetail(String id) {
+    Channel channel = channelMapper.selectById(id);
+    if (channel == null) {
+      throw new BusinessException("Channel not found with id: " + id);
+    }
+    return channel;
   }
 
 

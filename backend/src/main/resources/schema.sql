@@ -34,20 +34,22 @@ CREATE TABLE IF NOT EXISTS channel
     video_count      INTEGER   NULL,
     subscriber_count INTEGER   NULL,
     view_count       INTEGER   NULL,
-    channel_source     TEXT      NOT NULL
+    channel_source   TEXT      NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS program (
-    id           TEXT      NOT NULL UNIQUE,
-    channel_id   TEXT      NOT NULL,
-    position     INTEGER   NOT NULL,
-    title        TEXT      NOT NULL,
-    description  TEXT      NOT NULL,
-    published_at TIMESTAMP NULL,
-    cover_url    TEXT      NOT NULL,
-    FOREIGN KEY (channel_id) REFERENCES channel(id)
+CREATE TABLE IF NOT EXISTS program
+(
+    id                TEXT      NOT NULL UNIQUE,
+    channel_id        TEXT      NOT NULL,
+    position          INTEGER   NOT NULL,
+    title             TEXT      NOT NULL,
+    description       TEXT      NOT NULL,
+    published_at      TIMESTAMP NULL,
+    default_cover_url TEXT      NOT NULL,
+    max_cover_url     TEXT      NOT NULL,
+    FOREIGN KEY (channel_id) REFERENCES channel (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_program_title ON program(title);
-CREATE INDEX IF NOT EXISTS idx_program_description ON program(description);
-CREATE INDEX IF NOT EXISTS idx_program_channel_id ON program(channel_id);
+CREATE INDEX IF NOT EXISTS idx_program_title ON program (title);
+CREATE INDEX IF NOT EXISTS idx_program_description ON program (description);
+CREATE INDEX IF NOT EXISTS idx_program_channel_id ON program (channel_id);

@@ -3,6 +3,7 @@ package top.asimov.pigeon.controller;
 import cn.dev33.satoken.util.SaResult;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,12 @@ public class ChannelController {
     Channel channel = Channel.builder().name(name).description(description).build();
     List<Channel> channels = channelService.listAllChannels(channel);
     return SaResult.data(channels);
+  }
+
+  @GetMapping("/detail/{id}")
+  public SaResult channelDetail(@PathVariable(name = "id") String id) {
+    Channel channel = channelService.channelDetail(id);
+    return SaResult.data(channel);
   }
 
   @PostMapping("/add")
