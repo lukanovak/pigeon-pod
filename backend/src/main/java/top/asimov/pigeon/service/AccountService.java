@@ -1,0 +1,108 @@
+package top.asimov.pigeon.service;
+
+import cn.dev33.satoken.apikey.model.ApiKeyModel;
+import cn.dev33.satoken.apikey.template.SaApiKeyUtil;
+import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import java.time.LocalDateTime;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import top.asimov.pigeon.exception.BusinessException;
+import top.asimov.pigeon.mapper.UserMapper;
+import top.asimov.pigeon.model.User;
+import top.asimov.pigeon.util.PasswordUtil;
+
+@Service
+public class AccountService {
+
+  private final UserMapper userMapper;
+  private final MessageSource messageSource;
+
+  public AccountService(UserMapper userMapper, MessageSource messageSource) {
+    this.userMapper = userMapper;
+    this.messageSource = messageSource;
+  }
+
+  public User getUserInfo(String userId) {
+    User user = userMapper.selectById(userId);
+    if (ObjectUtils.isEmpty(user)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+    }
+    // Clear sensitive fields
+    user.setPassword(null);
+    user.setSalt(null);
+    return user;
+  }
+
+  public String generateApiKey() {
+    String loginId = (String) StpUtil.getLoginId();
+    User user = userMapper.selectById(loginId);
+
+    String previousApiKey = user.getApiKey();
+    if (StringUtils.hasText(previousApiKey)) {
+      // If the user already has an API key, delete it
+      SaApiKeyUtil.deleteApiKey(previousApiKey);
+    }
+
+    ApiKeyModel akModel = SaApiKeyUtil
+        .createApiKeyModel(loginId)
+        .setTitle(user.getUsername())
+        .setExpiresTime(-1)
+        .addScope(user.getRole());
+    SaApiKeyUtil.saveApiKey(akModel);
+    user.setApiKey(akModel.getApiKey());
+    userMapper.updateById(user);
+    return akModel.getApiKey();
+  }
+
+  public User changeUsername(String userId, String newUsername) {
+    if (!StringUtils.hasText(newUsername)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.empty.username", null, LocaleContextHolder.getLocale()));
+    }
+    User user = userMapper.selectById(userId);
+    if (ObjectUtils.isEmpty(user)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+    }
+
+    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+    queryWrapper.eq("username", newUsername);
+    if (userMapper.selectOne(queryWrapper) != null) {
+      throw new BusinessException(
+          messageSource.getMessage("user.username.taken", null, LocaleContextHolder.getLocale()));
+    }
+
+    user.setUsername(newUsername);
+    user.setUpdatedAt(LocalDateTime.now());
+    userMapper.updateById(user);
+    return user;
+  }
+
+  public void resetPassword(String userId, String oldPassword, String newPassword) {
+    User user = userMapper.selectById(userId);
+    if (ObjectUtils.isEmpty(user)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+    }
+    // Verify old password
+    boolean verified = PasswordUtil.verifyPassword(oldPassword, user.getSalt(), user.getPassword());
+    if (!verified) {
+      throw new BusinessException(messageSource.getMessage("user.old.password.incorrect", null,
+          LocaleContextHolder.getLocale()));
+    }
+
+    // Update to new password
+    String salt = PasswordUtil.generateSalt(16);
+    String encryptedPassword = PasswordUtil.generateEncryptedPassword(newPassword, salt);
+    user.setPassword(encryptedPassword);
+    user.setSalt(salt);
+    user.setUpdatedAt(LocalDateTime.now());
+    userMapper.updateById(user);
+  }
+
+}

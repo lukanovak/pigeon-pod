@@ -1,25 +1,53 @@
-CREATE TABLE if NOT EXISTS config
+CREATE TABLE IF NOT EXISTS config
 (
-    id        BIGINT auto_increment PRIMARY key,
-    name      VARCHAR(100)      NOT NULL,
-    value     longtext          NULL,
-    is_public tinyint DEFAULT 0 NOT NULL,
-    CONSTRAINT config_pk_2 UNIQUE (name)
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    name      TEXT              NOT NULL,
+    value     TEXT              NULL,
+    is_public INTEGER DEFAULT 0 NOT NULL,
+    UNIQUE (name)
 );
 
-CREATE TABLE if NOT EXISTS user
+CREATE TABLE IF NOT EXISTS user
 (
-    id         BIGINT auto_increment PRIMARY key,
-    username   VARCHAR(50)                         NOT NULL,
-    password   VARCHAR(100)                        NOT NULL,
-    salt       VARCHAR(20)                         NOT NULL,
-    email      VARCHAR(100)                        NULL,
-    role       VARCHAR(20)   DEFAULT 'USER'        NOT NULL comment 'ADMIN,USER',
-    status     tinyint   DEFAULT 1                 NOT NULL comment '1:enabled; 0:disabled',
-    api_key    VARCHAR(50)                         NULL,
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    username   TEXT                                NOT NULL,
+    password   TEXT                                NOT NULL,
+    salt       TEXT                                NOT NULL,
+    email      TEXT                                NULL,
+    role       TEXT      DEFAULT 'USER'            NOT NULL,
+    status     INTEGER   DEFAULT 1                 NOT NULL,
+    api_key    TEXT                                NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT user_pk_2 UNIQUE (username),
-    CONSTRAINT user_pk_3 UNIQUE (email)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UNIQUE (username),
+    UNIQUE (email)
 );
 
+CREATE TABLE IF NOT EXISTS channel
+(
+    id               TEXT      NOT NULL UNIQUE,
+    handler          TEXT      NOT NULL UNIQUE,
+    name             TEXT      NOT NULL,
+    avatar_url       TEXT      NOT NULL,
+    description      TEXT      NOT NULL,
+    registered_at    TIMESTAMP NULL,
+    video_count      INTEGER   NULL,
+    subscriber_count INTEGER   NULL,
+    view_count       INTEGER   NULL,
+    channel_source     TEXT      NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS program (
+    id           TEXT      NOT NULL UNIQUE,
+    channel_id   TEXT      NOT NULL,
+    position     INTEGER   NOT NULL,
+    title        TEXT      NOT NULL,
+    description  TEXT      NOT NULL,
+    published_at TIMESTAMP NULL,
+    cover_url    TEXT      NOT NULL,
+    FOREIGN KEY (channel_id) REFERENCES channel(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_program_title ON program(title);
+CREATE INDEX IF NOT EXISTS idx_program_description ON program(description);
+CREATE INDEX IF NOT EXISTS idx_program_channel_id ON program(channel_id);

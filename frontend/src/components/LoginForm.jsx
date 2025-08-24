@@ -22,14 +22,10 @@ const LoginForm = () => {
   const [searchParams] = useSearchParams();
   const [, dispatch] = useContext(UserContext);
   const [loading, setLoading] = useState(false);
-  const [enableRegister, setEnableRegister] = useState(false);
-  const [enableForgetPassword, setEnableForgetPassword] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   useEffect(() => {
-    getConfig("RegisterEnabled").then((data) => setEnableRegister(data === 'true'));
-    getConfig("ForgetPasswordEnabled").then((data) => setEnableForgetPassword(data === 'true'));
     if (searchParams.get('expired')) {
       showError(t('not_logged_in_or_expired'));
     }
@@ -66,44 +62,6 @@ const LoginForm = () => {
     navigate('/');
   };
 
-  const handleForgerPassword = async () => {
-    const res = await API.get('/api/public/config?name=ForgetPasswordEnabled');
-    const { code, msg, data } = res.data;
-    if (code !== 200) {
-      showError(msg);
-      return;
-    }
-    if (data === 'true') {
-      navigate('/forget-password');
-    } else {
-      showError(t('forget_password_not_enabled'));
-    }
-  };
-
-  const handleRegister = async () => {
-    const res = await API.get('/api/public/config?name=RegisterEnabled');
-    const { code, msg, data } = res.data;
-    if (code !== 200) {
-      showError(msg);
-      return;
-    }
-    if (data === 'true') {
-      navigate('/register');
-    } else {
-      showError(t('register_not_enabled'));
-    }
-  };
-
-  const getConfig = async (name) => {
-    const res = await API.get(`/api/public/config?name=${name}`);
-    const { code, msg, data } = res.data;
-    if (code !== 200) {
-      showError(msg);
-      return null;
-    }
-    return data;
-  };
-
   return (
     <Container pt="150px" size="xs">
       <Group justify="center">
@@ -135,16 +93,6 @@ const LoginForm = () => {
             >
               {t('login')}
             </Button>
-            <Group justify="space-between">
-              {enableForgetPassword ?
-              <Anchor onClick={handleForgerPassword} size="sm">
-                {t('forgot_password')}
-              </Anchor> : null}
-              {enableRegister ?
-              <Anchor onClick={handleRegister} size="sm">
-                {t('register_account')}
-              </Anchor> : null}
-            </Group>
           </Stack>
         </form>
       </Paper>

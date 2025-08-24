@@ -37,43 +37,6 @@ function Header() {
   const navigate = useNavigate();
   const { i18n, t } = useTranslation();
 
-  const headerLinks = [
-    {
-      name: t('header_home'),
-      to: '/',
-      icon: IconHome,
-    },
-    {
-      name: t('header_user'),
-      to: '/user',
-      icon: IconUser,
-      requireAdmin: true,
-    },
-    {
-      name: t('header_setting'),
-      to: '/system-setting',
-      icon: IconSettings,
-      requireAdmin: true,
-    },
-  ];
-
-  const renderLinks = () => {
-    if (!state.user) return '';
-    const role = state.user.role;
-    return headerLinks
-      .filter((link) => (link.requireAdmin ? role === 'ADMIN' : true))
-      .map((link) => (
-        <Link to={link.to} key={link.name} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <Group mr="lg">
-            {React.createElement(link.icon, { size: 16 })}
-            <Text fw={700} ml="-6">
-              {link.name}
-            </Text>
-          </Group>
-        </Link>
-      ));
-  };
-
   function changeLanguageWithStorage(lng) {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
@@ -89,13 +52,10 @@ function Header() {
 
   return (
     <Paper shadow="xs" p={5}>
-      <Group justify="space-around" m={0}>
-        <Group>
-          <Group gap="xs" mr={10} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <Image src={logo} w={40}></Image>
-            <Title order={4}>{t('header_title')}</Title>
-          </Group>
-          <Flex>{renderLinks()}</Flex>
+      <Group justify="space-between" mr="xl" ml="xl" >
+        <Group gap="xs" mr={10} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+          <Image src={logo} w={40}></Image>
+          <Title order={4}>{t('header_title')}</Title>
         </Group>
         <Group>
           {state.user ? (

@@ -26,11 +26,8 @@ const UserSetting = () => {
   const { t } = useTranslation();
   const [state, dispatch] = useContext(UserContext);
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
-  const [bindEmailLoading, setBindEmailLoading] = useState(false);
-  const [getCodeLoading, setGetCodeLoading] = useState(false);
   const [resetPasswordOpened, { open: openResetPassword, close: closeResetPassword }] =
     useDisclosure(false);
-  const [bindEmailOpened, { open: openBindEmail, close: closeBindEmail }] = useDisclosure(false);
   const [
     confirmGenerateApiKeyOpened,
     { open: openConfirmGenerateApiKey, close: closeConfirmGenerateApiKey },
@@ -53,40 +50,6 @@ const UserSetting = () => {
       showError(msg);
     }
     setResetPasswordLoading(false);
-  };
-
-  const sendVerificationCode = async () => {
-    const email = bindEmailForm.getValues().getVerificationCode;
-    if (email === '') {
-      return;
-    }
-    setGetCodeLoading(true);
-    const user = { ...state.user, getVerificationCode: email };
-    const res = await API.post('/api/account/send-verification-email', user);
-    const { code, msg } = res.data;
-    if (code === 200) {
-      showSuccess(t('verification_code_sent'));
-    } else {
-      showError(msg);
-    }
-    setGetCodeLoading(false);
-  };
-
-  const bindEmail = async () => {
-    setBindEmailLoading(true);
-    const user = {
-      ...state.user,
-      getVerificationCode: bindEmailForm.getValues().getVerificationCode,
-      verificationCode: bindEmailForm.getValues().verificationCode,
-    };
-    const res = await API.get('/api/account/bind-email', user);
-    const { code, msg } = res.data;
-    if (code === 200) {
-      showSuccess(t('email_bound_success'));
-    } else {
-      showError(msg);
-    }
-    setBindEmailLoading(false);
   };
 
   const generateApiKey = async () => {
@@ -138,22 +101,6 @@ const UserSetting = () => {
     },
   });
 
-  const bindEmailForm = useForm({
-    mode: 'uncontrolled',
-    initialValues: {
-      email: '',
-      verificationCode: '',
-    },
-    validate: {
-      getVerificationCode: (value) =>
-        /^\S+@\S+\.\S+$/.test(value) ? null : 'Invalid email address',
-      emailVerificationCode: hasLength(
-        { min: 6 },
-        'Verification code must be at least 6 characters long',
-      ),
-    },
-  });
-
   return (
     <Container size="lg" mt="lg">
       <Stack>
@@ -161,14 +108,8 @@ const UserSetting = () => {
           <Stack>
             <Title order={4}>{t('account_setting')}</Title>
             <Group>
+              <Text c="dimmed">User Name:</Text>
               <Text>{state.user.username}</Text>
-              <Badge variant="light" radius="sm" color="orange">
-                {state.user.role}
-              </Badge>
-            </Group>
-            <Group>
-              <Text c="dimmed">{t('email')}:</Text>
-              <Text>{state.user.email ? state.user.email : t('not_set')}</Text>
             </Group>
             <Group>
               <Text c="dimmed">API Key:</Text>
@@ -188,9 +129,6 @@ const UserSetting = () => {
             <Group mt="md">
               <Button onClick={openChangeUsername}>{t('change_username')}</Button>
               <Button onClick={openResetPassword}>{t('reset_password')}</Button>
-              <Button onClick={openBindEmail}>
-                {state.user.email ? t('rebind_email') : t('bind_email')}
-              </Button>
               <Button onClick={openConfirmGenerateApiKey}>
                 {state.user.apiKey ? t('change_api_key') : t('generate_api_key')}
               </Button>
@@ -229,40 +167,6 @@ const UserSetting = () => {
           <Group justify="flex-end" mt="sm">
             <Button mt="sm" loading={resetPasswordLoading} type="submit">
               {t('confirm_reset')}
-            </Button>
-          </Group>
-        </form>
-      </Modal>
-
-      <Modal opened={bindEmailOpened} onClose={closeBindEmail} title={t('bind_email')}>
-        <form onSubmit={bindEmailForm.onSubmit((values) => bindEmail(values))}>
-          <Group align="flex-end">
-            <TextInput
-              name="email"
-              label={t('email')}
-              withAsterisk
-              leftSection={<IconAt size={16} />}
-              placeholder={t('enter_new_email')}
-              key={bindEmailForm.key('email')}
-              {...bindEmailForm.getInputProps('email')}
-              style={{ flex: 1 }}
-            />
-            <Button variant="outline" loading={getCodeLoading} onClick={sendVerificationCode}>
-              {t('get_code')}
-            </Button>
-          </Group>
-          <TextInput
-            mt="sm"
-            name="verificationCode"
-            withAsterisk
-            label={t('verification_code')}
-            placeholder={t('enter_verification_code')}
-            key={bindEmailForm.key('verificationCode')}
-            {...bindEmailForm.getInputProps('verificationCode')}
-          />
-          <Group justify="flex-end" mt="sm">
-            <Button mt="sm" type="submit" loading={bindEmailLoading}>
-              {t('confirm_bind')}
             </Button>
           </Group>
         </form>
