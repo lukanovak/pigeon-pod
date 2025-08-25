@@ -1,6 +1,5 @@
 package top.asimov.pigeon.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,13 +19,6 @@ public class AccountController {
     this.accountService = accountService;
   }
 
-  @GetMapping("/info")
-  public SaResult info() {
-    String userId = (String) StpUtil.getLoginId();
-    User user = accountService.getUserInfo(userId);
-    return SaResult.data(user);
-  }
-
   @PostMapping("/change-username")
   public SaResult changeUsername(@RequestBody User user) {
     return SaResult.data(accountService.changeUsername(user.getId(), user.getUsername()));
@@ -42,6 +34,11 @@ public class AccountController {
   public SaResult resetPassword(@RequestBody User user) {
     accountService.resetPassword(user.getId(), user.getPassword(), user.getNewPassword());
     return SaResult.data(user);
+  }
+
+  @PostMapping("/update-youtube-api-key")
+  public SaResult updateYoutubeApiKey(@RequestBody User user) {
+    return SaResult.data(accountService.updateYoutubeApiKey(user.getId(), user.getYoutubeApiKey()));
   }
 
 }

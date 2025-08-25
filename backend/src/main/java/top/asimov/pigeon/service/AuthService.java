@@ -25,9 +25,9 @@ public class AuthService {
   public User login(String username, String password) {
     User user = checkUserCredentials(username, password);
     StpUtil.login(user.getId());
-
-    String role = user.getRole();
-    StpUtil.getSession().set("role", role);
+    // Clear sensitive fields
+    user.setPassword(null);
+    user.setSalt(null);
     return user;
   }
 
@@ -37,10 +37,6 @@ public class AuthService {
     User existUser = query.one();
     if (ObjectUtils.isEmpty(existUser)) {
       throw new BusinessException(messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
-    }
-
-    if (1 != existUser.getStatus()) {
-      throw new BusinessException(messageSource.getMessage("user.not.active", null, LocaleContextHolder.getLocale()));
     }
 
     boolean verified = PasswordUtil.verifyPassword(password, existUser.getSalt(),

@@ -14,24 +14,14 @@ import {
 import { marked } from 'marked';
 import { useTranslation } from 'react-i18next';
 import { IconSearch } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const { t } = useTranslation();
-  const [notice, setNotice] = useState('');
+  const navigate = useNavigate();
   const [channelUrl, setChannelUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [channels, setChannels] = useState([]);
-
-  const fetchNotice = async () => {
-    const res = await API.get('/api/config/name?name=Notice');
-    const { code, msg, data } = res.data;
-    if (code === 200) {
-      const content = marked.parse(data);
-      setNotice(content);
-    } else {
-      showError(msg);
-    }
-  };
 
   const addChannel = async () => {
     setLoading(true);
@@ -60,21 +50,16 @@ const Home = () => {
     setChannels(data);
   };
 
+  const goToChannelDetail = (channelId) => {
+    navigate(`/channel/${channelId}`);
+  };
 
   useEffect(() => {
-    fetchNotice().then();
     fetchChannels().then();
   }, []);
 
   return (
     <Container size="lg" mt="lg">
-      <Group>
-        {notice ? (
-          <Alert variant="light" color="blue" radius="md">
-            <div dangerouslySetInnerHTML={{ __html: notice }} />
-          </Alert>
-        ) : null}
-      </Group>
       <Group pos="relative">
         <Input
           leftSection={<IconSearch size={16} />}
@@ -95,7 +80,22 @@ const Home = () => {
         {channels.length > 0 ? (
           channels.map((channel) => (
             <Grid.Col key={channel.id} span={2}>
-              <Card shadow="sm" padding="sm" radius="sm">
+              <Card
+                shadow="sm"
+                padding="sm"
+                radius="sm"
+                onClick={() => goToChannelDetail(channel.id)}
+                style={{ cursor: 'pointer' }}
+                withBorder
+                className="channel-card"
+                sx={(theme) => ({
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: theme.shadows.md,
+                  }
+                })}
+              >
                 <Card.Section>
                   <Image
                     src={channel.avatarUrl}

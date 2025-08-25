@@ -103,6 +103,65 @@ export function showNotice(message) {
   });
 }
 
+/**
+ * 解析 ISO 8601 Duration (例如 PT1H11M52S)
+ * 秒数四舍五入到分钟，不直接显示秒
+ */
+export function formatISODuration(isoDuration) {
+  const regex = /P(?:([0-9]+)D)?T?(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)S)?/;
+  const matches = isoDuration.match(regex);
+
+  if (!matches) return isoDuration;
+
+  const days = parseInt(matches[1] || 0, 10);
+  const hours = parseInt(matches[2] || 0, 10);
+  let minutes = parseInt(matches[3] || 0, 10);
+  const seconds = parseInt(matches[4] || 0, 10);
+
+  // 四舍五入秒 → 分钟
+  if (seconds >= 30) {
+    minutes += 1;
+  }
+
+  // 转换天数为小时
+  let totalHours = days * 24 + hours;
+
+  let parts = [];
+  if (totalHours > 0) {
+    // 小时模式
+    if (minutes >= 60) {
+      totalHours += Math.floor(minutes / 60);
+      minutes = minutes % 60;
+    }
+    parts.push(`${totalHours} 小时`);
+    if (minutes > 0) parts.push(`${minutes} 分`);
+  } else {
+    // 分钟模式（没有小时）
+    const totalMinutes = days * 24 * 60 + minutes;
+    parts.push(`${totalMinutes} 分`);
+  }
+
+  return parts.join(" ");
+}
+
+/**
+ * 格式化 ISO 日期时间
+ * 2025-08-25T01:00:28 -> 2025-08-25 01:00:28
+ */
+export function formatISODateTime(isoDateTime) {
+  const date = new Date(isoDateTime);
+  const pad = (n) => n.toString().padStart(2, "0");
+
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hour = pad(date.getHours());
+  const minute = pad(date.getMinutes());
+  const second = pad(date.getSeconds());
+
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
 export function openPage(url) {
   window.open(url);
 }

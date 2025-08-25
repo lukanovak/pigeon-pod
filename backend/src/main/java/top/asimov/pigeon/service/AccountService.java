@@ -26,18 +26,6 @@ public class AccountService {
     this.messageSource = messageSource;
   }
 
-  public User getUserInfo(String userId) {
-    User user = userMapper.selectById(userId);
-    if (ObjectUtils.isEmpty(user)) {
-      throw new BusinessException(
-          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
-    }
-    // Clear sensitive fields
-    user.setPassword(null);
-    user.setSalt(null);
-    return user;
-  }
-
   public String generateApiKey() {
     String loginId = (String) StpUtil.getLoginId();
     User user = userMapper.selectById(loginId);
@@ -51,8 +39,7 @@ public class AccountService {
     ApiKeyModel akModel = SaApiKeyUtil
         .createApiKeyModel(loginId)
         .setTitle(user.getUsername())
-        .setExpiresTime(-1)
-        .addScope(user.getRole());
+        .setExpiresTime(-1);
     SaApiKeyUtil.saveApiKey(akModel);
     user.setApiKey(akModel.getApiKey());
     userMapper.updateById(user);
@@ -103,6 +90,27 @@ public class AccountService {
     user.setSalt(salt);
     user.setUpdatedAt(LocalDateTime.now());
     userMapper.updateById(user);
+  }
+
+  public String updateYoutubeApiKey(String userId, String youtubeApiKey) {
+    User user = userMapper.selectById(userId);
+    if (ObjectUtils.isEmpty(user)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+    }
+    user.setYoutubeApiKey(youtubeApiKey);
+    user.setUpdatedAt(LocalDateTime.now());
+    userMapper.updateById(user);
+    return user.getYoutubeApiKey();
+  }
+
+  public String getYoutubeApiKey(String userId) {
+    User user = userMapper.selectById(userId);
+    if (ObjectUtils.isEmpty(user)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+    }
+    return user.getYoutubeApiKey();
   }
 
 }

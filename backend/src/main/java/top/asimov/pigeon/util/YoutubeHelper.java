@@ -15,8 +15,6 @@ import java.util.List;
 
 public class YoutubeHelper {
 
-  // 替换为你的 API 密钥
-  public static final String API_KEY = "";
   private static final String APPLICATION_NAME = "My YouTube App";
   private static final JacksonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
@@ -58,7 +56,7 @@ public class YoutubeHelper {
    * @return Channel ID.
    * @throws IOException
    */
-  public static String getChannelIdByHandle(YouTube youtubeService, String handle)
+  public static String getChannelIdByHandle(YouTube youtubeService, String youtubeApiKey, String handle)
       throws IOException {
     YouTube.Search.List searchListRequest = youtubeService.search()
         .list("snippet")
@@ -66,7 +64,7 @@ public class YoutubeHelper {
         .setType("channel") // 只搜索频道
         .setMaxResults(1L); // 我们只需要最相关的那个
 
-    searchListRequest.setKey(API_KEY);
+    searchListRequest.setKey(youtubeApiKey);
     SearchListResponse response = searchListRequest.execute();
     List<SearchResult> searchResults = response.getItems();
 

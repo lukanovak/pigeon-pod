@@ -19,7 +19,7 @@ import {
 import { UserContext } from '../../context/User/UserContext.jsx';
 import { hasLength, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { IconAt, IconCheck, IconCopy, IconLock } from '@tabler/icons-react';
+import { IconAt, IconCheck, IconCopy, IconEye, IconEyeOff, IconLock, IconPencil } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 const UserSetting = () => {
@@ -35,6 +35,11 @@ const UserSetting = () => {
   const [changeUsernameOpened, { open: openChangeUsername, close: closeChangeUsername }] =
     useDisclosure(false);
   const [newUsername, setNewUsername] = useState('');
+
+  // YouTube Data API Key states
+  const [editYoutubeApiKeyOpened, { open: openEditYoutubeApiKey, close: closeEditYoutubeApiKey }] =
+    useDisclosure(false);
+  const [youtubeApiKey, setYoutubeAoiKey] = useState('');
 
   const resetPassword = async (values) => {
     setResetPasswordLoading(true);
@@ -88,6 +93,30 @@ const UserSetting = () => {
     }
   }
 
+  // YouTube API Key functions
+  const saveYoutubeApiKey = async () => {
+    const res = await API.post('/api/account/update-youtube-api-key', {
+      id: state.user.id,
+      youtubeApiKey: youtubeApiKey,
+    });
+    const { code, msg, data } = res.data;
+    if (code === 200) {
+      showSuccess(t('youtube_api_key_saved'));
+      // update the apiKey in the context
+      const user = {
+        ...state.user,
+        youtubeApiKey: data,
+      };
+      dispatch({
+        type: 'login',
+        payload: user,
+      });
+      localStorage.setItem('user', JSON.stringify(user));
+      closeEditYoutubeApiKey();
+    } else {
+      showError(msg);
+    }
+  };
 
   const resetPasswordForm = useForm({
     mode: 'uncontrolled',
@@ -126,11 +155,22 @@ const UserSetting = () => {
                 </CopyButton>
               ) : null}
             </Group>
+            <Group>
+              <Text c="dimmed">YouTube API Key:</Text>
+              <Text>
+                {state.user.youtubeApiKey
+                  ? state.user.youtubeApiKey
+                  : t('youtube_api_key_not_set')}
+              </Text>
+            </Group>
             <Group mt="md">
               <Button onClick={openChangeUsername}>{t('change_username')}</Button>
               <Button onClick={openResetPassword}>{t('reset_password')}</Button>
               <Button onClick={openConfirmGenerateApiKey}>
                 {state.user.apiKey ? t('change_api_key') : t('generate_api_key')}
+              </Button>
+              <Button onClick={openEditYoutubeApiKey}>
+                {state.user.youtubeApiKey ? t('edit_youtube_api_key') : t('set_youtube_api_key')}
               </Button>
             </Group>
           </Stack>
@@ -208,6 +248,31 @@ const UserSetting = () => {
               onClick={() => {
                 changeUsername().then();
               }}
+          >
+            {t('confirm')}
+          </Button>
+        </Group>
+      </Modal>
+
+      {/* YouTube Data API Key Edit Modal */}
+      <Modal
+        opened={editYoutubeApiKeyOpened}
+        onClose={closeEditYoutubeApiKey}
+        title={t('youtube_data_api_key')}
+      >
+        <PasswordInput
+          label={t('youtube_data_api_key')}
+          placeholder={t('enter_youtube_data_api_key')}
+          value={youtubeApiKey}
+          onChange={(event) => setYoutubeAoiKey(event.currentTarget.value)}
+          withAsterisk
+          leftSection={<IconLock size={16} />}
+        />
+        <Group justify="flex-end" mt="md">
+          <Button
+            onClick={() => {
+              saveYoutubeApiKey().then();
+            }}
           >
             {t('confirm')}
           </Button>

@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound/index.jsx';
 import UserSetting from './pages/UserSetting/index.jsx';
 import Layout from './components/Layout.jsx';
 import Forbidden from './pages/Forbidden/index.jsx';
+import ChannelDetail from './pages/Channel/index.jsx';
 
 function App() {
   const [, dispatch] = useContext(UserContext);
@@ -33,6 +34,10 @@ function App() {
         <Route
           path="user-setting"
           element={<UserSetting />}
+        />
+        <Route
+          path="channel/:channelId"
+          element={<ChannelDetail />}
         />
 
         <Route path="login" element={<LoginForm />} />

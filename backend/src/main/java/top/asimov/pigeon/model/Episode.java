@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@TableName("program")
-public class Program {
+@TableName("episode")
+public class Episode {
     @TableId
     private String id;
     private String channelId;
@@ -24,4 +24,8 @@ public class Program {
     private LocalDateTime publishedAt;
     private String defaultCoverUrl;
     private String maxCoverUrl;
+    private String duration; // in ISO 8601 format
+    private String downloadStatus;
+    private String audioFilePath;
+    private LocalDateTime createdAt;
 }
