@@ -15,7 +15,7 @@ COPY --from=frontend-build /app/dist ./src/main/resources/static
 RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
-RUN apk add --no-cache python3 py3-pip && pip3 install --no-cache-dir yt-dlp
+RUN apk update && apk add --no-cache yt-dlp
 WORKDIR /app
 COPY --from=backend-build /app/target/*.jar app.jar
 ENV JAVA_OPTS=""
