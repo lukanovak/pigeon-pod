@@ -14,12 +14,9 @@ public class AsyncConfig {
   public Executor taskExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-    // 保证核心数至少为2，避免环境问题导致返回0或1
-    int processors = Runtime.getRuntime().availableProcessors();
-    int corePoolSize = Math.max(2, processors);
-
-    executor.setCorePoolSize(corePoolSize);
-    executor.setMaxPoolSize(Math.max(corePoolSize, 4)); // 保证maxPoolSize不小于corePoolSize
+    // 配合 SQLite 单线程读写，线程数设为1
+    executor.setCorePoolSize(1);
+    executor.setMaxPoolSize(1);
     executor.setQueueCapacity(10);
     executor.setThreadNamePrefix("PP-Downloader-");
     executor.initialize();

@@ -1,5 +1,6 @@
 package top.asimov.pigeon.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.util.SaResult;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import top.asimov.pigeon.model.Episode;
 import top.asimov.pigeon.service.EpisodeService;
 
+@SaCheckLogin
 @RestController
 @RequestMapping("/api/program")
 public class EpisodeController {
@@ -22,12 +24,6 @@ public class EpisodeController {
   @GetMapping("/list/{channelId}")
   public SaResult programsOfChannel(@PathVariable(name = "channelId") String channelId) {
     List<Episode> episodeList = episodeService.findByChannelId(channelId);
-    return SaResult.data(episodeList);
-  }
-
-  @GetMapping("/refresh-manually/{channelId}")
-  public SaResult manualRefresh(@PathVariable(name = "channelId") String channelId) {
-    List<Episode> episodeList = episodeService.manualRefresh(channelId);
     return SaResult.data(episodeList);
   }
 

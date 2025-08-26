@@ -27,6 +27,7 @@ public class Channel {
   private Integer viewCount;
   private String channelUrl;
   private String channelSource;
+  private Integer updateFrequency;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
   private LocalDateTime subscribedAt;

@@ -15,7 +15,8 @@ import logo from '../assets/pigeon.png';
 import {
   IconBrandGithub,
   IconHome,
-  IconInfoCircle, IconLanguage,
+  IconInfoCircle,
+  IconLanguage,
   IconLogout2,
   IconMoon,
   IconSettings,
@@ -52,7 +53,7 @@ function Header() {
 
   return (
     <Paper shadow="xs" p={5}>
-      <Group justify="space-between" mr="xl" ml="xl" >
+      <Group justify="space-between" mr="xl" ml="xl">
         <Group gap="xs" mr={10} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <Image src={logo} w={40}></Image>
           <Title order={4}>{t('header_title')}</Title>
@@ -96,8 +97,12 @@ function Header() {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item onClick={() => changeLanguageWithStorage('en')}>{t('header_lang_en')}</Menu.Item>
-              <Menu.Item onClick={() => changeLanguageWithStorage('zh')}>{t('header_lang_zh')}</Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('en')}>
+                {t('header_lang_en')}
+              </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('zh')}>
+                {t('header_lang_zh')}
+              </Menu.Item>
             </Menu.Dropdown>
           </Menu>
           <ActionIcon variant="default" size="sm">

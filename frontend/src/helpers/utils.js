@@ -141,7 +141,7 @@ export function formatISODuration(isoDuration) {
     parts.push(`${totalMinutes} 分`);
   }
 
-  return parts.join(" ");
+  return parts.join(' ');
 }
 
 /**
@@ -150,7 +150,7 @@ export function formatISODuration(isoDuration) {
  */
 export function formatISODateTime(isoDateTime) {
   const date = new Date(isoDateTime);
-  const pad = (n) => n.toString().padStart(2, "0");
+  const pad = (n) => n.toString().padStart(2, '0');
 
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);

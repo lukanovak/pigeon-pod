@@ -13,20 +13,22 @@ CREATE TABLE IF NOT EXISTS user
 
 CREATE TABLE IF NOT EXISTS channel
 (
-    id                   TEXT      NOT NULL UNIQUE,
-    handler              TEXT      NOT NULL UNIQUE,
-    name                 TEXT      NOT NULL,
-    avatar_url           TEXT      NOT NULL,
-    description          TEXT      NOT NULL,
-    registered_at        TIMESTAMP NULL,
-    video_count          INTEGER   NULL,
-    subscriber_count     INTEGER   NULL,
-    view_count           INTEGER   NULL,
-    channel_url          TEXT      NULL,
-    channel_source       TEXT      NOT NULL,
-    last_sync_video_id TEXT,
-    last_sync_timestamp  TIMESTAMP,
-    subscribed_at        TIMESTAMP
+    id                  TEXT      NOT NULL UNIQUE,
+    handler             TEXT      NOT NULL UNIQUE,
+    name                TEXT      NOT NULL,
+    avatar_url          TEXT      NOT NULL,
+    description         TEXT      NOT NULL,
+    registered_at       TIMESTAMP NULL,
+    video_count         INTEGER   NULL,
+    subscriber_count    INTEGER   NULL,
+    view_count          INTEGER   NULL,
+    channel_url         TEXT      NULL,
+    channel_source      TEXT      NOT NULL,
+    update_frequency    INTEGER,
+    last_sync_video_id  TEXT,
+    last_sync_timestamp TIMESTAMP,
+    subscribed_at       TIMESTAMP,
+    UNIQUE (handler)
 );
 
 CREATE TABLE IF NOT EXISTS episode
@@ -35,12 +37,12 @@ CREATE TABLE IF NOT EXISTS episode
     channel_id        TEXT      NOT NULL,
     position          INTEGER   NOT NULL,
     title             TEXT      NOT NULL,
-    description       TEXT      NOT NULL,
+    description       TEXT      NULL,
     published_at      TIMESTAMP NULL,
-    default_cover_url TEXT      NOT NULL,
-    max_cover_url     TEXT      NOT NULL,
+    default_cover_url TEXT      NULL,
+    max_cover_url     TEXT      NULL,
     duration          TEXT,
-    download_status   TEXT,
+    download_status   TEXT      NOT NULL,
     audio_file_path   TEXT,
     created_at        TIMESTAMP,
     FOREIGN KEY (channel_id) REFERENCES channel (id)

@@ -14,6 +14,12 @@ spring:
     init:
       mode: always
 
+pigeon:
+  base-url: http://localhost:8080
+  # default audio file storage path
+#  audio-file-path: /pigeon-pod/audios/
+  audio-file-path: /Users/asimov/Downloads/pigeon-pod/audio/
+
 sa-token:
   # Token name (also the cookie name)
   token-name: pigeonpod

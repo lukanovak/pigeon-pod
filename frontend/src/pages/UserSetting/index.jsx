@@ -19,7 +19,15 @@ import {
 import { UserContext } from '../../context/User/UserContext.jsx';
 import { hasLength, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { IconAt, IconCheck, IconCopy, IconEye, IconEyeOff, IconLock, IconPencil } from '@tabler/icons-react';
+import {
+  IconAt,
+  IconCheck,
+  IconCopy,
+  IconEye,
+  IconEyeOff,
+  IconLock,
+  IconPencil,
+} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 const UserSetting = () => {
@@ -91,7 +99,7 @@ const UserSetting = () => {
     } else {
       showError(msg);
     }
-  }
+  };
 
   // YouTube API Key functions
   const saveYoutubeApiKey = async () => {
@@ -158,9 +166,7 @@ const UserSetting = () => {
             <Group>
               <Text c="dimmed">YouTube API Key:</Text>
               <Text>
-                {state.user.youtubeApiKey
-                  ? state.user.youtubeApiKey
-                  : t('youtube_api_key_not_set')}
+                {state.user.youtubeApiKey ? state.user.youtubeApiKey : t('youtube_api_key_not_set')}
               </Text>
             </Group>
             <Group mt="md">
@@ -177,11 +183,7 @@ const UserSetting = () => {
         </Paper>
       </Stack>
 
-      <Modal
-        opened={resetPasswordOpened}
-        onClose={closeResetPassword}
-        title={t('reset_password')}
-      >
+      <Modal opened={resetPasswordOpened} onClose={closeResetPassword} title={t('reset_password')}>
         <form onSubmit={resetPasswordForm.onSubmit((values) => resetPassword(values))}>
           <PasswordInput
             name="oldPassword"
@@ -217,9 +219,7 @@ const UserSetting = () => {
         onClose={closeConfirmGenerateApiKey}
         title={t('confirm_generation')}
       >
-        <Text fw={500}>
-          {t('confirm_generate_api_key_tip')}
-        </Text>
+        <Text fw={500}>{t('confirm_generate_api_key_tip')}</Text>
         <Group justify="flex-end" mt="md">
           <Button
             color="red"
@@ -233,21 +233,22 @@ const UserSetting = () => {
       </Modal>
 
       <Modal
-          opened={changeUsernameOpened}
-          onClose={closeChangeUsername}
-          title={t('change_username')}
+        opened={changeUsernameOpened}
+        onClose={closeChangeUsername}
+        title={t('change_username')}
       >
-        <TextInput withAsterisk
-            label={t('new_username')}
-            placeholder={t('enter_new_username')}
-                   value={newUsername}
-                   onChange={(event) => setNewUsername(event.currentTarget.value)}
+        <TextInput
+          withAsterisk
+          label={t('new_username')}
+          placeholder={t('enter_new_username')}
+          value={newUsername}
+          onChange={(event) => setNewUsername(event.currentTarget.value)}
         />
         <Group justify="flex-end" mt="md">
           <Button
-              onClick={() => {
-                changeUsername().then();
-              }}
+            onClick={() => {
+              changeUsername().then();
+            }}
           >
             {t('confirm')}
           </Button>

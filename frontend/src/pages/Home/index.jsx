@@ -1,16 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API, showError } from '../../helpers';
-import {
-  Alert,
-  Button,
-  Card,
-  Container,
-  Grid,
-  Group,
-  Input,
-  Image,
-  Text,
-} from '@mantine/core';
+import { Alert, Button, Card, Container, Grid, Group, Input, Image, Text } from '@mantine/core';
 import { marked } from 'marked';
 import { useTranslation } from 'react-i18next';
 import { IconSearch } from '@tabler/icons-react';
@@ -35,7 +25,7 @@ const Home = () => {
     }
 
     // Add the new channel at the beginning of the channels list
-    setChannels(prevChannels => [data, ...prevChannels]);
+    setChannels((prevChannels) => [data, ...prevChannels]);
     setChannelUrl(''); // Clear the input field after successful addition
     setLoading(false);
   };
@@ -74,7 +64,9 @@ const Home = () => {
           }}
           style={{ flex: 1 }}
         />
-        <Button onClick={addChannel} loading={loading}>{t('new channel')}</Button>
+        <Button onClick={addChannel} loading={loading}>
+          {t('new channel')}
+        </Button>
       </Group>
       <Grid mt="xl">
         {channels.length > 0 ? (
@@ -86,22 +78,16 @@ const Home = () => {
                 radius="sm"
                 onClick={() => goToChannelDetail(channel.id)}
                 style={{ cursor: 'pointer' }}
-                withBorder
-                className="channel-card"
                 sx={(theme) => ({
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
                     transform: 'translateY(-5px)',
                     boxShadow: theme.shadows.md,
-                  }
+                  },
                 })}
               >
                 <Card.Section>
-                  <Image
-                    src={channel.avatarUrl}
-                    alt={channel.name}
-                    height={160}
-                  />
+                  <Image src={channel.avatarUrl} alt={channel.name} height={160} />
                 </Card.Section>
                 <Text
                   fw={500}
@@ -110,16 +96,22 @@ const Home = () => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    display: 'block'}}
+                    display: 'block',
+                  }}
                 >
-                  {channel.name}</Text>
-                <Text c="dimmed" size="sm">{new Date(channel.registeredAt).toLocaleDateString()} 更新</Text>
+                  {channel.name}
+                </Text>
+                <Text c="dimmed" size="sm">
+                  {new Date(channel.registeredAt).toLocaleDateString()} 更新
+                </Text>
               </Card>
             </Grid.Col>
           ))
         ) : (
           <Grid.Col span={12}>
-            <Text align="center" c="dimmed" size="lg">暂无频道，请添加新频道</Text>
+            <Text align="center" c="dimmed" size="lg">
+              暂无频道，请添加新频道
+            </Text>
           </Grid.Col>
         )}
       </Grid>

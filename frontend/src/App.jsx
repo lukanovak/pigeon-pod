@@ -27,18 +27,9 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route
-          index
-          element={<Home />}
-        />
-        <Route
-          path="user-setting"
-          element={<UserSetting />}
-        />
-        <Route
-          path="channel/:channelId"
-          element={<ChannelDetail />}
-        />
+        <Route index element={<Home />} />
+        <Route path="user-setting" element={<UserSetting />} />
+        <Route path="channel/:channelId" element={<ChannelDetail />} />
 
         <Route path="login" element={<LoginForm />} />
         <Route path="403" element={<Forbidden />} />

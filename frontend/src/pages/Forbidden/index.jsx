@@ -8,7 +8,7 @@ const Forbidden = () => {
     <Title order={1}>
       <Mark>403</Mark> {t('forbidden')}
     </Title>
-  </Center>
+  </Center>;
 };
 
 export default Forbidden;

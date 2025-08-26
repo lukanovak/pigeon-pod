@@ -1,5 +1,6 @@
 package top.asimov.pigeon.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.util.SaResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import top.asimov.pigeon.model.User;
 import top.asimov.pigeon.service.AccountService;
 
+@SaCheckLogin
 @RestController
 @RequestMapping("/api/account")
 public class AccountController {
