@@ -35,7 +35,7 @@ public class DownloadWorker {
 
     try {
       // 构建下载目录路径
-      String downloadPath = audioStoragePath + File.separator + handler + File.separator;
+      String downloadPath = audioStoragePath;
       // 确保目录存在
       File dir = new File(downloadPath);
       if (!dir.exists() && !dir.mkdirs()) {
