@@ -171,7 +171,7 @@ public class ChannelService {
     if (ObjectUtils.isEmpty(apiKey)) {
       throw new BusinessException("API Key is not set, please generate it in the user setting.");
     }
-    return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apiKey=" + apiKey;
+    return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apikey=" + apiKey;
   }
 
   private Channel fetchAndSaveChannel(String channelUrl) {
