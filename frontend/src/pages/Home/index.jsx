@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API, showError } from '../../helpers';
-import { Alert, Button, Card, Container, Grid, Group, Input, Image, Text } from '@mantine/core';
-import { marked } from 'marked';
+import { Button, Card, Container, Grid, Group, Input, Image, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { IconSearch } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
@@ -64,7 +63,7 @@ const Home = () => {
           }}
           style={{ flex: 1 }}
         />
-        <Button onClick={addChannel} loading={loading}>
+        <Button onClick={addChannel} loading={loading} variant="gradient" gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}>
           {t('new channel')}
         </Button>
       </Group>
@@ -78,13 +77,6 @@ const Home = () => {
                 radius="sm"
                 onClick={() => goToChannelDetail(channel.id)}
                 style={{ cursor: 'pointer' }}
-                sx={(theme) => ({
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: theme.shadows.md,
-                  },
-                })}
               >
                 <Card.Section>
                   <Image src={channel.avatarUrl} alt={channel.name} height={160} />
@@ -92,6 +84,7 @@ const Home = () => {
                 <Text
                   fw={500}
                   mt="sm"
+                  size='sm'
                   style={{
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -101,8 +94,8 @@ const Home = () => {
                 >
                   {channel.name}
                 </Text>
-                <Text c="dimmed" size="sm">
-                  {new Date(channel.registeredAt).toLocaleDateString()} 更新
+                <Text c="dimmed" size="xs">
+                  {new Date(channel.lastPublishedAt).toLocaleDateString()} 更新
                 </Text>
               </Card>
             </Grid.Col>

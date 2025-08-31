@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -17,6 +17,7 @@ import {
   Paper,
   Avatar,
   Modal,
+  Loader,
 } from '@mantine/core';
 import { useClipboard, useDisclosure } from '@mantine/hooks';
 import {
@@ -43,17 +44,35 @@ const ChannelDetail = () => {
   const clipboard = useClipboard();
   const [channel, setChannel] = useState(null);
   const [episodes, setEpisodes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreEpisodes, setHasMoreEpisodes] = useState(true);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(false);
+  const observerRef = useRef();
+  const loadingRef = useRef(false); // Use ref to track loading state without causing re-renders
   const [
     confirmDeleteChannelOpened,
     { open: openConfirmDeleteChannel, close: closeConfirmDeleteChannel },
   ] = useDisclosure(false);
 
-  useEffect(() => {
-    fetchChannelDetail();
-    fetchPrograms();
-  }, [channelId]);
+  // Intersection Observer callback for infinite scrolling
+  const lastEpisodeElementRef = useCallback(
+    (node) => {
+      if (loadingRef.current) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMoreEpisodes && !loadingRef.current) {
+            setCurrentPage((prevPage) => prevPage + 1);
+          }
+        },
+        { threshold: 0.1 }
+      );
+      if (node) observerRef.current.observe(node);
+    },
+    [hasMoreEpisodes]
+  );
 
-  const fetchChannelDetail = async () => {
+  const fetchChannelDetail = useCallback(async () => {
     const res = await API.get(`/api/channel/detail/${channelId}`);
     const { code, msg, data } = res.data;
     if (code !== 200) {
@@ -61,17 +80,61 @@ const ChannelDetail = () => {
     } else {
       setChannel(data);
     }
-  };
+  }, [channelId]);
 
-  const fetchPrograms = async () => {
-    const res = await API.get(`/api/program/list/${channelId}`);
-    const { code, msg, data } = res.data;
-    if (code !== 200) {
-      showError(msg);
-    } else {
-      setEpisodes(data);
+  const fetchPrograms = useCallback(
+    async (page = 1, isInitialLoad = false) => {
+      // Prevent duplicate requests using ref
+      if (loadingRef.current) return;
+
+      loadingRef.current = true;
+      setLoadingEpisodes(true);
+
+      try {
+        const res = await API.get(
+          `/api/program/list/${channelId}?page=${page}&size=10`
+        );
+        const { code, msg, data } = res.data;
+
+        if (code !== 200) {
+          showError(msg);
+          return;
+        }
+
+        // MyBatis Plus Page object has 'records' for data and 'pages' for total pages
+        const episodes = data.records || [];
+        const totalPages = data.pages || 0;
+
+        if (isInitialLoad) {
+          setEpisodes(episodes);
+          setCurrentPage(1);
+        } else {
+          setEpisodes((prevEpisodes) => [...prevEpisodes, ...episodes]);
+        }
+
+        // Check if there are more episodes to load
+        setHasMoreEpisodes(page < totalPages);
+      } catch (error) {
+        showError('Failed to load episodes');
+        console.error('Fetch episodes error:', error);
+      } finally {
+        loadingRef.current = false;
+        setLoadingEpisodes(false);
+      }
+    },
+    [channelId] // Remove loadingEpisodes dependency
+  );
+
+  useEffect(() => {
+    fetchChannelDetail();
+    fetchPrograms(1, true); // Initial load
+  }, [fetchChannelDetail, fetchPrograms]);
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchPrograms(currentPage, false); // Load more episodes
     }
-  };
+  }, [currentPage, fetchPrograms]);
 
   const deleteChannel = async () => {
     const response = await API.delete(`/api/channel/delete/${channelId}`);
@@ -90,7 +153,9 @@ const ChannelDetail = () => {
 
   const handleSubscribe = async () => {
     try {
-      const response = await API.get(`/api/channel/subscribe?handler=${channel.handler}`);
+      const response = await API.get(
+        `/api/channel/subscribe?handler=${channel.handler}`
+      );
       const { code, msg, data } = response.data;
 
       if (code !== 200) {
@@ -100,7 +165,9 @@ const ChannelDetail = () => {
 
       // Copy the RSS feed URL to clipboard
       clipboard.copy(data);
-      showSuccess('订阅链接生成成功，请在任意podcast客户端中使用该链接订阅频道。');
+      showSuccess(
+        '订阅链接生成成功，请在任意podcast客户端中使用该链接订阅频道。'
+      );
     } catch (error) {
       showError('Failed to generate subscription URL');
       console.error('Subscribe error:', error);
@@ -123,7 +190,10 @@ const ChannelDetail = () => {
   };
 
   const handlePlay = (episode) => {
-    // TODO: Implement player logic
+    // 新标签页打开YouTube视频链接
+    let videoId = episode.id;
+    let youtubeVideoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    window.open(youtubeVideoUrl, '_blank', 'noopener,noreferrer');
   };
 
   if (!channel) {
@@ -144,7 +214,12 @@ const ChannelDetail = () => {
           {/* Left column with avatar */}
           <Grid.Col span={{ base: 12, md: 3 }}>
             <Center>
-              <Avatar src={channel.avatarUrl} alt={channel.name} size={250} radius="md" />
+              <Avatar
+                src={channel.avatarUrl}
+                alt={channel.name}
+                size={250}
+                radius="md"
+              />
             </Center>
           </Grid.Col>
 
@@ -166,8 +241,15 @@ const ChannelDetail = () => {
                   @{channel.handler}
                 </Badge>
                 <Title order={1}>{channel.name}</Title>
-                <Text mt="md" size="sm" lineClamp={4} style={{ minHeight: '5rem' }}>
-                  {channel.description ? channel.description : 'No description available.'}
+                <Text
+                  mt="md"
+                  size="sm"
+                  lineClamp={4}
+                  style={{ minHeight: '5rem' }}
+                >
+                  {channel.description
+                    ? channel.description
+                    : 'No description available.'}
                 </Text>
               </Box>
 
@@ -206,8 +288,14 @@ const ChannelDetail = () => {
           </Center>
         ) : (
           <Stack>
-            {episodes.map((episode) => (
-              <Card key={episode.id} padding="md" radius="md" withBorder>
+            {episodes.map((episode, index) => (
+              <Card
+                key={episode.id}
+                padding="md"
+                radius="md"
+                withBorder
+                ref={index === episodes.length - 1 ? lastEpisodeElementRef : null}
+              >
                 <Grid>
                   {/* Episode thumbnail with hover and play button */}
                   <Grid.Col span={{ base: 12, sm: 3 }}>
@@ -266,13 +354,33 @@ const ChannelDetail = () => {
                     <Stack>
                       <Box>
                         <Group justify="space-between">
-                          <Group>
-                            <Title order={4}>{episode.title}</Title>
-                          </Group>
-                          <Text c="dimmed">{formatISODuration(episode.duration)}</Text>
+                          <Box style={{ maxWidth: '93%', overflow: 'hidden' }}>
+                            <Title
+                              order={4}
+                              style={{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                              title={episode.title}
+                            >
+                              {episode.title}
+                            </Title>
+                          </Box>
+                          <Text c="dimmed" style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>
+                            {formatISODuration(episode.duration)}
+                          </Text>
                         </Group>
-                        <Text size="sm" mt="xs" lineClamp={4} style={{ minHeight: '5rem' }}>
-                          {episode.description ? episode.description : 'No description available.'}
+
+                        <Text
+                          size="sm"
+                          mt="xs"
+                          lineClamp={4}
+                          style={{ minHeight: '5rem' }}
+                        >
+                          {episode.description
+                            ? episode.description
+                            : 'No description available.'}
                         </Text>
                       </Box>
 
@@ -280,7 +388,10 @@ const ChannelDetail = () => {
                         <Text size="sm" c="dimmed">
                           <IconClock
                             size={14}
-                            style={{ display: 'inline', verticalAlign: 'text-bottom' }}
+                            style={{
+                              display: 'inline',
+                              verticalAlign: 'text-bottom',
+                            }}
                           />{' '}
                           {episode.publishedAt
                             ? formatISODateTime(episode.publishedAt)
@@ -298,6 +409,13 @@ const ChannelDetail = () => {
                 </Grid>
               </Card>
             ))}
+
+            {/* Loader for infinite scrolling */}
+            {loadingEpisodes && (
+              <Center>
+                <Loader />
+              </Center>
+            )}
           </Stack>
         )}
       </Box>

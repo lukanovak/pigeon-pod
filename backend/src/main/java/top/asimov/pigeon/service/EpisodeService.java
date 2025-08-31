@@ -1,6 +1,7 @@
 package top.asimov.pigeon.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
@@ -43,6 +44,12 @@ public class EpisodeService {
     LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(Episode::getChannelId, channelId);
     return episodeMapper.selectList(queryWrapper);
+  }
+
+  public Page<Episode> episodePage(String channelId, Page<Episode> page) {
+    LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
+    queryWrapper.eq(Episode::getChannelId, channelId);
+    return episodeMapper.selectPage(page, queryWrapper);
   }
 
   // 获取节目列表，按按position排序倒序
@@ -121,7 +128,7 @@ public class EpisodeService {
         return Collections.emptyList(); // 没有新视频
       }
 
-      // 3. **性能优化：批量获取所有新视频的详情（时长等）**
+      // 3. 性能优化：批量获取所有新视频的详情（时长等）
       Map<String, String> videoDurations = fetchVideoDurationsInBatch(youtubeService, PlaylistItems,
           youtubeApiKey);
 
@@ -149,10 +156,6 @@ public class EpisodeService {
         }
         newEpisodes.add(episodeBuilder.build());
       }
-
-      // YouTube API 返回的是从新到旧，我们希望插入数据库时也是这个顺序，
-      // 或者如果你希望按发布顺序处理，可以在这里反转列表
-      //Collections.reverse(newEpisodes); // 可选，反转为从旧到新
 
       return newEpisodes;
 

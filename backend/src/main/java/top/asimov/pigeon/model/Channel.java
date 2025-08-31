@@ -31,4 +31,6 @@ public class Channel {
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
   private LocalDateTime subscribedAt;
+
+  private transient LocalDateTime lastPublishedAt;
 }

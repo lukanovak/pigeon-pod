@@ -62,17 +62,8 @@ public class ChannelService {
     throw new BusinessException("Unsupported channel source: " + channelSource);
   }
 
-  public List<Channel> listAllChannels(Channel channel) {
-    LambdaQueryWrapper<Channel> queryWrapper = new LambdaQueryWrapper<>();
-    String name = channel.getName();
-    if (!ObjectUtils.isEmpty(name)) {
-      queryWrapper.like(Channel::getName, name);
-    }
-    String description = channel.getDescription();
-    if (!ObjectUtils.isEmpty(description)) {
-      queryWrapper.like(Channel::getDescription, description);
-    }
-    return channelMapper.selectList(queryWrapper);
+  public List<Channel> selectChannelList() {
+    return channelMapper.selectChannelWithLastUploadedAt();
   }
 
   public Channel channelDetail(String id) {
@@ -248,8 +239,8 @@ public class ChannelService {
   }
 
   private void initialEpisodes(Channel channel) {
-    // 获取最近5个视频
-    List<Episode> episodes = episodeService.fetchChannelVideos(channel, 5L);
+    // 获取最近几个视频
+    List<Episode> episodes = episodeService.fetchChannelVideos(channel, 3L);
 
     // 保存视频
     List<Episode> savedEpisodes = episodeService.saveEpisodes(episodes);

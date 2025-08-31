@@ -7,7 +7,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.asimov.pigeon.constant.EpisodeDownloadStatus;
+import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.EpisodeMapper;
+import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
 
 @Log4j2
@@ -17,18 +19,30 @@ public class DownloadWorker {
   @Value("${pigeon.audio-file-path}")
   private String audioStoragePath;
   private final EpisodeMapper episodeMapper;
+  private final ChannelMapper channelMapper;
 
-  public DownloadWorker(EpisodeMapper episodeMapper) {
+  public DownloadWorker(EpisodeMapper episodeMapper, ChannelMapper channelMapper) {
     this.episodeMapper = episodeMapper;
+    this.channelMapper = channelMapper;
   }
 
   public void download(String videoId) {
     Episode episode = episodeMapper.selectById(videoId);
+    String channelId = episode.getChannelId();
+
+    Channel channel = channelMapper.selectById(channelId);
+    String handler = channel.getHandler();
 
     try {
+      // 构建下载目录路径
+      String downloadPath = audioStoragePath + File.separator + handler + File.separator;
+      // 确保目录存在
+      File dir = new File(downloadPath);
+      if (!dir.exists() && !dir.mkdirs()) {
+        throw new RuntimeException("无法创建目录: " + downloadPath);
+      }
+
       // 准备并执行 yt-dlp 命令
-      // 建议将下载路径和yt-dlp路径配置在 application.properties 中
-      String downloadPath = audioStoragePath;
       String outputTemplate = downloadPath + "%(id)s.%(ext)s";
       String videoUrl = "https://www.youtube.com/watch?v=" + videoId;
 

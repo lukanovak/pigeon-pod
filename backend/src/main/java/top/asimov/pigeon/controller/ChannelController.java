@@ -26,10 +26,8 @@ public class ChannelController {
   }
 
   @GetMapping("/list")
-  public SaResult channelList(@RequestParam(name = "name", required = false) String name,
-      @RequestParam(name = "description", required = false) String description) {
-    Channel channel = Channel.builder().name(name).description(description).build();
-    List<Channel> channels = channelService.listAllChannels(channel);
+  public SaResult channelList() {
+    List<Channel> channels = channelService.selectChannelList();
     return SaResult.data(channels);
   }
 
