@@ -43,9 +43,19 @@ public class ChannelController {
     return SaResult.data(feedUrl);
   }
 
+  @PostMapping("/fetch")
+  public SaResult fetchChannel(@RequestBody Channel channel) {
+    return SaResult.data(channelService.fetchChannel(channel));
+  }
+
+  @PostMapping("/filter")
+  public SaResult channelFilter(@RequestBody Channel channel) {
+    return SaResult.data(channelService.channelFilter(channel));
+  }
+
   @PostMapping("/add")
   public SaResult addChannel(@RequestBody Channel channel) {
-    return SaResult.data(channelService.fetchAndSaveChannel(channel));
+    return SaResult.data(channelService.saveChannel(channel));
   }
 
   @DeleteMapping("/delete/{id}")

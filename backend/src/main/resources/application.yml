@@ -8,7 +8,7 @@ spring:
     encoding: UTF-8
     basename: messages
   datasource:
-    url: jdbc:sqlite:./pigeon-pod.db
+    url: jdbc:sqlite:data/pigeon-pod.db
     driver-class-name: org.sqlite.JDBC
   sql:
     init:
@@ -16,9 +16,7 @@ spring:
 
 pigeon:
   base-url: http://localhost:8080
-  # default audio file storage path
-#  audio-file-path: /pigeon-pod/audios/
-  audio-file-path: /Users/asimov/Downloads/pigeon-pod/audio/
+  audio-file-path: /Users/asimov/Developer/pigeon-pod/data/audio/
 
 sa-token:
   # Token name (also the cookie name)

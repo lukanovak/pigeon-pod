@@ -7,9 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import top.asimov.pigeon.constant.EpisodeDownloadStatus;
-import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.EpisodeMapper;
-import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
 
 @Log4j2
@@ -19,19 +17,13 @@ public class DownloadWorker {
   @Value("${pigeon.audio-file-path}")
   private String audioStoragePath;
   private final EpisodeMapper episodeMapper;
-  private final ChannelMapper channelMapper;
 
-  public DownloadWorker(EpisodeMapper episodeMapper, ChannelMapper channelMapper) {
+  public DownloadWorker(EpisodeMapper episodeMapper) {
     this.episodeMapper = episodeMapper;
-    this.channelMapper = channelMapper;
   }
 
   public void download(String videoId) {
     Episode episode = episodeMapper.selectById(videoId);
-    String channelId = episode.getChannelId();
-
-    Channel channel = channelMapper.selectById(channelId);
-    String handler = channel.getHandler();
 
     try {
       // 构建下载目录路径

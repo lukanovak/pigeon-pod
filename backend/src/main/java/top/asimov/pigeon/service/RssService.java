@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import top.asimov.pigeon.constant.EpisodeDownloadStatus;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
@@ -77,7 +76,7 @@ public class RssService {
     feed.getModules().add(feedInfo);
 
     // 4. 获取已完成下载的节目列表，按position排序
-    List<Episode> episodes = episodeService.findAllEpisode(channel.getId(), EpisodeDownloadStatus.COMPLETED.name());
+    List<Episode> episodes = episodeService.getEpisodeOrderByPublishDateDesc(channel.getId());
 
     // 5. 为每个 Episode 创建一个 SyndEntry (RSS item)
     List<SyndEntry> entries = new ArrayList<>();

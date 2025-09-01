@@ -13,21 +13,20 @@ CREATE TABLE IF NOT EXISTS user
 
 CREATE TABLE IF NOT EXISTS channel
 (
-    id                  TEXT      NOT NULL UNIQUE,
-    handler             TEXT      NOT NULL UNIQUE,
-    name                TEXT      NOT NULL,
-    avatar_url          TEXT      NOT NULL,
-    description         TEXT      NOT NULL,
-    registered_at       TIMESTAMP NULL,
-    video_count         INTEGER   NULL,
-    subscriber_count    INTEGER   NULL,
-    view_count          INTEGER   NULL,
-    channel_url         TEXT      NULL,
-    channel_source      TEXT      NOT NULL,
-    update_frequency    INTEGER,
-    last_sync_video_id  TEXT,
-    last_sync_timestamp TIMESTAMP,
-    subscribed_at       TIMESTAMP,
+    id                    TEXT    NOT NULL UNIQUE,
+    handler               TEXT    NOT NULL UNIQUE,
+    name                  TEXT    NOT NULL,
+    avatar_url            TEXT    NOT NULL,
+    description           TEXT    NOT NULL,
+    channel_url           TEXT    NULL,
+    channel_source        TEXT    NOT NULL,
+    contain_keywords      TEXT    NULL,
+    exclude_keywords      TEXT    NULL,
+    minimum_duration      INTEGER NULL,
+    initial_episode_count INTEGER NULL,
+    last_sync_video_id    TEXT,
+    last_sync_timestamp   TIMESTAMP,
+    subscribed_at         TIMESTAMP,
     UNIQUE (handler)
 );
 

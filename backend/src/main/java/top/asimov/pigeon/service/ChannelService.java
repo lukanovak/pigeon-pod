@@ -2,10 +2,6 @@ package top.asimov.pigeon.service;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.ChannelListResponse;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,12 +11,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.ChannelSource;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.UserMapper;
 import top.asimov.pigeon.model.Channel;
+import top.asimov.pigeon.model.ChannelPack;
 import top.asimov.pigeon.model.Episode;
 import top.asimov.pigeon.model.User;
 import top.asimov.pigeon.util.YoutubeHelper;
@@ -33,33 +31,103 @@ public class ChannelService {
   private String appBaseUrl;
 
   private final ChannelMapper channelMapper;
-  private final AccountService accountService;
   private final EpisodeService episodeService;
   private final UserMapper userMapper;
   private final ApplicationEventPublisher eventPublisher;
+  private final YoutubeHelper youtubeHelper;
 
-  public ChannelService(ChannelMapper channelMapper, AccountService accountService,
-      EpisodeService episodeService, UserMapper userMapper, ApplicationEventPublisher eventPublisher) {
+  public ChannelService(ChannelMapper channelMapper, EpisodeService episodeService,
+      UserMapper userMapper, ApplicationEventPublisher eventPublisher, YoutubeHelper youtubeHelper) {
     this.channelMapper = channelMapper;
-    this.accountService = accountService;
     this.episodeService = episodeService;
     this.userMapper = userMapper;
     this.eventPublisher = eventPublisher;
+    this.youtubeHelper = youtubeHelper;
   }
 
-  @Transactional
-  public Channel fetchAndSaveChannel(Channel channel) {
+  public ChannelPack fetchChannel(Channel channel) {
     String channelSource = channel.getChannelSource();
     if (ObjectUtils.isEmpty(channelSource)) {
       throw new BusinessException("channelSource cannot be empty!");
     }
-    if (channelSource.equals(ChannelSource.YOUTUBE.name())) {
-      Channel fetchedChannel = fetchAndSaveChannel(channel.getChannelUrl());
-      saveChannel(fetchedChannel);
-      initialEpisodes(fetchedChannel);
-      return fetchedChannel;
+
+    String channelId = channel.getId();
+    if (StringUtils.hasText(channelId)) {
+      Channel existChannel = channelMapper.selectById(channelId);
+      if (existChannel != null) {
+        throw new BusinessException("Channel already exists with name: " + channel.getName());
+      }
     }
-    throw new BusinessException("Unsupported channel source: " + channelSource);
+
+    String channelUrl = channel.getChannelUrl();
+    if (ObjectUtils.isEmpty(channelUrl)) {
+      throw new BusinessException("channelUrl cannot be empty!");
+    }
+
+    String handler = youtubeHelper.getHandleFromUrl(channelUrl);
+
+    com.google.api.services.youtube.model.Channel ytChannel = youtubeHelper.fetchYoutubeChannelByUrl(channelUrl);
+    String ytChannelId = ytChannel.getId();
+
+    Channel fetchedChannel = Channel.builder()
+        .id(ytChannelId)
+        .handler(handler)
+        .name(ytChannel.getSnippet().getTitle())
+        .avatarUrl(ytChannel.getSnippet().getThumbnails().getHigh().getUrl())
+        .description(ytChannel.getSnippet().getDescription())
+        .channelUrl(channelUrl)
+        .subscribedAt(LocalDateTime.now())
+        .channelSource(channelSource)
+        .build();
+
+    // 获取最近3个视频确认是目标频道
+    List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
+        ytChannelId, null, 3L, null, null, null );
+    return ChannelPack.builder().channel(fetchedChannel).episodes(episodes).build();
+  }
+
+  public List<Episode> channelFilter(Channel channel) {
+    String channelId = channel.getId();
+    List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(channelId, null, 40L,
+        channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
+    // 取出前3个
+    return episodes.stream().limit(3).collect(Collectors.toList());
+  }
+
+  @Transactional
+  public Channel saveChannel(Channel channel) {
+    Integer initialEpisodeCount = channel.getInitialEpisodeCount();
+    if (initialEpisodeCount == null || initialEpisodeCount <= 0) {
+      initialEpisodeCount = 3;
+    }
+
+    String channelId = channel.getId();
+
+    List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
+        channelId, null,
+        initialEpisodeCount.longValue(), channel.getContainKeywords(),
+        channel.getExcludeKeywords(), channel.getMinimumDuration());
+    episodeService.saveEpisodes(episodes);
+
+    // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
+    for (Episode episode : episodes) {
+      if (episode.getPosition() == 0) {
+        channel.setLastSyncVideoId(episode.getId());
+        channel.setLastSyncTimestamp(LocalDateTime.now());
+        channelMapper.insert(channel);
+        break;
+      }
+    }
+
+    // 发布事件通知有新视频下载
+    List<String> savedEpisodeIds = episodes.stream()
+        .map(Episode::getId)
+        .collect(Collectors.toList());
+    EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
+    eventPublisher.publishEvent(event);
+    log.info("发布 EpisodesCreatedEvent 事件，包含 {} 个 episode ID。", savedEpisodeIds.size());
+
+    return channel;
   }
 
   public List<Channel> selectChannelList() {
@@ -83,7 +151,7 @@ public class ChannelService {
     List<Channel> channels = channelMapper.selectList(new LambdaQueryWrapper<>());
     return channels.stream()
         .filter(c -> c.getLastSyncTimestamp() == null ||
-            c.getLastSyncTimestamp().plusHours(c.getUpdateFrequency()).isBefore(checkTime))
+            c.getLastSyncTimestamp().isBefore(checkTime))
         .collect(Collectors.toList());
   }
 
@@ -129,11 +197,13 @@ public class ChannelService {
   }
 
   @Transactional
-  public void syncChannel(Channel channel) {
+  public void refreshChannel(Channel channel) {
     log.info("正在同步频道: {}", channel.getName());
 
-    // 1. 调用新方法获取增量视频
-    List<Episode> newEpisodes = episodeService.fetchChannelVideos(channel, 5L);
+    // 1. 法获取增量视频
+    List<Episode> newEpisodes = youtubeHelper.fetchYoutubeChannelVideos(
+        channel.getId(), channel.getLastSyncVideoId(), 40L,
+        channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
 
     if (newEpisodes.isEmpty()) {
       log.info("频道 {} 没有新内容。", channel.getName());
@@ -172,105 +242,6 @@ public class ChannelService {
       throw new BusinessException("API Key is not set, please generate it in the user setting.");
     }
     return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apikey=" + apiKey;
-  }
-
-  private Channel fetchAndSaveChannel(String channelUrl) {
-    try {
-      String loginId = (String) StpUtil.getLoginId();
-      String youtubeApiKey = accountService.getYoutubeApiKey(loginId);
-      if (ObjectUtils.isEmpty(youtubeApiKey)) {
-        throw new BusinessException(
-            "YouTube API key is not set, please set it in the user setting.");
-      }
-
-      // 从URL提取handle
-      String handle = YoutubeHelper.getHandleFromUrl(channelUrl);
-      if (handle == null) {
-        throw new BusinessException("无效的YouTube频道URL");
-      }
-
-      // 检查数据库中是否已存在此频道
-      Channel existingChannel = this.findByHandler(handle);
-      if (existingChannel != null) {
-        throw new BusinessException("频道已存在");
-      }
-
-      YouTube youtubeService = YoutubeHelper.getService();
-
-      // 使用handle搜索以获取Channel ID
-      String channelId = YoutubeHelper.getChannelIdByHandle(youtubeService, youtubeApiKey, handle);
-      if (channelId == null) {
-        throw new BusinessException("无法通过handle找到频道");
-      }
-
-      // 使用Channel ID获取频道的详细信息
-      YouTube.Channels.List channelRequest = youtubeService.channels()
-          .list("snippet,statistics,brandingSettings");
-
-      channelRequest.setId(channelId);
-      channelRequest.setKey(youtubeApiKey);
-
-      ChannelListResponse response = channelRequest.execute();
-      List<com.google.api.services.youtube.model.Channel> channels = response.getItems();
-
-      if (ObjectUtils.isEmpty(channels)) {
-        throw new BusinessException("未找到频道信息");
-      }
-
-      com.google.api.services.youtube.model.Channel ytChannel = channels.get(0);
-      return Channel.builder()
-          .id(ytChannel.getId())
-          .handler(handle)
-          .name(ytChannel.getSnippet().getTitle())
-          .avatarUrl(ytChannel.getSnippet().getThumbnails().getHigh().getUrl())
-          .description(ytChannel.getSnippet().getDescription())
-          .registeredAt(YoutubeHelper.convertToLocalDateTime(ytChannel.getSnippet().getPublishedAt()))
-          .videoCount(ytChannel.getStatistics().getVideoCount().intValue())
-          .subscriberCount(ytChannel.getStatistics().getSubscriberCount().intValue())
-          .viewCount(ytChannel.getStatistics().getViewCount().intValue())
-          .updateFrequency(8) // 默认每12小时更新一次
-          .channelUrl(channelUrl)
-          .subscribedAt(LocalDateTime.now())
-          .channelSource(ChannelSource.YOUTUBE.name())
-          .build();
-    } catch (GeneralSecurityException | IOException e) {
-      throw new BusinessException("获取频道信息失败" + e.getMessage());
-    }
-  }
-
-  private void initialEpisodes(Channel channel) {
-    // 获取最近几个视频
-    List<Episode> episodes = episodeService.fetchChannelVideos(channel, 3L);
-
-    // 保存视频
-    List<Episode> savedEpisodes = episodeService.saveEpisodes(episodes);
-
-    // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
-    for (Episode episode : savedEpisodes) {
-      if (episode.getPosition() == 0) {
-        channel.setLastSyncVideoId(episode.getId());
-        channel.setLastSyncTimestamp(LocalDateTime.now());
-        channelMapper.updateById(channel);
-        break;
-      }
-    }
-
-    // 发布事件通知有新视频下载
-    List<String> savedEpisodeIds = savedEpisodes.stream()
-        .map(Episode::getId)
-        .collect(Collectors.toList());
-    EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
-    eventPublisher.publishEvent(event);
-    log.info("发布 EpisodesCreatedEvent 事件，包含 {} 个 episode ID。", savedEpisodeIds.size());
-  }
-
-  private void saveChannel(Channel channel) {
-    String channelId = channel.getId();
-    Channel existChannel = channelMapper.selectById(channelId);
-    if (existChannel != null) {
-      throw new BusinessException("Channel already exists with name: " + channel.getName());
-    }
-    channelMapper.insert(channel);
   }
 
   /**
@@ -313,4 +284,6 @@ public class ChannelService {
       throw new BusinessException("删除episode记录失败: " + e.getMessage());
     }
   }
+
+
 }
