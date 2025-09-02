@@ -3,6 +3,8 @@ package top.asimov.pigeon.exception;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.util.SaResult;
+import lombok.extern.log4j.Log4j2;
+
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * Global Exception Handler
  */
+@Log4j2
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -24,6 +27,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public SaResult handleBusinessException(BusinessException e) {
+        log.error("BusinessException: {}", e.getMessage());
         return SaResult.code(e.getCode()).setMsg(e.getMessage());
     }
 
@@ -38,6 +42,7 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
+        log.error("MethodArgumentNotValidException: {}", message);
         return SaResult.code(400).setMsg(message);
     }
 
@@ -52,6 +57,7 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
+        log.error("BindException: {}", message);
         return SaResult.code(400).setMsg(message);
     }
 
@@ -61,6 +67,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public SaResult handleRuntimeException(RuntimeException e) {
+        log.error("RuntimeException: {}", e.getMessage());
         return SaResult.error(e.getMessage());
     }
 
@@ -72,6 +79,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotLoginException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public SaResult handleNotLoginException(NotLoginException e) {
+        log.error("NotLoginException: {}", e.getMessage());
         return SaResult.error(e.getMessage());
     }
 
@@ -83,6 +91,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotPermissionException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public SaResult handleNotPermissionException(NotPermissionException e) {
+        log.error("NotPermissionException: {}", e.getMessage());
         return SaResult.error(e.getMessage());
     }
 

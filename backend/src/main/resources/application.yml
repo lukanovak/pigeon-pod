@@ -37,5 +37,5 @@ sa-token:
 logging:
     level:
       org.springframework: warn
-      top.asimov.sparrow: debug
+      top.asimov.pigeon: debug
       cn.dev33.satoken: info
