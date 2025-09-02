@@ -25,7 +25,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import top.asimov.pigeon.exception.BusinessException;
@@ -50,9 +49,8 @@ public class RssService {
 
   /**
    * 根据 channel handler 生成 RSS Feed XML 字符串。
-   * 使用缓存，只有当频道更新后，缓存才会失效（需要配置缓存失效策略）。
    */
-  @Cacheable(value = "rssFeeds", key = "#channelHandler")
+  //@Cacheable(value = "rssFeeds", key = "#channelHandler")
   public String generateRssFeed(String channelHandler) throws MalformedURLException {
     // 1. 获取频道信息
     Channel channel = channelService.findByHandler(channelHandler);
