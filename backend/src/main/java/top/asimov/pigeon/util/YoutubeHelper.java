@@ -1,6 +1,5 @@
 package top.asimov.pigeon.util;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
@@ -267,8 +266,7 @@ public class YoutubeHelper {
   }
 
   private String getYoutubeApiKey() {
-    String loginId = (String) StpUtil.getLoginId();
-    String youtubeApiKey = accountService.getYoutubeApiKey(loginId);
+    String youtubeApiKey = accountService.getYoutubeApiKey("0");
     if (ObjectUtils.isEmpty(youtubeApiKey)) {
       throw new BusinessException("YouTube API key is not set, please set it in the user setting.");
     }

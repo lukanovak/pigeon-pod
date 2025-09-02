@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/public/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
 </div>
 
