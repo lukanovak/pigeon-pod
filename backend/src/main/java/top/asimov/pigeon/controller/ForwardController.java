@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class ForwardController {
-  @RequestMapping(value = "/{path:[^.]*}")
+  // Match all paths except those containing a dot (static files) and /api
+  @RequestMapping(value = {"/{path:^(?!api$)[^.]*}/**", "/{path:^(?!api$)[^.]*}"})
   public String forward(@PathVariable String path) {
     return "forward:/index.html";
   }

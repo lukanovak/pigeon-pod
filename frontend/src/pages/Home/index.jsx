@@ -76,6 +76,7 @@ const Home = () => {
 
 
   const addChannel = async () => {
+    setAddChannelLoading(true);
     const res = await API.post('/api/channel/add', channel);
     const { code, msg, data } = res.data;
     if (code !== 200) {
