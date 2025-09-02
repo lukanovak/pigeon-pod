@@ -108,6 +108,9 @@ export function showNotice(message) {
  * 秒数四舍五入到分钟，不直接显示秒
  */
 export function formatISODuration(isoDuration) {
+  if (!isoDuration) {
+    return '';
+  }
   const regex = /P(?:([0-9]+)D)?T?(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)S)?/;
   const matches = isoDuration.match(regex);
 
