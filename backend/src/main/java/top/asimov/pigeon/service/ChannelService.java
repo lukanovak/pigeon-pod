@@ -82,16 +82,14 @@ public class ChannelService {
 
     // 获取最近3个视频确认是目标频道
     List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
-        ytChannelId, null, 3L, null, null, null );
+        ytChannelId, null, 3, null, null, null );
     return ChannelPack.builder().channel(fetchedChannel).episodes(episodes).build();
   }
 
   public List<Episode> channelFilter(Channel channel) {
     String channelId = channel.getId();
-    List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(channelId, null, 40L,
+    return youtubeHelper.fetchYoutubeChannelVideos(channelId, null, 3,
         channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
-    // 取出前3个
-    return episodes.stream().limit(3).collect(Collectors.toList());
   }
 
   @Transactional
@@ -105,19 +103,22 @@ public class ChannelService {
 
     List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
         channelId, null,
-        initialEpisodeCount.longValue(), channel.getContainKeywords(),
+        initialEpisodeCount, channel.getContainKeywords(),
         channel.getExcludeKeywords(), channel.getMinimumDuration());
-    episodeService.saveEpisodes(episodes);
 
-    // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
+    Episode latestEpisode = episodes.get(0);
     for (Episode episode : episodes) {
-      if (episode.getPosition() == 0) {
-        channel.setLastSyncVideoId(episode.getId());
-        channel.setLastSyncTimestamp(LocalDateTime.now());
-        channelMapper.insert(channel);
-        break;
+      // 找到publishDate最新的那个视频
+      if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
+        latestEpisode = episode;
       }
     }
+
+    // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
+    channel.setLastSyncVideoId(latestEpisode.getId());
+    channel.setLastSyncTimestamp(LocalDateTime.now());
+    channelMapper.insert(channel);
+    episodeService.saveEpisodes(episodes);
 
     // 发布事件通知有新视频下载
     List<String> savedEpisodeIds = episodes.stream()
@@ -200,9 +201,9 @@ public class ChannelService {
   public void refreshChannel(Channel channel) {
     log.info("正在同步频道: {}", channel.getName());
 
-    // 1. 法获取增量视频
+    // 1. 获取增量视频
     List<Episode> newEpisodes = youtubeHelper.fetchYoutubeChannelVideos(
-        channel.getId(), channel.getLastSyncVideoId(), 40L,
+        channel.getId(), channel.getLastSyncVideoId(), 5,
         channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
 
     if (newEpisodes.isEmpty()) {

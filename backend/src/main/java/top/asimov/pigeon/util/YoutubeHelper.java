@@ -59,7 +59,7 @@ public class YoutubeHelper {
   }
 
   public List<Episode> fetchYoutubeChannelVideos(String channelId, String lastSyncedVideoId,
-      Long fetchNum, String containKeywords, String excludeKeywords, Integer minimalDuration) {
+      int fetchNum, String containKeywords, String excludeKeywords, Integer minimalDuration) {
     try {
       YouTube youtubeService = getService();
       String youtubeApiKey = getYoutubeApiKey();
@@ -72,105 +72,138 @@ public class YoutubeHelper {
       String uploadsPlaylistId = channelResponse.getItems().get(0).getContentDetails()
           .getRelatedPlaylists().getUploads();
 
-      // 2. 循环获取视频列表，直到找到上次同步过的视频或者达到 fetchNum 限制
-      List<PlaylistItem> playlistItems = new ArrayList<>();
+      // 2. 循环分页抓取：边抓取边批量查时长并过滤，直到满足 fetchNum 或无更多数据
+      List<Episode> resultEpisodes = new ArrayList<>();
       String nextPageToken = "";
       boolean foundLastSyncedVideo = false;
 
-      long videosRemaining = Math.min(fetchNum, 1000L); // YouTube API对某些请求有隐性上限，1000是个合理值
-      do {
-        Long pageSize = Math.min(50L, videosRemaining); // API允许的每页最大值为50
+      Map<String, String> durationCache = new HashMap<>();
+
+      while (resultEpisodes.size() < fetchNum) {
+        long pageSize = Math.min(50L, fetchNum); // API 单页最大 50
         YouTube.PlaylistItems.List request = youtubeService.playlistItems()
-            .list("snippet") // 暂时只需要 snippet
+            .list("snippet")
             .setPlaylistId(uploadsPlaylistId)
             .setMaxResults(pageSize)
             .setPageToken(nextPageToken)
             .setKey(youtubeApiKey);
 
         PlaylistItemListResponse response = request.execute();
-        if (response.getItems() == null) {
-          break;
+        List<PlaylistItem> pageItems = response.getItems();
+        if (pageItems == null || pageItems.isEmpty()) {
+          break; // 没有更多数据
         }
 
-        for (PlaylistItem item : response.getItems()) {
+        // 2.1 先用标题关键词与 lastSynced 过滤，得到候选集合
+        List<PlaylistItem> candidates = new ArrayList<>();
+        for (PlaylistItem item : pageItems) {
           String title = item.getSnippet().getTitle();
           if (StringUtils.hasLength(containKeywords) && !title.contains(containKeywords)) {
-            continue; // 不包含指定关键词，跳过
+            continue;
           }
           if (StringUtils.hasLength(excludeKeywords) && title.contains(excludeKeywords)) {
-            continue; // 包含排除关键词，跳过
+            continue;
+          }
+
+          if (minimalDuration != null) {
+            String duration = fetchVideoDurations(youtubeService, youtubeApiKey, item);
+            durationCache.put(item.getId(), duration);
+
+            if (!StringUtils.hasText(duration)) {
+              continue;
+            }
+
+            long minutes = Duration.parse(duration).toMinutes();
+            if (minutes < minimalDuration) {
+              continue;
+            }
           }
 
           String currentVideoId = item.getSnippet().getResourceId().getVideoId();
-
-          // 如果找到了上次同步的ID，说明之后的全是旧视频，停止查找
           if (currentVideoId.equals(lastSyncedVideoId)) {
             foundLastSyncedVideo = true;
-            break;
+            break; // 到达上次同步视频，后面的都是旧的
           }
-          playlistItems.add(item);
+          candidates.add(item);
         }
 
-        videosRemaining -= playlistItems.size();
+        // 2.2 批量查询候选的时长并应用时长过滤
+        for (PlaylistItem item : candidates) {
+          String duration = durationCache.get(item.getId());
+          if (!StringUtils.hasText(duration)) {
+            duration = fetchVideoDurations(youtubeService, youtubeApiKey, item);
+          }
+          EpisodeBuilder episodeBuilder = Episode.builder()
+              .id(item.getSnippet().getResourceId().getVideoId())
+              .channelId(channelId)
+              .position(item.getSnippet().getPosition().intValue())
+              .title(item.getSnippet().getTitle())
+              .description(item.getSnippet().getDescription())
+              .publishedAt(LocalDateTime.ofInstant(
+                  Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
+                  ZoneId.systemDefault()))
+              .duration(duration)
+              .downloadStatus(EpisodeDownloadStatus.PENDING.name())
+              .createdAt(LocalDateTime.now());
 
-        if (foundLastSyncedVideo) {
+          if (item.getSnippet().getThumbnails() != null) {
+            if (item.getSnippet().getThumbnails().getDefault() != null) {
+              episodeBuilder.defaultCoverUrl(
+                  item.getSnippet().getThumbnails().getDefault().getUrl());
+            }
+            if (item.getSnippet().getThumbnails().getMaxres() != null) {
+              episodeBuilder.maxCoverUrl(item.getSnippet().getThumbnails().getMaxres().getUrl());
+            }
+          }
+
+          resultEpisodes.add(episodeBuilder.build());
+          if (resultEpisodes.size() >= fetchNum) {
+            break;
+          }
+        }
+
+        if (resultEpisodes.size() >= fetchNum || foundLastSyncedVideo) {
           break;
         }
 
         nextPageToken = response.getNextPageToken();
-      } while (nextPageToken != null & videosRemaining > 0);
-
-      if (playlistItems.isEmpty()) {
-        return Collections.emptyList(); // 没有新视频
+        if (nextPageToken == null) {
+          break; // 没有下一页
+        }
       }
 
-      // 3. 性能优化：批量获取所有新视频的详情（时长等）
-      Map<String, String> videoDurations = fetchVideoDurationsInBatch(youtubeService, playlistItems,
-          youtubeApiKey);
-
-      // 4. 将 PlaylistItem 转换为 Episode 对象
-      List<Episode> newEpisodes = new ArrayList<>();
-      for (PlaylistItem item : playlistItems) {
-        // 过滤掉时长小于 minimalDuration 的视频
-        String duration = videoDurations.get(item.getSnippet().getResourceId().getVideoId());
-        if (duration == null) {
-          continue; // 如果没有获取到时长信息，跳过该视频
-        }
-        long minutes = Duration.parse(duration).toMinutes();
-        if (minimalDuration != null && minutes < minimalDuration) {
-          continue; // 时长不符合要求，跳过
-        }
-
-        EpisodeBuilder episodeBuilder = Episode.builder()
-            .id(item.getSnippet().getResourceId().getVideoId())
-            .channelId(channelId)
-            .position(item.getSnippet().getPosition().intValue())
-            .title(item.getSnippet().getTitle())
-            .description(item.getSnippet().getDescription())
-            .publishedAt(LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
-                ZoneId.systemDefault()))
-            .duration(duration)
-            .downloadStatus(EpisodeDownloadStatus.PENDING.name())
-            .createdAt(LocalDateTime.now());
-
-        if (item.getSnippet().getThumbnails() != null) {
-          if (item.getSnippet().getThumbnails().getDefault() != null) {
-            episodeBuilder.defaultCoverUrl(item.getSnippet().getThumbnails().getDefault().getUrl());
-          }
-          if (item.getSnippet().getThumbnails().getMaxres() != null) {
-            episodeBuilder.maxCoverUrl(item.getSnippet().getThumbnails().getMaxres().getUrl());
-          }
-        }
-
-        newEpisodes.add(episodeBuilder.build());
+      if (resultEpisodes.isEmpty()) {
+        return Collections.emptyList();
       }
 
-      return newEpisodes;
+      // 3. 截断到精确数量
+      if (resultEpisodes.size() > fetchNum) {
+        return resultEpisodes.subList(0, fetchNum);
+      }
+      return resultEpisodes;
 
     } catch (Exception e) {
       throw new BusinessException("获取频道新视频时发生错误: " + e.getMessage());
     }
+  }
+
+  // 量获取视频时长
+  private String fetchVideoDurations(YouTube youtubeService, String apiKey,
+      PlaylistItem item) throws IOException {
+    String videoId = item.getSnippet().getResourceId().getVideoId();
+
+    YouTube.Videos.List videoRequest = youtubeService.videos()
+        .list("contentDetails")
+        .setId(videoId)
+        .setKey(apiKey);
+
+    VideoListResponse videoResponse = videoRequest.execute();
+    List<Video> items = videoResponse.getItems();
+    if (CollectionUtils.isEmpty(items)) {
+      return null;
+    }
+
+    return items.get(0).getContentDetails().getDuration();
   }
 
   // 批量获取时长
