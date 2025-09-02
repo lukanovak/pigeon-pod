@@ -21,6 +21,7 @@ public class EpisodeService {
   public Page<Episode> episodePage(String channelId, Page<Episode> page) {
     LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(Episode::getChannelId, channelId);
+    queryWrapper.orderByDesc(Episode::getPublishedAt);
     return episodeMapper.selectPage(page, queryWrapper);
   }
 
