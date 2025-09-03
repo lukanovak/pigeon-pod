@@ -56,7 +56,7 @@ function Header() {
       <Group justify="space-between" mr="xl" ml="xl">
         <Group gap="xs" mr={10} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <Image src={logo} w={40}></Image>
-          <Title order={4}>{t('header_title')}</Title>
+          {/*<Title order={4}>{t('header_title')}</Title>*/}
         </Group>
         <Group>
           {state.user ? (

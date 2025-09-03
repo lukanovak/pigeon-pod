@@ -66,7 +66,7 @@ const LoginForm = () => {
     <Container pt="150px" size="xs">
       <Group justify="center">
         <Image src={logo} w={60}></Image>
-        <Title>{t('login')}</Title>
+        <Title>{t('header_title')}</Title>
       </Group>
       <Paper p="xl" withBorder mt="md">
         <form onSubmit={loginForm.onSubmit(login)}>
@@ -89,7 +89,7 @@ const LoginForm = () => {
               type="submit"
               variant="gradient"
               loading={loading}
-              gradient={{ from: '#ae2140', to: '#f28b96', deg: 90 }}
+              gradient={{ from: '#ae2140', to: '#f28b96', deg: 1 }}
             >
               {t('login')}
             </Button>
