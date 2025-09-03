@@ -1,5 +1,6 @@
 server:
   port: 8080
+  shutdown: graceful
 
 spring:
   application:
@@ -7,9 +8,13 @@ spring:
   messages:
     encoding: UTF-8
     basename: messages
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
   datasource:
     url: jdbc:sqlite:data/pigeon-pod.db
     driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
   sql:
     init:
       mode: always
