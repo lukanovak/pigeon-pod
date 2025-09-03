@@ -98,11 +98,35 @@ public class YoutubeHelper {
         List<PlaylistItem> candidates = new ArrayList<>();
         for (PlaylistItem item : pageItems) {
           String title = item.getSnippet().getTitle();
-          if (StringUtils.hasLength(containKeywords) && !title.contains(containKeywords)) {
-            continue;
+
+          // 处理 containKeywords，支持空格分割的多个关键词，包含任意一个就行
+          if (StringUtils.hasLength(containKeywords)) {
+            String[] keywords = containKeywords.trim().split("\\s+");
+            boolean containsAny = false;
+            for (String keyword : keywords) {
+              if (title.toLowerCase().contains(keyword.toLowerCase())) {
+                containsAny = true;
+                break;
+              }
+            }
+            if (!containsAny) {
+              continue;
+            }
           }
-          if (StringUtils.hasLength(excludeKeywords) && title.contains(excludeKeywords)) {
-            continue;
+
+          // 处理 excludeKeywords，支持空格分割的多个关键词，包含任意一个就排除
+          if (StringUtils.hasLength(excludeKeywords)) {
+            String[] keywords = excludeKeywords.trim().split("\\s+");
+            boolean shouldExclude = false;
+            for (String keyword : keywords) {
+              if (title.toLowerCase().contains(keyword.toLowerCase())) {
+                shouldExclude = true;
+                break;
+              }
+            }
+            if (shouldExclude) {
+              continue;
+            }
           }
 
           if (minimalDuration != null) {

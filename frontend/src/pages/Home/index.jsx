@@ -210,6 +210,7 @@ const Home = () => {
                 <TextInput
                   label="标题包含关键词"
                   name="containKeywords"
+                  placeholder="多个关键词用空格分隔"
                   value={channel.containKeywords}
                   onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
                 />
@@ -218,6 +219,7 @@ const Home = () => {
                 <TextInput
                   label="标题排除关键词"
                   name="excludeKeywords"
+                  placeholder="多个关键词用空格分隔"
                   value={channel.excludeKeywords}
                   onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
                 />
