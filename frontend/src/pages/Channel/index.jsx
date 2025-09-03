@@ -354,7 +354,7 @@ const ChannelDetail = () => {
                     <Stack>
                       <Box>
                         <Group justify="space-between">
-                          <Box style={{ maxWidth: '93%', overflow: 'hidden' }}>
+                          <Box style={{ maxWidth: '85%', overflow: 'hidden' }}>
                             <Title
                               order={4}
                               style={{
@@ -367,7 +367,7 @@ const ChannelDetail = () => {
                               {episode.title}
                             </Title>
                           </Box>
-                          <Text c="dimmed" style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>
+                          <Text c="dimmed" style={{ marginLeft: 5, whiteSpace: 'nowrap' }}>
                             {formatISODuration(episode.duration)}
                           </Text>
                         </Group>
