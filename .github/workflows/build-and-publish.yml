@@ -54,3 +54,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }} # 使用上一步生成的标签
           labels: ${{ steps.meta.outputs.labels }} # 添加推荐的标签
           platforms: linux/amd64 # 明确指定构建的平台为 linux/amd64
+
+      # 步骤 5: 触发 Portainer Stack 更新
+      - name: Trigger Portainer Stack Update
+        if: success()
+        run: |
+          STACK_CONTENT=$(cat docker-compose.yml | jq -Rs .)
+          
+          curl -X PUT \
+            -H "X-API-Key: ${{ secrets.PORTAINER_API_TOKEN }}" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "{\"pullImage\": true, \"stackFileContent\": $STACK_CONTENT}" \
+            ${{ secrets.PORTAINER_UPDATE_STACK_URL }}
+
