@@ -298,9 +298,7 @@ public class ChannelService {
    */
   private void deleteEpisodeRecords(String channelId) {
     try {
-      LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
-      queryWrapper.eq(Episode::getChannelId, channelId);
-      int count = episodeService.removeEpisodes(queryWrapper);
+      int count = episodeService.deleteEpisodesByChannelId(channelId);
       log.info("删除了 {} 条episode记录", count);
     } catch (Exception e) {
       log.error("删除episode记录时出错", e);

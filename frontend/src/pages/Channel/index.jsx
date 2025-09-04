@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useClipboard, useDisclosure } from '@mantine/hooks';
 import {
   Container,
   Grid,
@@ -21,14 +22,13 @@ import {
   TextInput,
   NumberInput,
 } from '@mantine/core';
-import { useClipboard, useDisclosure } from '@mantine/hooks';
 import {
   IconBrandApplePodcast,
   IconClock,
   IconBrandYoutubeFilled,
-  IconSquareRoundedX,
   IconPlayerPlayFilled,
   IconSettings,
+  IconBackspace,
 } from '@tabler/icons-react';
 import {
   API,
@@ -99,7 +99,7 @@ const ChannelDetail = () => {
 
       try {
         const res = await API.get(
-          `/api/program/list/${channelId}?page=${page}&size=10`
+          `/api/episode/list/${channelId}?page=${page}&size=10`
         );
         const { code, msg, data } = res.data;
 
@@ -132,6 +132,17 @@ const ChannelDetail = () => {
     [channelId] // Remove loadingEpisodes dependency
   );
 
+  useEffect(() => {
+    fetchChannelDetail();
+    fetchEpisodes(1, true); // Initial load
+  }, [fetchChannelDetail, fetchEpisodes]);
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchEpisodes(currentPage, false); // Load more episodes
+    }
+  }, [currentPage, fetchEpisodes]);
+
   // Update channel config
   const updateChannelConfig = async () => {
     const res = await API.put(`/api/channel/config/${channelId}`, channel);
@@ -145,17 +156,6 @@ const ChannelDetail = () => {
     showSuccess('频道配置已更新');
     closeEditConfig();
   };
-
-  useEffect(() => {
-    fetchChannelDetail();
-    fetchEpisodes(1, true); // Initial load
-  }, [fetchChannelDetail, fetchEpisodes]);
-
-  useEffect(() => {
-    if (currentPage > 1) {
-      fetchEpisodes(currentPage, false); // Load more episodes
-    }
-  }, [currentPage, fetchEpisodes]);
 
   const deleteChannel = async () => {
     const response = await API.delete(`/api/channel/delete/${channelId}`);
@@ -217,11 +217,26 @@ const ChannelDetail = () => {
     window.open(youtubeVideoUrl, '_blank', 'noopener,noreferrer');
   };
 
+  const deleteEpisode = async (episodeId) => {
+    const response = await API.delete(`/api/episode/${episodeId}`);
+    const { code, msg } = response.data;
+
+    if (code !== 200) {
+      showError(msg || '删除单集失败');
+      return;
+    }
+
+    showSuccess(`单集已被删除`);
+    await fetchEpisodes(1, true); // 重新拉取第一页
+    setCurrentPage(1);            // 重置分页
+  };
+
+
   if (!channel) {
     return (
       <Container>
         <Center h={400}>
-          <Text>Loading channel details...</Text>
+          <Title order={2}>Loading channel details...</Title>
         </Center>
       </Container>
     );
@@ -230,7 +245,7 @@ const ChannelDetail = () => {
   return (
     <Container size="xl" py="xl">
       {/* Channel Header Section */}
-      <Paper radius="md" p="xl" mb="xl" withBorder>
+      <Paper radius="md" p="lg" mb="lg" withBorder>
         <Grid>
           {/* Left column with avatar */}
           <Grid.Col span={{ base: 12, md: 3 }}>
@@ -238,7 +253,7 @@ const ChannelDetail = () => {
               <Avatar
                 src={channel.avatarUrl}
                 alt={channel.name}
-                size={250}
+                size={200}
                 radius="md"
               />
             </Center>
@@ -247,7 +262,8 @@ const ChannelDetail = () => {
           {/* Right column with channel details */}
           <Grid.Col span={{ base: 12, md: 9 }}>
             <Stack>
-              <Box>
+              <Group>
+                <Title order={2}>{channel.name}</Title>
                 <Badge
                   component="a"
                   href={channel.channelUrl}
@@ -255,26 +271,25 @@ const ChannelDetail = () => {
                   rel="noopener noreferrer"
                   variant="light"
                   color="#ff0033"
-                  mb="sm"
+                  size="lg"
                   leftSection={<IconBrandYoutubeFilled size={16} />}
                   style={{ cursor: 'pointer' }}
                 >
                   @{channel.handler}
                 </Badge>
-                <Title order={1}>{channel.name}</Title>
-                <Text
-                  mt="md"
-                  size="sm"
-                  lineClamp={4}
-                  style={{ minHeight: '5rem' }}
-                >
-                  {channel.description
-                    ? channel.description
-                    : 'No description available.'}
-                </Text>
-              </Box>
+              </Group>
 
-              <Flex gap="md" wrap="wrap" align="flex-center" mt="md">
+              <Text
+                size="sm"
+                lineClamp={4}
+                style={{ minHeight: '4rem' }}
+              >
+                {channel.description
+                  ? channel.description
+                  : 'No description available.'}
+              </Text>
+
+              <Flex gap="md" wrap="wrap" align="flex-center" mt="sm">
                 <Button
                   size="xs"
                   leftSection={<IconBrandApplePodcast size={16} />}
@@ -293,7 +308,7 @@ const ChannelDetail = () => {
                 <Button
                   size="xs"
                   color="pink"
-                  leftSection={<IconSquareRoundedX size={16} />}
+                  leftSection={<IconBackspace size={16} />}
                   onClick={openConfirmDeleteChannel}
                 >
                   Delete
@@ -412,25 +427,38 @@ const ChannelDetail = () => {
                         </Text>
                       </Box>
 
-                      <Group mt="auto">
-                        <Text size="sm" c="dimmed">
-                          <IconClock
-                            size={14}
-                            style={{
-                              display: 'inline',
-                              verticalAlign: 'text-bottom',
-                            }}
-                          />{' '}
-                          {episode.publishedAt
-                            ? formatISODateTime(episode.publishedAt)
-                            : 'Unknown date'}
-                        </Text>
-                        <Badge
-                          color={getDownloadStatusColor(episode.downloadStatus)}
-                          variant="light"
-                        >
-                          {episode.downloadStatus}
-                        </Badge>
+                      <Group justify="space-between" align="center">
+                        <Group>
+                          <Text size="sm" c="dimmed">
+                            <IconClock
+                              size={14}
+                              style={{
+                                display: 'inline',
+                                verticalAlign: 'text-bottom',
+                              }}
+                            />{' '}
+                            {episode.publishedAt
+                              ? formatISODateTime(episode.publishedAt)
+                              : 'Unknown date'}
+                          </Text>
+                          <Badge
+                            color={getDownloadStatusColor(episode.downloadStatus)}
+                            variant="light"
+                          >
+                            {episode.downloadStatus}
+                          </Badge>
+                        </Group>
+                        <Group>
+                          <Button
+                            size="compact-xs"
+                            variant="outline"
+                            color="pink"
+                            onClick={() => deleteEpisode(episode.id)}
+                            leftSection={<IconBackspace size={16} />}
+                          >
+                            Delete
+                          </Button>
+                        </Group>
                       </Group>
                     </Stack>
                   </Grid.Col>
