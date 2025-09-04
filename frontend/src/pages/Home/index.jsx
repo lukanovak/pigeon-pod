@@ -206,37 +206,38 @@ const Home = () => {
 
           <Box>
             <Grid align="flex-end" justify="space-between">
-              <Grid.Col span={3}>
+              <Grid.Col span={3.5}>
                 <TextInput
-                  label="标题包含关键词"
+                  label="标题包含关键词（包含一个即匹配）"
                   name="containKeywords"
                   placeholder="多个关键词用空格分隔"
                   value={channel.containKeywords}
                   onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
                 />
               </Grid.Col>
-              <Grid.Col span={3}>
+              <Grid.Col span={3.5}>
                 <TextInput
-                  label="标题排除关键词"
+                  label="标题排除关键词（包含一个即排除）"
                   name="excludeKeywords"
                   placeholder="多个关键词用空格分隔"
                   value={channel.excludeKeywords}
                   onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
                 />
               </Grid.Col>
-              <Grid.Col span={2}>
+              <Grid.Col span={1.5}>
                 <NumberInput
                   label="最短时长(分)"
                   name="minimumDuration"
+                  placeholder="0"
                   value={channel.minimumDuration}
                   onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
                 />
               </Grid.Col>
-              <Grid.Col span={2}>
+              <Grid.Col span={1.5}>
                 <NumberInput
                   label="初始下载数量"
                   name="initialEpisodeCount"
-                  placeholder="default 3"
+                  placeholder="3"
                   value={channel.initialEpisodeCount}
                   min={1}
                   step={1}
@@ -244,7 +245,7 @@ const Home = () => {
                 />
               </Grid.Col>
               <Grid.Col span={2}>
-                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">Filter Preview</Button>
+                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">Configure</Button>
               </Grid.Col>
             </Grid>
           </Box>
