@@ -517,11 +517,18 @@ const ChannelDetail = () => {
             onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
           />
           <NumberInput
-            label="最短时长(分)"
+            label="单集最短时长(分)"
             name="minimumDuration"
             placeholder="0"
             value={channel.minimumDuration}
             onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
+          />
+          <NumberInput
+            label="最多保留单集数"
+            name="maximumEpisodes"
+            placeholder="无限制"
+            value={channel.maximumEpisodes}
+            onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
           />
           <Group mt="md" justify="flex-end">
             <Button variant="filled" onClick={updateChannelConfig}>

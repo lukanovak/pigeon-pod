@@ -255,6 +255,7 @@ public class ChannelService {
     existingChannel.setContainKeywords(configuration.getContainKeywords());
     existingChannel.setExcludeKeywords(configuration.getExcludeKeywords());
     existingChannel.setMinimumDuration(configuration.getMinimumDuration());
+    existingChannel.setMaximumEpisodes(configuration.getMaximumEpisodes());
     //existingChannel.setInitialEpisodeCount(configuration.getInitialEpisodeCount());
 
     int result = channelMapper.updateById(existingChannel);

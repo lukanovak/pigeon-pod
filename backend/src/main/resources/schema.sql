@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS channel
     contain_keywords      TEXT    NULL,
     exclude_keywords      TEXT    NULL,
     minimum_duration      INTEGER NULL,
+    maximum_episodes      INTEGER NULL,
     initial_episode_count INTEGER NULL,
     last_sync_video_id    TEXT,
     last_sync_timestamp   TIMESTAMP,

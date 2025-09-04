@@ -26,6 +26,7 @@ public class Channel {
   private String containKeywords;
   private String excludeKeywords;
   private Integer minimumDuration;
+  private Integer maximumEpisodes;
   private Integer initialEpisodeCount;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;

@@ -94,7 +94,7 @@ const Home = () => {
 
   const filterChannel = async () => {
     setFilterLoading(true);
-    const res = await API.post('/api/channel/filter', channel);
+    const res = await API.post('/api/channel/preview', channel);
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
@@ -224,9 +224,9 @@ const Home = () => {
                   onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
                 />
               </Grid.Col>
-              <Grid.Col span={1.5}>
+              <Grid.Col span={2}>
                 <NumberInput
-                  label="最短时长(分)"
+                  label="单集最短时长(分)"
                   name="minimumDuration"
                   placeholder="0"
                   value={channel.minimumDuration}
@@ -235,7 +235,7 @@ const Home = () => {
               </Grid.Col>
               <Grid.Col span={1.5}>
                 <NumberInput
-                  label="初始下载数量"
+                  label="初始下载集数"
                   name="initialEpisodeCount"
                   placeholder="3"
                   value={channel.initialEpisodeCount}
@@ -244,7 +244,7 @@ const Home = () => {
                   onChange={(value) => setChannel({ ...channel, initialEpisodeCount: value })}
                 />
               </Grid.Col>
-              <Grid.Col span={2}>
+              <Grid.Col span={1.5}>
                 <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">Configure</Button>
               </Grid.Col>
             </Grid>
