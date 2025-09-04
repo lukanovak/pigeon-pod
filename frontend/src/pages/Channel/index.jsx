@@ -18,6 +18,8 @@ import {
   Avatar,
   Modal,
   Loader,
+  TextInput,
+  NumberInput,
 } from '@mantine/core';
 import { useClipboard, useDisclosure } from '@mantine/hooks';
 import {
@@ -26,6 +28,7 @@ import {
   IconBrandYoutubeFilled,
   IconSquareRoundedX,
   IconPlayerPlayFilled,
+  IconSettings,
 } from '@tabler/icons-react';
 import {
   API,
@@ -52,6 +55,10 @@ const ChannelDetail = () => {
   const [
     confirmDeleteChannelOpened,
     { open: openConfirmDeleteChannel, close: closeConfirmDeleteChannel },
+  ] = useDisclosure(false);
+  const [
+    editConfigOpened,
+    { open: openEditConfig, close: closeEditConfig },
   ] = useDisclosure(false);
 
   // Intersection Observer callback for infinite scrolling
@@ -82,7 +89,7 @@ const ChannelDetail = () => {
     }
   }, [channelId]);
 
-  const fetchPrograms = useCallback(
+  const fetchEpisodes = useCallback(
     async (page = 1, isInitialLoad = false) => {
       // Prevent duplicate requests using ref
       if (loadingRef.current) return;
@@ -125,16 +132,30 @@ const ChannelDetail = () => {
     [channelId] // Remove loadingEpisodes dependency
   );
 
+  // Update channel config
+  const updateChannelConfig = async () => {
+    const res = await API.put(`/api/channel/config/${channelId}`, channel);
+    const { code, msg } = res.data;
+
+    if (code !== 200) {
+      showError(msg || '更新频道配置失败');
+      return;
+    }
+
+    showSuccess('频道配置已更新');
+    closeEditConfig();
+  };
+
   useEffect(() => {
     fetchChannelDetail();
-    fetchPrograms(1, true); // Initial load
-  }, [fetchChannelDetail, fetchPrograms]);
+    fetchEpisodes(1, true); // Initial load
+  }, [fetchChannelDetail, fetchEpisodes]);
 
   useEffect(() => {
     if (currentPage > 1) {
-      fetchPrograms(currentPage, false); // Load more episodes
+      fetchEpisodes(currentPage, false); // Load more episodes
     }
-  }, [currentPage, fetchPrograms]);
+  }, [currentPage, fetchEpisodes]);
 
   const deleteChannel = async () => {
     const response = await API.delete(`/api/channel/delete/${channelId}`);
@@ -258,13 +279,20 @@ const ChannelDetail = () => {
                   size="xs"
                   leftSection={<IconBrandApplePodcast size={16} />}
                   onClick={handleSubscribe}
-                  variant="filled"
                 >
                   Subscribe
                 </Button>
                 <Button
                   size="xs"
-                  color="red"
+                  color="orange"
+                  leftSection={<IconSettings size={16} />}
+                  onClick={openEditConfig}
+                >
+                  Config
+                </Button>
+                <Button
+                  size="xs"
+                  color="pink"
                   leftSection={<IconSquareRoundedX size={16} />}
                   onClick={openConfirmDeleteChannel}
                 >
@@ -420,6 +448,7 @@ const ChannelDetail = () => {
         )}
       </Box>
 
+      {/* Delete Channel Confirmation Modal */}
       <Modal
         opened={confirmDeleteChannelOpened}
         onClose={closeConfirmDeleteChannel}
@@ -436,6 +465,42 @@ const ChannelDetail = () => {
             {t('confirm')}
           </Button>
         </Group>
+      </Modal>
+
+      {/* Edit Channel Configuration Modal */}
+      <Modal
+        opened={editConfigOpened}
+        onClose={closeEditConfig}
+        title="Edit Channel Configuration"
+      >
+        <Stack>
+          <TextInput
+            label="标题包含关键词（包含一个即匹配）"
+            name="containKeywords"
+            placeholder="多个关键词用空格分隔"
+            value={channel.containKeywords}
+            onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
+          />
+          <TextInput
+            label="标题排除关键词（包含一个即排除）"
+            name="excludeKeywords"
+            placeholder="多个关键词用空格分隔"
+            value={channel.excludeKeywords}
+            onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
+          />
+          <NumberInput
+            label="最短时长(分)"
+            name="minimumDuration"
+            placeholder="0"
+            value={channel.minimumDuration}
+            onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
+          />
+          <Group mt="md" justify="flex-end">
+            <Button variant="filled" onClick={updateChannelConfig}>
+              Save Changes
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </Container>
   );

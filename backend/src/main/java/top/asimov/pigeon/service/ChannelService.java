@@ -86,7 +86,7 @@ public class ChannelService {
     return ChannelPack.builder().channel(fetchedChannel).episodes(episodes).build();
   }
 
-  public List<Episode> channelFilter(Channel channel) {
+  public List<Episode> previewChannel(Channel channel) {
     String channelId = channel.getId();
     return youtubeHelper.fetchYoutubeChannelVideos(channelId, null, 3,
         channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
@@ -243,6 +243,28 @@ public class ChannelService {
       throw new BusinessException("API Key is not set, please generate it in the user setting.");
     }
     return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apikey=" + apiKey;
+  }
+
+  public Channel updateChannelConfig(String channelId,Channel configuration) {
+    Channel existingChannel = channelMapper.selectById(channelId);
+    if (existingChannel == null) {
+      throw new BusinessException("Channel not found with id: " + channelId);
+    }
+
+    // 只更新允许修改的字段
+    existingChannel.setContainKeywords(configuration.getContainKeywords());
+    existingChannel.setExcludeKeywords(configuration.getExcludeKeywords());
+    existingChannel.setMinimumDuration(configuration.getMinimumDuration());
+    //existingChannel.setInitialEpisodeCount(configuration.getInitialEpisodeCount());
+
+    int result = channelMapper.updateById(existingChannel);
+    if (result > 0) {
+      log.info("频道 {} 配置更新成功", existingChannel.getName());
+      return existingChannel;
+    } else {
+      log.error("频道 {} 配置更新失败", existingChannel.getName());
+      throw new BusinessException("更新频道配置失败");
+    }
   }
 
   /**

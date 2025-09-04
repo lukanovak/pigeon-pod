@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,14 +44,20 @@ public class ChannelController {
     return SaResult.data(feedUrl);
   }
 
+  @PutMapping("/config/{id}")
+  public SaResult updateChannelConfiguration(@PathVariable(name = "id") String id,
+      @RequestBody Channel configuration) {
+    return SaResult.data(channelService.updateChannelConfig(id, configuration));
+  }
+
   @PostMapping("/fetch")
   public SaResult fetchChannel(@RequestBody Channel channel) {
     return SaResult.data(channelService.fetchChannel(channel));
   }
 
-  @PostMapping("/filter")
-  public SaResult channelFilter(@RequestBody Channel channel) {
-    return SaResult.data(channelService.channelFilter(channel));
+  @PostMapping("/preview")
+  public SaResult previewChannel(@RequestBody Channel channel) {
+    return SaResult.data(channelService.previewChannel(channel));
   }
 
   @PostMapping("/add")
