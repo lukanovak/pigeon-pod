@@ -5,6 +5,6 @@
 
 <div align="center">
   <p>
-    Turn your favorite YouTube/BiliBili channels into a podcast in the easiest and elegant way.
+    Turn your favorite YouTube channels into a podcast in the easiest and elegant way.
   </p>
 </div>
