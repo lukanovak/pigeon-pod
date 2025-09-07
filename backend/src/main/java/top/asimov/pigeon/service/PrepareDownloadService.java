@@ -1,5 +1,6 @@
 package top.asimov.pigeon.service;
 
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +33,12 @@ public class PrepareDownloadService {
       return false;
     }
 
-    if (!EpisodeDownloadStatus.PENDING.name().equals(episode.getDownloadStatus())) {
-      log.info("Episode {} 状态不是PENDING，跳过下载准备。", videoId);
+    List<String> validStatuses = List.of(
+        EpisodeDownloadStatus.PENDING.name(),
+        EpisodeDownloadStatus.FAILED.name()
+    );
+    if (!validStatuses.contains(episode.getDownloadStatus())) {
+      log.info("Episode {} 状态不是 PENDING 或 FAILED，跳过下载准备。", videoId);
       return false;
     }
 

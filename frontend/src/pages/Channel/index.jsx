@@ -29,6 +29,7 @@ import {
   IconPlayerPlayFilled,
   IconSettings,
   IconBackspace,
+  IconRotate,
 } from '@tabler/icons-react';
 import {
   API,
@@ -230,6 +231,19 @@ const ChannelDetail = () => {
     await fetchEpisodes(1, true); // 重新拉取第一页
     setCurrentPage(1);            // 重置分页
   };
+
+  const retryEpisode = async (episodeId) => {
+    const response = await API.post(`/api/episode/retry/${episodeId}`);
+    const { code, msg } = response.data;
+
+    if (code !== 200) {
+      showError(msg || '重试失败');
+      return;
+    }
+    showSuccess(`重试已提交`);
+    await fetchEpisodes(1, true); // 重新拉取第一页
+    setCurrentPage(1);            // 重置分页
+  }
 
 
   if (!channel) {
@@ -441,25 +455,36 @@ const ChannelDetail = () => {
                               ? formatISODateTime(episode.publishedAt)
                               : 'Unknown date'}
                           </Text>
-                          <Badge
-                            color={getDownloadStatusColor(episode.downloadStatus)}
-                            variant="light"
-                          >
-                            {episode.downloadStatus ?
-                              episode.downloadStatus !== 'COMPLETED' ?
-                                episode.downloadStatus : '' : 'UNKNOWN'}
-                          </Badge>
+                          {(episode.downloadStatus && episode.downloadStatus !== 'COMPLETED') ?
+                            <Badge
+                              color={getDownloadStatusColor(episode.downloadStatus)}
+                              variant="light"
+                            >
+                              {episode.downloadStatus}
+                            </Badge> : null}
                         </Group>
                         <Group>
-                          <Button
-                            size="compact-xs"
-                            variant="outline"
-                            color="pink"
-                            onClick={() => deleteEpisode(episode.id)}
-                            leftSection={<IconBackspace size={16} />}
-                          >
-                            Delete
-                          </Button>
+                          {(episode.downloadStatus === 'FAILED') ?
+                            <Button
+                              size="compact-xs"
+                              variant="outline"
+                              color="orange"
+                              onClick={() => retryEpisode(episode.id)}
+                              leftSection={<IconRotate size={16} />}
+                            >
+                              Retry
+                            </Button> : null}
+                          {(episode.downloadStatus !== 'DOWNLOADING') ?
+                            <Button
+                              size="compact-xs"
+                              variant="outline"
+                              color="pink"
+                              onClick={() => deleteEpisode(episode.id)}
+                              leftSection={<IconBackspace size={16} />}
+                            >
+                              Delete
+                            </Button> : null
+                          }
                         </Group>
                       </Group>
                     </Stack>

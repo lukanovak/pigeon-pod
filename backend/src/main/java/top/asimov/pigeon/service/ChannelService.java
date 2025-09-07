@@ -220,13 +220,12 @@ public class ChannelService {
     episodeService.saveEpisodes(newEpisodes);
 
     // 3. 更新频道的检查点 (lastSyncedVideoId 和 lastSyncTimestamp)
-    // newEpisodes 列表中的最后一个元素就是最新的视频（因为我们反转了）
     Episode latestEpisode = newEpisodes.get(0);
     channel.setLastSyncVideoId(latestEpisode.getId());
     channel.setLastSyncTimestamp(LocalDateTime.now());
     channelMapper.updateById(channel);
 
-    // 4. **复用**我们已有的事件发布机制，触发异步下载
+    // 4. 复用已有的事件发布机制，触发异步下载
     List<String> newEpisodeIds = newEpisodes.stream().map(Episode::getId)
         .collect(Collectors.toList());
     EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, newEpisodeIds);

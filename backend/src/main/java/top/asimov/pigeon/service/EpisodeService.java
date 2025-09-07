@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import top.asimov.pigeon.event.EpisodesCreatedEvent;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.EpisodeMapper;
 import top.asimov.pigeon.model.Episode;
@@ -18,9 +21,11 @@ import top.asimov.pigeon.model.Episode;
 public class EpisodeService {
 
   protected final EpisodeMapper episodeMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
-  public EpisodeService(EpisodeMapper episodeMapper) {
+  public EpisodeService(EpisodeMapper episodeMapper, ApplicationEventPublisher eventPublisher) {
     this.episodeMapper = episodeMapper;
+    this.eventPublisher = eventPublisher;
   }
 
   public Page<Episode> episodePage(String channelId, Page<Episode> page) {
@@ -66,6 +71,47 @@ public class EpisodeService {
     LambdaQueryWrapper<Episode> wrapper = new LambdaQueryWrapper<>();
     wrapper.eq(Episode::getChannelId, channelId);
     return episodeMapper.delete(wrapper);
+  }
+
+  /**
+   * 重试下载episode音频文件
+   * @param episodeId episode id
+   */
+  @Transactional
+  public void retryEpisode(String episodeId) {
+    log.info("Starting retry for episode: {}", episodeId);
+
+    // 1. 根据episode id查询出当前的episode
+    Episode episode = episodeMapper.selectById(episodeId);
+    if (episode == null) {
+      log.error("Episode not found with id: {}", episodeId);
+      throw new BusinessException("Episode not found with id: " + episodeId);
+    }
+
+    // 2. 删除当前episode的audio file，可能有，也可能没有，需要做好错误处理
+    String audioFilePath = episode.getAudioFilePath();
+    if (StringUtils.hasText(audioFilePath)) {
+      try {
+        boolean deleted = Files.deleteIfExists(Paths.get(audioFilePath));
+        if (deleted) {
+          log.info("Successfully deleted existing audio file: {}", audioFilePath);
+        } else {
+          log.info("Audio file does not exist: {}", audioFilePath);
+        }
+        // 清空数据库中的音频文件路径
+        episode.setAudioFilePath(null);
+        episodeMapper.updateById(episode);
+      } catch (Exception e) {
+        log.warn("Failed to delete audio file: {} - {}", audioFilePath, e.getMessage());
+        // 不抛出异常，继续执行下载流程
+      }
+    } else {
+      log.info("No audio file path found for episode: {}, continue to download.", episodeId);
+    }
+
+    // 3. 调用事件发布机制，触发异步下载
+    log.info("Publishing retry event for episode: {}", episodeId);
+    eventPublisher.publishEvent(new EpisodesCreatedEvent(this, Collections.singletonList(episodeId)));
   }
 
 }
