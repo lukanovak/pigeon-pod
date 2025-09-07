@@ -445,7 +445,9 @@ const ChannelDetail = () => {
                             color={getDownloadStatusColor(episode.downloadStatus)}
                             variant="light"
                           >
-                            {episode.downloadStatus}
+                            {episode.downloadStatus ?
+                              episode.downloadStatus !== 'COMPLETED' ?
+                                episode.downloadStatus : '' : 'UNKNOWN'}
                           </Badge>
                         </Group>
                         <Group>
