@@ -22,11 +22,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { IconCheck, IconClock, IconSearch, IconSettings } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isSmallScreen = useMediaQuery('(max-width: 36em)');
   const [channelUrl, setChannelUrl] = useState('');
   const [fetchChannelLoading, setFetchChannelLoading] = useState(false);
   const [filerLoading, setFilterLoading] = useState(false);
@@ -115,20 +116,22 @@ const Home = () => {
 
   return (
     <Container size="lg" mt="lg">
-      <Group pos="relative">
+      <Group pos="relative" wrap="wrap" gap="sm">
         <Input
           leftSection={<IconSearch size={16} />}
           placeholder={t('enter_youtube_channel_url')}
           name="channelUrl"
           value={channelUrl}
           onChange={(e) => setChannelUrl(decodeURIComponent(e.target.value))}
-          style={{ flex: 1 }}
+          style={{ flex: 1, minWidth: isSmallScreen ? '100%' : 0 }}
         />
         <Button
           onClick={fetchChannel}
           loading={fetchChannelLoading}
           variant="gradient"
           gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}
+          fullWidth={isSmallScreen}
+          mt={isSmallScreen ? 'xs' : 0}
         >
           {t('new_channel')}
         </Button>
@@ -137,7 +140,10 @@ const Home = () => {
       <Grid mt="xl">
         {channels.length > 0 ? (
           channels.map((channel) => (
-            <Grid.Col key={channel.id} span={2}>
+            <Grid.Col
+              key={channel.id}
+              span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}
+            >
               <Card
                 shadow="sm"
                 padding="sm"
@@ -146,7 +152,13 @@ const Home = () => {
                 style={{ cursor: 'pointer' }}
               >
                 <Card.Section>
-                  <Image src={channel.avatarUrl} alt={channel.name} height={160} />
+                  <Image
+                    src={channel.avatarUrl}
+                    alt={channel.name}
+                    height={isSmallScreen ? 140 : 160}
+                    w="100%"
+                    fit="cover"
+                  />
                 </Card.Section>
                 <Text
                   fw={500}
@@ -181,25 +193,26 @@ const Home = () => {
         onClose={close}
         withCloseButton
         title={t('subscription_configuration')}
-        size="70%"
+        size={isSmallScreen ? '100%' : '70%'}
+        fullScreen={isSmallScreen}
       >
         <Stack>
           <Paper radius="md" p="md" withBorder>
             <Grid>
-              <Grid.Col span={2}>
+              <Grid.Col span={{ base: 12, sm: 3 }}>
                 <Center>
                   <Avatar src={channel.avatarUrl} alt={channel.name} size={125} radius="md" />
                 </Center>
               </Grid.Col>
-              <Grid.Col span={10}>
+              <Grid.Col span={{ base: 12, sm: 9 }}>
                 <Stack>
                   <Box>
-                    <Group>
+                    <Group wrap="wrap" gap="xs">
                       <Title order={3}>
                         {channel.name ? channel.name : t('no_channel_name_available')}
                       </Title>
                       <Button
-                        size="compact-sm"
+                        size="compact-xs"
                         color="orange"
                         leftSection={<IconSettings size={16} />}
                         onClick={openEditConfig}
@@ -207,7 +220,7 @@ const Home = () => {
                         {t('config')}
                       </Button>
                       <Button
-                        size="compact-sm"
+                        size="compact-xs"
                         loading={addChannelLoading}
                         onClick={addChannel}
                         leftSection={<IconCheck size={16} />}
@@ -240,38 +253,30 @@ const Home = () => {
                           src={episode.maxCoverUrl || episode.defaultCoverUrl}
                           alt={episode.title}
                           radius="md"
+                          w="100%"
+                          fit="cover"
                         />
                       </Grid.Col>
 
                       {/* Episode details */}
                       <Grid.Col span={{ base: 12, sm: 9 }}>
-                        <Stack>
-                          <Box>
-                            <Group justify="space-between">
-                              <Box style={{ maxWidth: '80%', overflow: 'hidden' }}>
-                                <Title
-                                  order={5}
-                                  style={{
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                  }}
-                                  title={episode.title}
-                                >
-                                  {episode.title}
-                                </Title>
-                              </Box>
-                              <Text c="dimmed" style={{ marginLeft: 5, whiteSpace: 'nowrap' }}>
-                                {formatISODuration(episode.duration)}
+                          <Text
+                                fw={700}
+                                style={{
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                                title={episode.title}
+                              >
+                                {episode.title}
                               </Text>
-                            </Group>
-                            <Text size="sm" mt="xs" lineClamp={3} style={{ minHeight: '3rem' }}>
-                              {episode.description
-                                ? episode.description
-                                : t('no_description_available')}
-                            </Text>
-                          </Box>
-                          <Group mt="auto">
+                          <Text size="sm" lineClamp={2} style={{ minHeight: '2rem' }}>
+                            {episode.description
+                              ? episode.description
+                              : t('no_description_available')}
+                          </Text>
+                          <Group mt="xs" justify="space-between">
                             <Text size="sm" c="dimmed">
                               <IconClock
                                 size={14}
@@ -284,8 +289,10 @@ const Home = () => {
                                 ? formatISODateTime(episode.publishedAt)
                                 : t('unknown_date')}
                             </Text>
+                            <Text c="dimmed" size="sm">
+                              {formatISODuration(episode.duration)}
+                            </Text>
                           </Group>
-                        </Stack>
                       </Grid.Col>
                     </Grid>
                   </Card>
@@ -300,6 +307,8 @@ const Home = () => {
         opened={editConfigOpened}
         onClose={closeEditConfig}
         title={t('edit_channel_configuration')}
+        size={isSmallScreen ? '100%' : 'md'}
+        fullScreen={isSmallScreen}
       >
         <Stack>
           <TextInput
@@ -330,8 +339,8 @@ const Home = () => {
             value={channel.maximumEpisodes}
             onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
           />
-          <Group mt="md" justify="flex-end">
-            <Button variant="filled" loading={filerLoading} onClick={filterChannel}>
+          <Group mt="md" justify={isSmallScreen ? 'stretch' : 'flex-end'}>
+            <Button variant="filled" loading={filerLoading} onClick={filterChannel} fullWidth={isSmallScreen}>
               {t('confirm')}
             </Button>
           </Group>
