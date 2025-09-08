@@ -160,7 +160,7 @@
   "youtube_api_key_saved": "YouTube API密钥保存成功！",
   "failed_to_load_episodes": "加载剧集失败",
   "failed_to_generate_subscription_url": "生成订阅链接失败",
-  "subscription_link_generated_success": "订阅链接生成成功，请在任意podcast客户端中使用该链接订阅频道。",
+  "subscription_link_generated_success": "订阅链接生成成功，已自动复制到剪切板，请在任意podcast客户端中使用该链接订阅频道。",
   "update_channel_config_failed": "更新频道配置失败",
   "channel_config_updated": "频道配置已更新",
   "delete_channel_failed": "删除频道失败",

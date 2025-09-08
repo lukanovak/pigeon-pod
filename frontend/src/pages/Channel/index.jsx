@@ -214,11 +214,11 @@ const ChannelDetail = () => {
     const { code, msg } = response.data;
 
     if (code !== 200) {
-      showError(msg || '删除单集失败');
+      showError(msg || t('delete_episode_failed'));
       return;
     }
 
-    showSuccess(`单集已被删除`);
+    showSuccess(t('episode_deleted_success'));
     await fetchEpisodes(1, true); // 重新拉取第一页
     setCurrentPage(1); // 重置分页
   };
@@ -228,10 +228,10 @@ const ChannelDetail = () => {
     const { code, msg } = response.data;
 
     if (code !== 200) {
-      showError(msg || '重试失败');
+      showError(msg || t('retry_failed'));
       return;
     }
-    showSuccess(`重试已提交`);
+    showSuccess(t('retry_submitted'));
     await fetchEpisodes(1, true); // 重新拉取第一页
     setCurrentPage(1); // 重置分页
   };
@@ -314,10 +314,6 @@ const ChannelDetail = () => {
 
       {/* Episodes Section */}
       <Box>
-        <Title order={2} mb="md">
-          {t('episodes')}
-        </Title>
-
         {episodes.length === 0 ? (
           <Center py="xl">
             <Text c="dimmed">{t('no_episodes_found')}</Text>
@@ -408,7 +404,7 @@ const ChannelDetail = () => {
                           </Text>
                         </Group>
 
-                        <Text size="sm" mt="xs" lineClamp={4} style={{ minHeight: '5rem' }}>
+                        <Text size="sm" mt="xs" lineClamp={4} style={{ minHeight: '4rem' }}>
                           {episode.description
                             ? episode.description
                             : t('no_description_available')}

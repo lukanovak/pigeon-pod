@@ -160,7 +160,7 @@
   "youtube_api_key_saved": "YouTube API Key saved successfully!",
   "failed_to_load_episodes": "Failed to load episodes",
   "failed_to_generate_subscription_url": "Failed to generate subscription URL",
-  "subscription_link_generated_success": "Subscription link generated successfully, please use this link to subscribe to the channel in any podcast client.",
+  "subscription_link_generated_success": "Subscription link has been generated successfully and automatically copied to your clipboard. please use this link to subscribe to the channel in any podcast client.",
   "update_channel_config_failed": "Failed to update channel configuration",
   "channel_config_updated": "Channel configuration updated",
   "delete_channel_failed": "Failed to delete channel",

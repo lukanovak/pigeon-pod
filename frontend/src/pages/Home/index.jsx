@@ -20,7 +20,7 @@ import {
   NumberInput,
 } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { IconClock, IconSearch } from '@tabler/icons-react';
+import { IconCheck, IconClock, IconSearch, IconSettings } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -35,6 +35,8 @@ const Home = () => {
   const [episodes, setEpisodes] = useState([]);
   const [channels, setChannels] = useState([]);
   const [opened, { open, close }] = useDisclosure(false);
+  const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
+
 
   const fetchChannels = async () => {
     const res = await API.get('/api/channel/list');
@@ -104,6 +106,7 @@ const Home = () => {
     }
     setEpisodes(data);
     setFilterLoading(false);
+    closeEditConfig()
   };
 
   useEffect(() => {
@@ -196,13 +199,20 @@ const Home = () => {
                         {channel.name ? channel.name : t('no_channel_name_available')}
                       </Title>
                       <Button
+                        size="compact-sm"
+                        color="orange"
+                        leftSection={<IconSettings size={16} />}
+                        onClick={openEditConfig}
+                      >
+                        {t('config')}
+                      </Button>
+                      <Button
+                        size="compact-sm"
                         loading={addChannelLoading}
                         onClick={addChannel}
-                        size="compact-sm"
-                        variant="gradient"
-                        gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}
+                        leftSection={<IconCheck size={16} />}
                       >
-                        {t('subscribe')}
+                        {t('confirm')}
                       </Button>
                     </Group>
                     <Text mt="xs" size="sm" lineClamp={4}>
@@ -215,62 +225,6 @@ const Home = () => {
           </Paper>
 
           <Box>
-            <Grid align="flex-end" justify="space-between">
-              <Grid.Col span={3.5}>
-                <TextInput
-                  label={t('title_contain_keywords')}
-                  name="containKeywords"
-                  placeholder={t('multiple_keywords_space_separated')}
-                  value={channel.containKeywords}
-                  onChange={(event) =>
-                    setChannel({ ...channel, containKeywords: event.target.value })
-                  }
-                />
-              </Grid.Col>
-              <Grid.Col span={3.5}>
-                <TextInput
-                  label={t('title_exclude_keywords')}
-                  name="excludeKeywords"
-                  placeholder={t('multiple_keywords_space_separated')}
-                  value={channel.excludeKeywords}
-                  onChange={(event) =>
-                    setChannel({ ...channel, excludeKeywords: event.target.value })
-                  }
-                />
-              </Grid.Col>
-              <Grid.Col span={2}>
-                <NumberInput
-                  label={t('minimum_duration_minutes')}
-                  name="minimumDuration"
-                  placeholder="0"
-                  value={channel.minimumDuration}
-                  onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
-                />
-              </Grid.Col>
-              <Grid.Col span={1.5}>
-                <NumberInput
-                  label={t('initial_episode_count')}
-                  name="initialEpisodeCount"
-                  placeholder="3"
-                  value={channel.initialEpisodeCount}
-                  min={1}
-                  step={1}
-                  onChange={(value) => setChannel({ ...channel, initialEpisodeCount: value })}
-                />
-              </Grid.Col>
-              <Grid.Col span={1.5}>
-                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">
-                  {t('preview')}
-                </Button>
-              </Grid.Col>
-            </Grid>
-          </Box>
-
-          <Box>
-            <Title order={4} mb="md">
-              {t('episodes')}
-            </Title>
-
             {episodes.length === 0 ? (
               <Center py="xl">
                 <Text c="dimmed">{t('no_episodes_found')}</Text>
@@ -339,6 +293,48 @@ const Home = () => {
               </Stack>
             )}
           </Box>
+        </Stack>
+      </Modal>
+      {/* Edit Channel Configuration Modal */}
+      <Modal
+        opened={editConfigOpened}
+        onClose={closeEditConfig}
+        title={t('edit_channel_configuration')}
+      >
+        <Stack>
+          <TextInput
+            label={t('title_contain_keywords')}
+            name="containKeywords"
+            placeholder={t('multiple_keywords_space_separated')}
+            value={channel.containKeywords}
+            onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
+          />
+          <TextInput
+            label={t('title_exclude_keywords')}
+            name="excludeKeywords"
+            placeholder={t('multiple_keywords_space_separated')}
+            value={channel.excludeKeywords}
+            onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
+          />
+          <NumberInput
+            label={t('minimum_duration_minutes')}
+            name="minimumDuration"
+            placeholder="0"
+            value={channel.minimumDuration}
+            onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
+          />
+          <NumberInput
+            label={t('maximum_episodes')}
+            name="maximumEpisodes"
+            placeholder={t('unlimited')}
+            value={channel.maximumEpisodes}
+            onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
+          />
+          <Group mt="md" justify="flex-end">
+            <Button variant="filled" loading={filerLoading} onClick={filterChannel}>
+              {t('confirm')}
+            </Button>
+          </Group>
         </Stack>
       </Modal>
     </Container>
