@@ -117,7 +117,7 @@ const Home = () => {
           placeholder={t('enter Youtueb channel url.')}
           name="channelUrl"
           value={channelUrl}
-          onChange={(e) => setChannelUrl(e.target.value)}
+          onChange={(e) => setChannelUrl(decodeURIComponent(e.target.value))}
           style={{ flex: 1 }}
         />
         <Button onClick={fetchChannel} loading={fetchChannelLoading} variant="gradient" gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}>
@@ -245,7 +245,7 @@ const Home = () => {
                 />
               </Grid.Col>
               <Grid.Col span={1.5}>
-                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">Configure</Button>
+                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">Preview</Button>
               </Grid.Col>
             </Grid>
           </Box>
@@ -283,7 +283,7 @@ const Home = () => {
                         <Stack>
                           <Box>
                             <Group justify="space-between">
-                              <Box style={{ maxWidth: '85%', overflow: 'hidden' }}>
+                              <Box style={{ maxWidth: '80%', overflow: 'hidden' }}>
                                 <Title
                                   order={5}
                                   style={{
