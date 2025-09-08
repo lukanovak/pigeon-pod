@@ -18,10 +18,9 @@ import {
   Paper,
   TextInput,
   NumberInput,
-  Flex,
 } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import {  IconClock, IconSearch } from '@tabler/icons-react';
+import { IconClock, IconSearch } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -53,11 +52,14 @@ const Home = () => {
 
   const fetchChannel = async () => {
     if (!channelUrl) {
-      showError('Please enter a valid YouTube channel URL.');
+      showError(t('please_enter_valid_youtube_url'));
       return;
     }
     setFetchChannelLoading(true);
-    const res = await API.post('/api/channel/fetch', { channelUrl: channelUrl, channelSource: 'YOUTUBE' });
+    const res = await API.post('/api/channel/fetch', {
+      channelUrl: channelUrl,
+      channelSource: 'YOUTUBE',
+    });
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
@@ -73,7 +75,6 @@ const Home = () => {
     setFetchChannelLoading(false);
     setChannelUrl(''); // Clear the input field after successful addition
   };
-
 
   const addChannel = async () => {
     setAddChannelLoading(true);
@@ -98,12 +99,12 @@ const Home = () => {
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
-      setFilterLoading(false)
+      setFilterLoading(false);
       return;
     }
     setEpisodes(data);
-    setFilterLoading(false)
-  }
+    setFilterLoading(false);
+  };
 
   useEffect(() => {
     fetchChannels().then();
@@ -114,14 +115,19 @@ const Home = () => {
       <Group pos="relative">
         <Input
           leftSection={<IconSearch size={16} />}
-          placeholder={t('enter Youtueb channel url.')}
+          placeholder={t('enter_youtube_channel_url')}
           name="channelUrl"
           value={channelUrl}
           onChange={(e) => setChannelUrl(decodeURIComponent(e.target.value))}
           style={{ flex: 1 }}
         />
-        <Button onClick={fetchChannel} loading={fetchChannelLoading} variant="gradient" gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}>
-          {t('new channel')}
+        <Button
+          onClick={fetchChannel}
+          loading={fetchChannelLoading}
+          variant="gradient"
+          gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}
+        >
+          {t('new_channel')}
         </Button>
       </Group>
 
@@ -142,7 +148,7 @@ const Home = () => {
                 <Text
                   fw={500}
                   mt="sm"
-                  size='sm'
+                  size="sm"
                   style={{
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -153,7 +159,7 @@ const Home = () => {
                   {channel.name}
                 </Text>
                 <Text c="dimmed" size="xs">
-                  {new Date(channel.lastPublishedAt).toLocaleDateString()} 更新
+                  {new Date(channel.lastPublishedAt).toLocaleDateString()} {t('updated')}
                 </Text>
               </Card>
             </Grid.Col>
@@ -161,42 +167,46 @@ const Home = () => {
         ) : (
           <Grid.Col span={12}>
             <Text align="center" c="dimmed" size="lg">
-              暂无频道，请添加新频道
+              {t('no_channels_available')}
             </Text>
           </Grid.Col>
         )}
       </Grid>
 
-      <Modal opened={opened} onClose={close} withCloseButton title="Subscription Configuration" size="70%">
+      <Modal
+        opened={opened}
+        onClose={close}
+        withCloseButton
+        title={t('subscription_configuration')}
+        size="70%"
+      >
         <Stack>
           <Paper radius="md" p="md" withBorder>
             <Grid>
               <Grid.Col span={2}>
                 <Center>
-                  <Avatar
-                    src={channel.avatarUrl}
-                    alt={channel.name}
-                    size={125}
-                    radius="md"
-                  />
+                  <Avatar src={channel.avatarUrl} alt={channel.name} size={125} radius="md" />
                 </Center>
               </Grid.Col>
               <Grid.Col span={10}>
                 <Stack>
                   <Box>
                     <Group>
-                      <Title order={3}>{channel.name ? channel.name : "No channel name available"}</Title>
+                      <Title order={3}>
+                        {channel.name ? channel.name : t('no_channel_name_available')}
+                      </Title>
                       <Button
                         loading={addChannelLoading}
                         onClick={addChannel}
                         size="compact-sm"
                         variant="gradient"
-                        gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}>
-                        Subscribe
+                        gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}
+                      >
+                        {t('subscribe')}
                       </Button>
                     </Group>
                     <Text mt="xs" size="sm" lineClamp={4}>
-                      {channel.description ? channel.description : 'No description available.'}
+                      {channel.description ? channel.description : t('no_description_available')}
                     </Text>
                   </Box>
                 </Stack>
@@ -208,25 +218,29 @@ const Home = () => {
             <Grid align="flex-end" justify="space-between">
               <Grid.Col span={3.5}>
                 <TextInput
-                  label="标题包含关键词（包含一个即匹配）"
+                  label={t('title_contain_keywords')}
                   name="containKeywords"
-                  placeholder="多个关键词用空格分隔"
+                  placeholder={t('multiple_keywords_space_separated')}
                   value={channel.containKeywords}
-                  onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
+                  onChange={(event) =>
+                    setChannel({ ...channel, containKeywords: event.target.value })
+                  }
                 />
               </Grid.Col>
               <Grid.Col span={3.5}>
                 <TextInput
-                  label="标题排除关键词（包含一个即排除）"
+                  label={t('title_exclude_keywords')}
                   name="excludeKeywords"
-                  placeholder="多个关键词用空格分隔"
+                  placeholder={t('multiple_keywords_space_separated')}
                   value={channel.excludeKeywords}
-                  onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
+                  onChange={(event) =>
+                    setChannel({ ...channel, excludeKeywords: event.target.value })
+                  }
                 />
               </Grid.Col>
               <Grid.Col span={2}>
                 <NumberInput
-                  label="单集最短时长(分)"
+                  label={t('minimum_duration_minutes')}
                   name="minimumDuration"
                   placeholder="0"
                   value={channel.minimumDuration}
@@ -235,7 +249,7 @@ const Home = () => {
               </Grid.Col>
               <Grid.Col span={1.5}>
                 <NumberInput
-                  label="初始下载集数"
+                  label={t('initial_episode_count')}
                   name="initialEpisodeCount"
                   placeholder="3"
                   value={channel.initialEpisodeCount}
@@ -245,29 +259,26 @@ const Home = () => {
                 />
               </Grid.Col>
               <Grid.Col span={1.5}>
-                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">Preview</Button>
+                <Button onClick={filterChannel} loading={filerLoading} fullWidth variant="outline">
+                  {t('preview')}
+                </Button>
               </Grid.Col>
             </Grid>
           </Box>
 
           <Box>
-            <Title order={4} mb="md" >
-              Episodes
+            <Title order={4} mb="md">
+              {t('episodes')}
             </Title>
 
             {episodes.length === 0 ? (
               <Center py="xl">
-                <Text c="dimmed">No episodes found for this channel</Text>
+                <Text c="dimmed">{t('no_episodes_found')}</Text>
               </Center>
             ) : (
               <Stack>
                 {episodes.map((episode) => (
-                  <Card
-                    key={episode.id}
-                    padding="md"
-                    radius="md"
-                    withBorder
-                  >
+                  <Card key={episode.id} padding="md" radius="md" withBorder>
                     <Grid>
                       {/* Episode thumbnail */}
                       <Grid.Col span={{ base: 12, sm: 3 }}>
@@ -300,15 +311,10 @@ const Home = () => {
                                 {formatISODuration(episode.duration)}
                               </Text>
                             </Group>
-                            <Text
-                              size="sm"
-                              mt="xs"
-                              lineClamp={3}
-                              style={{ minHeight: '3rem' }}
-                            >
+                            <Text size="sm" mt="xs" lineClamp={3} style={{ minHeight: '3rem' }}>
                               {episode.description
                                 ? episode.description
-                                : 'No description available.'}
+                                : t('no_description_available')}
                             </Text>
                           </Box>
                           <Group mt="auto">
@@ -322,7 +328,7 @@ const Home = () => {
                               />{' '}
                               {episode.publishedAt
                                 ? formatISODateTime(episode.publishedAt)
-                                : 'Unknown date'}
+                                : t('unknown_date')}
                             </Text>
                           </Group>
                         </Stack>

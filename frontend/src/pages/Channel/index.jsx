@@ -57,10 +57,7 @@ const ChannelDetail = () => {
     confirmDeleteChannelOpened,
     { open: openConfirmDeleteChannel, close: closeConfirmDeleteChannel },
   ] = useDisclosure(false);
-  const [
-    editConfigOpened,
-    { open: openEditConfig, close: closeEditConfig },
-  ] = useDisclosure(false);
+  const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -73,11 +70,11 @@ const ChannelDetail = () => {
             setCurrentPage((prevPage) => prevPage + 1);
           }
         },
-        { threshold: 0.1 }
+        { threshold: 0.1 },
       );
       if (node) observerRef.current.observe(node);
     },
-    [hasMoreEpisodes]
+    [hasMoreEpisodes],
   );
 
   const fetchChannelDetail = useCallback(async () => {
@@ -99,9 +96,7 @@ const ChannelDetail = () => {
       setLoadingEpisodes(true);
 
       try {
-        const res = await API.get(
-          `/api/episode/list/${channelId}?page=${page}&size=10`
-        );
+        const res = await API.get(`/api/episode/list/${channelId}?page=${page}&size=10`);
         const { code, msg, data } = res.data;
 
         if (code !== 200) {
@@ -130,7 +125,7 @@ const ChannelDetail = () => {
         setLoadingEpisodes(false);
       }
     },
-    [channelId] // Remove loadingEpisodes dependency
+    [channelId], // Remove loadingEpisodes dependency
   );
 
   useEffect(() => {
@@ -150,11 +145,11 @@ const ChannelDetail = () => {
     const { code, msg } = res.data;
 
     if (code !== 200) {
-      showError(msg || '更新频道配置失败');
+      showError(msg || t('update_channel_config_failed'));
       return;
     }
 
-    showSuccess('频道配置已更新');
+    showSuccess(t('channel_config_updated'));
     closeEditConfig();
   };
 
@@ -163,11 +158,11 @@ const ChannelDetail = () => {
     const { code, msg } = response.data;
 
     if (code !== 200) {
-      showError(msg || '删除频道失败');
+      showError(msg || t('delete_channel_failed'));
       return;
     }
 
-    showSuccess(`频道 ${channel.name} 已被删除`);
+    showSuccess(t('channel_deleted_success', { name: channel.name }));
 
     // Navigate back to the channels list page
     navigate('/');
@@ -175,23 +170,19 @@ const ChannelDetail = () => {
 
   const handleSubscribe = async () => {
     try {
-      const response = await API.get(
-        `/api/channel/subscribe?handler=${channel.handler}`
-      );
+      const response = await API.get(`/api/channel/subscribe?handler=${channel.handler}`);
       const { code, msg, data } = response.data;
 
       if (code !== 200) {
-        showError(msg || 'Failed to generate subscription URL');
+        showError(msg || t('failed_to_generate_subscription_url'));
         return;
       }
 
       // Copy the RSS feed URL to clipboard
       clipboard.copy(data);
-      showSuccess(
-        '订阅链接生成成功，请在任意podcast客户端中使用该链接订阅频道。'
-      );
+      showSuccess(t('subscription_link_generated_success'));
     } catch (error) {
-      showError('Failed to generate subscription URL');
+      showError(t('failed_to_generate_subscription_url'));
       console.error('Subscribe error:', error);
     }
   };
@@ -229,7 +220,7 @@ const ChannelDetail = () => {
 
     showSuccess(`单集已被删除`);
     await fetchEpisodes(1, true); // 重新拉取第一页
-    setCurrentPage(1);            // 重置分页
+    setCurrentPage(1); // 重置分页
   };
 
   const retryEpisode = async (episodeId) => {
@@ -242,15 +233,14 @@ const ChannelDetail = () => {
     }
     showSuccess(`重试已提交`);
     await fetchEpisodes(1, true); // 重新拉取第一页
-    setCurrentPage(1);            // 重置分页
-  }
-
+    setCurrentPage(1); // 重置分页
+  };
 
   if (!channel) {
     return (
       <Container>
         <Center h={400}>
-          <Title order={2}>Loading channel details...</Title>
+          <Title order={2}>{t('loading_channel_details')}</Title>
         </Center>
       </Container>
     );
@@ -264,12 +254,7 @@ const ChannelDetail = () => {
           {/* Left column with avatar */}
           <Grid.Col span={{ base: 12, md: 3 }}>
             <Center>
-              <Avatar
-                src={channel.avatarUrl}
-                alt={channel.name}
-                size={200}
-                radius="md"
-              />
+              <Avatar src={channel.avatarUrl} alt={channel.name} size={200} radius="md" />
             </Center>
           </Grid.Col>
 
@@ -293,14 +278,8 @@ const ChannelDetail = () => {
                 </Badge>
               </Group>
 
-              <Text
-                size="sm"
-                lineClamp={4}
-                style={{ minHeight: '4rem' }}
-              >
-                {channel.description
-                  ? channel.description
-                  : 'No description available.'}
+              <Text size="sm" lineClamp={4} style={{ minHeight: '4rem' }}>
+                {channel.description ? channel.description : t('no_description_available')}
               </Text>
 
               <Flex gap="md" wrap="wrap" align="flex-center" mt="sm">
@@ -309,7 +288,7 @@ const ChannelDetail = () => {
                   leftSection={<IconBrandApplePodcast size={16} />}
                   onClick={handleSubscribe}
                 >
-                  Subscribe
+                  {t('subscribe')}
                 </Button>
                 <Button
                   size="xs"
@@ -317,7 +296,7 @@ const ChannelDetail = () => {
                   leftSection={<IconSettings size={16} />}
                   onClick={openEditConfig}
                 >
-                  Config
+                  {t('config')}
                 </Button>
                 <Button
                   size="xs"
@@ -325,7 +304,7 @@ const ChannelDetail = () => {
                   leftSection={<IconBackspace size={16} />}
                   onClick={openConfirmDeleteChannel}
                 >
-                  Delete
+                  {t('delete')}
                 </Button>
               </Flex>
             </Stack>
@@ -336,12 +315,12 @@ const ChannelDetail = () => {
       {/* Episodes Section */}
       <Box>
         <Title order={2} mb="md">
-          Episodes
+          {t('episodes')}
         </Title>
 
         {episodes.length === 0 ? (
           <Center py="xl">
-            <Text c="dimmed">No episodes found for this channel</Text>
+            <Text c="dimmed">{t('no_episodes_found')}</Text>
           </Center>
         ) : (
           <Stack>
@@ -400,7 +379,7 @@ const ChannelDetail = () => {
                           }}
                           onClick={() => handlePlay(episode)}
                         >
-                          Play
+                          {t('play')}
                         </Button>
                       </Box>
                     </Box>
@@ -429,15 +408,10 @@ const ChannelDetail = () => {
                           </Text>
                         </Group>
 
-                        <Text
-                          size="sm"
-                          mt="xs"
-                          lineClamp={4}
-                          style={{ minHeight: '5rem' }}
-                        >
+                        <Text size="sm" mt="xs" lineClamp={4} style={{ minHeight: '5rem' }}>
                           {episode.description
                             ? episode.description
-                            : 'No description available.'}
+                            : t('no_description_available')}
                         </Text>
                       </Box>
 
@@ -453,18 +427,19 @@ const ChannelDetail = () => {
                             />{' '}
                             {episode.publishedAt
                               ? formatISODateTime(episode.publishedAt)
-                              : 'Unknown date'}
+                              : t('unknown_date')}
                           </Text>
-                          {(episode.downloadStatus && episode.downloadStatus !== 'COMPLETED') ?
+                          {episode.downloadStatus && episode.downloadStatus !== 'COMPLETED' ? (
                             <Badge
                               color={getDownloadStatusColor(episode.downloadStatus)}
                               variant="light"
                             >
                               {episode.downloadStatus}
-                            </Badge> : null}
+                            </Badge>
+                          ) : null}
                         </Group>
                         <Group>
-                          {(episode.downloadStatus === 'FAILED') ?
+                          {episode.downloadStatus === 'FAILED' ? (
                             <Button
                               size="compact-xs"
                               variant="outline"
@@ -472,9 +447,10 @@ const ChannelDetail = () => {
                               onClick={() => retryEpisode(episode.id)}
                               leftSection={<IconRotate size={16} />}
                             >
-                              Retry
-                            </Button> : null}
-                          {(episode.downloadStatus !== 'DOWNLOADING') ?
+                              {t('retry')}
+                            </Button>
+                          ) : null}
+                          {episode.downloadStatus !== 'DOWNLOADING' ? (
                             <Button
                               size="compact-xs"
                               variant="outline"
@@ -482,9 +458,9 @@ const ChannelDetail = () => {
                               onClick={() => deleteEpisode(episode.id)}
                               leftSection={<IconBackspace size={16} />}
                             >
-                              Delete
-                            </Button> : null
-                          }
+                              {t('delete')}
+                            </Button>
+                          ) : null}
                         </Group>
                       </Group>
                     </Stack>
@@ -526,40 +502,40 @@ const ChannelDetail = () => {
       <Modal
         opened={editConfigOpened}
         onClose={closeEditConfig}
-        title="Edit Channel Configuration"
+        title={t('edit_channel_configuration')}
       >
         <Stack>
           <TextInput
-            label="标题包含关键词（包含一个即匹配）"
+            label={t('title_contain_keywords')}
             name="containKeywords"
-            placeholder="多个关键词用空格分隔"
+            placeholder={t('multiple_keywords_space_separated')}
             value={channel.containKeywords}
             onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
           />
           <TextInput
-            label="标题排除关键词（包含一个即排除）"
+            label={t('title_exclude_keywords')}
             name="excludeKeywords"
-            placeholder="多个关键词用空格分隔"
+            placeholder={t('multiple_keywords_space_separated')}
             value={channel.excludeKeywords}
             onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
           />
           <NumberInput
-            label="单集最短时长(分)"
+            label={t('minimum_duration_minutes')}
             name="minimumDuration"
             placeholder="0"
             value={channel.minimumDuration}
             onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
           />
           <NumberInput
-            label="最多保留单集数"
+            label={t('maximum_episodes')}
             name="maximumEpisodes"
-            placeholder="无限制"
+            placeholder={t('unlimited')}
             value={channel.maximumEpisodes}
             onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
           />
           <Group mt="md" justify="flex-end">
             <Button variant="filled" onClick={updateChannelConfig}>
-              Save Changes
+              {t('save_changes')}
             </Button>
           </Group>
         </Stack>

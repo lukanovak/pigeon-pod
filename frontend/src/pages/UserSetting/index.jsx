@@ -9,7 +9,6 @@ import {
   Stack,
   TextInput,
   Title,
-  Badge,
   Text,
   Modal,
   CopyButton,
@@ -20,13 +19,9 @@ import { UserContext } from '../../context/User/UserContext.jsx';
 import { hasLength, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import {
-  IconAt,
   IconCheck,
   IconCopy,
-  IconEye,
-  IconEyeOff,
   IconLock,
-  IconPencil,
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
@@ -145,7 +140,7 @@ const UserSetting = () => {
           <Stack>
             <Title order={4}>{t('account_setting')}</Title>
             <Group>
-              <Text c="dimmed">User Name:</Text>
+              <Text c="dimmed">{t('username')}:</Text>
               <Text>{state.user.username}</Text>
             </Group>
             <Group>
