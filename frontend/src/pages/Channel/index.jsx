@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useClipboard, useDisclosure } from '@mantine/hooks';
+import { useClipboard, useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
   Container,
   Grid,
@@ -43,6 +43,7 @@ import './episode-image.css';
 
 const ChannelDetail = () => {
   const { t } = useTranslation();
+  const isSmallScreen = useMediaQuery('(max-width: 36em)');
   const { channelId } = useParams();
   const navigate = useNavigate();
   const clipboard = useClipboard();
@@ -247,69 +248,114 @@ const ChannelDetail = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" py={isSmallScreen ? 'md' : 'xl'}>
       {/* Channel Header Section */}
-      <Paper radius="md" p="lg" mb="lg" withBorder>
+      <Paper withBorder radius="md" mb="lg"
+             p={{base: 'xs', md: 'md', lg: 'lg'}}
+             >
         <Grid>
           {/* Left column with avatar */}
-          <Grid.Col span={{ base: 12, md: 3 }}>
+          <Grid.Col span={{ base: 4, sm: 3 }}>
             <Center>
-              <Avatar src={channel.avatarUrl} alt={channel.name} size={200} radius="md" />
+              <Avatar
+                src={channel.avatarUrl}
+                alt={channel.name}
+                size={isSmallScreen ? 100 : 180}
+                radius="md"
+              />
             </Center>
           </Grid.Col>
 
           {/* Right column with channel details */}
-          <Grid.Col span={{ base: 12, md: 9 }}>
-            <Stack>
-              <Group>
-                <Title order={2}>{channel.name}</Title>
-                <Badge
-                  component="a"
-                  href={channel.channelUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="light"
-                  color="#ff0033"
-                  size="lg"
-                  leftSection={<IconBrandYoutubeFilled size={16} />}
-                  style={{ cursor: 'pointer' }}
-                >
-                  @{channel.handler}
-                </Badge>
-              </Group>
+          <Grid.Col span={{ base: 8, sm: 9 }}>
+            <Badge hiddenFrom={'xs'}
+                   component="a"
+                   href={channel.channelUrl}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   variant="light"
+                   color="#ff0033"
+                   size='sm'
+                   leftSection={<IconBrandYoutubeFilled size={16} />}
+                   style={{ cursor: 'pointer' }}
+            >
+              @{channel.handler}
+            </Badge>
+            <Group mb={isSmallScreen ? '0' : 'sm'}>
+              <Title order={isSmallScreen ? 3 : 2}>{channel.name}</Title>
+              <Badge visibleFrom={'xs'}
+                component="a"
+                href={channel.channelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="light"
+                color="#ff0033"
+                size={'lg'}
+                leftSection={<IconBrandYoutubeFilled size={16} />}
+                style={{ cursor: 'pointer' }}
+              >
+                @{channel.handler}
+              </Badge>
+            </Group>
 
-              <Text size="sm" lineClamp={4} style={{ minHeight: '4rem' }}>
-                {channel.description ? channel.description : t('no_description_available')}
-              </Text>
+            <Text size="sm" lineClamp={isSmallScreen ? 2 : 4}
+                  style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}>
+              {channel.description ? channel.description : t('no_description_available')}
+            </Text>
 
-              <Flex gap="md" wrap="wrap" align="flex-center" mt="sm">
-                <Button
-                  size="xs"
-                  leftSection={<IconBrandApplePodcast size={16} />}
-                  onClick={handleSubscribe}
-                >
-                  {t('subscribe')}
-                </Button>
-                <Button
-                  size="xs"
-                  color="orange"
-                  leftSection={<IconSettings size={16} />}
-                  onClick={openEditConfig}
-                >
-                  {t('config')}
-                </Button>
-                <Button
-                  size="xs"
-                  color="pink"
-                  leftSection={<IconBackspace size={16} />}
-                  onClick={openConfirmDeleteChannel}
-                >
-                  {t('delete')}
-                </Button>
-              </Flex>
-            </Stack>
+            <Flex visibleFrom={'xs'} gap="md" align="flex-center" mt="lg">
+              <Button
+                size="xs"
+                leftSection={<IconBrandApplePodcast size={16} />}
+                onClick={handleSubscribe}
+              >
+                {t('subscribe')}
+              </Button>
+              <Button
+                size="xs"
+                color="orange"
+                leftSection={<IconSettings size={16} />}
+                onClick={openEditConfig}
+              >
+                {t('config')}
+              </Button>
+              <Button
+                size="xs"
+                color="pink"
+                leftSection={<IconBackspace size={16} />}
+                onClick={openConfirmDeleteChannel}
+              >
+                {t('delete')}
+              </Button>
+            </Flex>
           </Grid.Col>
         </Grid>
+        {/* Buttons for extra small screens */}
+        <Flex hiddenFrom={'xs'} gap="sm" align="flex-center" mt="xs">
+          <Button
+            size="compact-xs"
+            leftSection={<IconBrandApplePodcast size={12} />}
+            onClick={handleSubscribe}
+          >
+            {t('subscribe')}
+          </Button>
+          <Button
+            size="compact-xs"
+            color="orange"
+            leftSection={<IconSettings size={12} />}
+            onClick={openEditConfig}
+          >
+            {t('config')}
+          </Button>
+          <Button
+            size="compact-xs"
+            color="pink"
+            leftSection={<IconBackspace size={12} />}
+            onClick={openConfirmDeleteChannel}
+          >
+            {t('delete')}
+          </Button>
+        </Flex>
       </Paper>
 
       {/* Episodes Section */}
@@ -386,9 +432,9 @@ const ChannelDetail = () => {
                     <Stack>
                       <Box>
                         <Group justify="space-between">
-                          <Box style={{ maxWidth: '85%', overflow: 'hidden' }}>
+                          <Box style={{ maxWidth: isSmallScreen ? '66%' : '85%', overflow: 'hidden' }}>
                             <Title
-                              order={4}
+                              order={isSmallScreen ? 5 : 4}
                               style={{
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -399,12 +445,14 @@ const ChannelDetail = () => {
                               {episode.title}
                             </Title>
                           </Box>
-                          <Text c="dimmed" style={{ marginLeft: 5, whiteSpace: 'nowrap' }}>
+                          <Text c="dimmed" style={{whiteSpace: 'nowrap' }}>
                             {formatISODuration(episode.duration)}
                           </Text>
                         </Group>
 
-                        <Text size="sm" mt="xs" lineClamp={4} style={{ minHeight: '4rem' }}>
+                        <Text size="sm" mt="xs"
+                              lineClamp={isSmallScreen ? 3 : 4}
+                              style={{ minHeight: isSmallScreen ? '0' : '4rem' }}>
                           {episode.description
                             ? episode.description
                             : t('no_description_available')}

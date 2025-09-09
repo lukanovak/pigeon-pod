@@ -14,21 +14,20 @@ import {
 import logo from '../assets/pigeon.png';
 import {
   IconBrandGithub,
-  IconHome,
-  IconInfoCircle,
   IconLanguage,
   IconLogout2,
   IconMoon,
   IconSettings,
   IconSun,
-  IconUser,
 } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
 import { API, showSuccess } from '../helpers/index.js';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/User/UserContext.jsx';
 import { useTranslation } from 'react-i18next';
 
 function Header() {
+  const isSmallScreen = useMediaQuery('(max-width: 36em)');
   const computedColorScheme = useComputedColorScheme();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const toggleColorScheme = () => {
@@ -53,43 +52,12 @@ function Header() {
 
   return (
     <Paper shadow="xs" p={5}>
-      <Group justify="space-between" mr="xl" ml="xl">
+      <Group justify="space-between" mx={isSmallScreen ? 'xs' : 'xl'}>
         <Group gap="xs" mr={10} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <Image src={logo} w={40}></Image>
           {/*<Title order={4}>{t('header_title')}</Title>*/}
         </Group>
         <Group>
-          {state.user ? (
-            <Menu mr={10} withArrow>
-              <Menu.Target>
-                <Group gap={0} style={{ cursor: 'pointer' }}>
-                  <Text fw={600}>{state.user.username}</Text>
-                </Group>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  leftSection={<IconSettings size={14} />}
-                  onClick={() => navigate('/user-setting')}
-                >
-                  {t('header_account')}
-                </Menu.Item>
-                <Menu.Item leftSection={<IconLogout2 size={14} />} onClick={logout}>
-                  {t('header_logout')}
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          ) : (
-            <></>
-          )}
-          <ActionIcon
-            variant="default"
-            size="sm"
-            component="a"
-            href="https://github.com/aizhimou/PigeonPod/"
-            target="_blank"
-          >
-            <IconBrandGithub />
-          </ActionIcon>
           <Menu>
             <Menu.Target>
               <ActionIcon variant="default" size="sm">
@@ -112,6 +80,37 @@ function Header() {
               <IconMoon onClick={toggleColorScheme} />
             )}
           </ActionIcon>
+          <ActionIcon
+            variant="default"
+            size="sm"
+            component="a"
+            href="https://github.com/aizhimou/PigeonPod/"
+            target="_blank"
+          >
+            <IconBrandGithub />
+          </ActionIcon>
+          {state.user ? (
+            <Menu withArrow>
+              <Menu.Target>
+                <Group gap={0} style={{ cursor: 'pointer' }}>
+                  <Text fw={600}>{state.user.username}</Text>
+                </Group>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={<IconSettings size={14} />}
+                  onClick={() => navigate('/user-setting')}
+                >
+                  {t('header_account')}
+                </Menu.Item>
+                <Menu.Item leftSection={<IconLogout2 size={14} />} onClick={logout}>
+                  {t('header_logout')}
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          ) : (
+            <></>
+          )}
         </Group>
       </Group>
     </Paper>

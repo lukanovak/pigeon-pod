@@ -131,13 +131,12 @@ const Home = () => {
           variant="gradient"
           gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}
           fullWidth={isSmallScreen}
-          mt={isSmallScreen ? 'xs' : 0}
         >
           {t('new_channel')}
         </Button>
       </Group>
 
-      <Grid mt="xl">
+      <Grid mt={isSmallScreen ? 'md' : 'lg'}>
         {channels.length > 0 ? (
           channels.map((channel) => (
             <Grid.Col
