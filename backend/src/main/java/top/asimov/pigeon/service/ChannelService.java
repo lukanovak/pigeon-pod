@@ -94,16 +94,16 @@ public class ChannelService {
 
   @Transactional
   public Channel saveChannel(Channel channel) {
-    Integer initialEpisodeCount = channel.getInitialEpisodeCount();
-    if (initialEpisodeCount == null || initialEpisodeCount <= 0) {
-      initialEpisodeCount = 3;
+    Integer initialEpisodes = channel.getInitialEpisodes();
+    if (initialEpisodes == null || initialEpisodes <= 0) {
+      initialEpisodes = 3;
     }
 
     String channelId = channel.getId();
 
     List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
         channelId, null,
-        initialEpisodeCount, channel.getContainKeywords(),
+        initialEpisodes, channel.getContainKeywords(),
         channel.getExcludeKeywords(), channel.getMinimumDuration());
 
     Episode latestEpisode = episodes.get(0);
@@ -255,7 +255,7 @@ public class ChannelService {
     existingChannel.setExcludeKeywords(configuration.getExcludeKeywords());
     existingChannel.setMinimumDuration(configuration.getMinimumDuration());
     existingChannel.setMaximumEpisodes(configuration.getMaximumEpisodes());
-    //existingChannel.setInitialEpisodeCount(configuration.getInitialEpisodeCount());
+    existingChannel.setInitialEpisodes(configuration.getInitialEpisodes());
 
     int result = channelMapper.updateById(existingChannel);
     if (result > 0) {

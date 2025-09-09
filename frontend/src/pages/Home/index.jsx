@@ -35,6 +35,7 @@ const Home = () => {
   const [channel, setChannel] = useState([]);
   const [episodes, setEpisodes] = useState([]);
   const [channels, setChannels] = useState([]);
+  const [preview, setPreview] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
 
@@ -97,6 +98,10 @@ const Home = () => {
   };
 
   const filterChannel = async () => {
+    if (!preview) {
+      closeEditConfig()
+      return;
+    }
     setFilterLoading(true);
     const res = await API.post('/api/channel/preview', channel);
     const { code, msg, data } = res.data;
@@ -207,11 +212,11 @@ const Home = () => {
                 <Stack>
                   <Box>
                     <Group wrap="wrap" gap="xs">
-                      <Title order={3}>
+                      <Title order={isSmallScreen ? 3 : 2}>
                         {channel.name ? channel.name : t('no_channel_name_available')}
                       </Title>
                       <Button
-                        size="compact-xs"
+                        size={isSmallScreen ? 'compact-xs' : 'xs'}
                         color="orange"
                         leftSection={<IconSettings size={16} />}
                         onClick={openEditConfig}
@@ -219,7 +224,7 @@ const Home = () => {
                         {t('config')}
                       </Button>
                       <Button
-                        size="compact-xs"
+                        size={isSmallScreen ? 'compact-xs' : 'xs'}
                         loading={addChannelLoading}
                         onClick={addChannel}
                         leftSection={<IconCheck size={16} />}
@@ -227,7 +232,7 @@ const Home = () => {
                         {t('confirm')}
                       </Button>
                     </Group>
-                    <Text mt="xs" size="sm" lineClamp={4}>
+                    <Text mt="xs" size="sm" lineClamp={isSmallScreen ? 3 : 4}>
                       {channel.description ? channel.description : t('no_description_available')}
                     </Text>
                   </Box>
@@ -270,7 +275,7 @@ const Home = () => {
                               >
                                 {episode.title}
                               </Text>
-                          <Text size="sm" lineClamp={2} style={{ minHeight: '2rem' }}>
+                          <Text size="sm" lineClamp={isSmallScreen ? 2 : 4} style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}>
                             {episode.description
                               ? episode.description
                               : t('no_description_available')}
@@ -315,21 +320,37 @@ const Home = () => {
             name="containKeywords"
             placeholder={t('multiple_keywords_space_separated')}
             value={channel.containKeywords}
-            onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
+            onChange={(event) => {
+              setChannel({ ...channel, containKeywords: event.target.value });
+              setPreview(true);
+            }}
           />
           <TextInput
             label={t('title_exclude_keywords')}
             name="excludeKeywords"
             placeholder={t('multiple_keywords_space_separated')}
             value={channel.excludeKeywords}
-            onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
+            onChange={(event) => {
+              setChannel({ ...channel, excludeKeywords: event.target.value })
+              setPreview(true);
+            }}
           />
           <NumberInput
             label={t('minimum_duration_minutes')}
             name="minimumDuration"
             placeholder="0"
             value={channel.minimumDuration}
-            onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
+            onChange={(value) => {
+              setChannel({ ...channel, minimumDuration: value })
+              setPreview(true);
+            }}
+          />
+          <NumberInput
+            label={t('initial_episodes')}
+            name="initialEpisodes"
+            placeholder={t('3')}
+            value={channel.initialEpisodes}
+            onChange={(value) => setChannel({ ...channel, initialEpisodes: value })}
           />
           <NumberInput
             label={t('maximum_episodes')}

@@ -150,6 +150,7 @@
   "confirm_delete_channel_tip": "Are you sure you want to delete this channel? This action cannot be undone.",
   "edit_channel_configuration": "Edit Channel Configuration",
   "maximum_episodes": "Maximum episodes to keep",
+  "initial_episodes": "Initial episodes to download",
   "unlimited": "Unlimited",
   "save_changes": "Save Changes",
   "youtube_api_key_not_set": "Not set",
