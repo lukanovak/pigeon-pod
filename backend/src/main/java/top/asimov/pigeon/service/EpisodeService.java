@@ -1,6 +1,7 @@
 package top.asimov.pigeon.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,7 +21,7 @@ import top.asimov.pigeon.model.Episode;
 @Service
 public class EpisodeService {
 
-  protected final EpisodeMapper episodeMapper;
+  private final EpisodeMapper episodeMapper;
   private final ApplicationEventPublisher eventPublisher;
 
   public EpisodeService(EpisodeMapper episodeMapper, ApplicationEventPublisher eventPublisher) {
@@ -49,6 +50,13 @@ public class EpisodeService {
 
   @Transactional
   public void saveEpisodes(List<Episode> episodes) {
+    QueryWrapper<Episode> queryWrapper = new QueryWrapper<>();
+    queryWrapper.in("id", episodes.stream().map(Episode::getId).toList());
+    List<Episode> existingEpisodes = episodeMapper.selectList(queryWrapper);
+    if (!existingEpisodes.isEmpty()) {
+      List<String> existingIds = existingEpisodes.stream().map(Episode::getId).toList();
+      episodes.removeIf(episode -> existingIds.contains(episode.getId()));
+    }
     episodes.forEach(episodeMapper::insert);
   }
 
