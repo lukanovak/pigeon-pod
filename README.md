@@ -1,16 +1,18 @@
 <div align="center">
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
+  <p>Turn your favorite YouTube channels into podcast channels in the simplest and most elegant way.</p>
 </div>
 
-<div align="center">
-  <p>
-    Turn your favorite YouTube channels into podcast channels in the simplest and most elegant way.
-  </p>
-  <p>
-  [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README-ZH.md)
-  </p>
-</div>
+[![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README-ZH.md)
+
+## Screenshots
+
+### Channel list
+![index-dark&light](documents/screenshots/index-dark&light.png)
+
+### Channel detail
+![detail-dark&light](documents/screenshots/detail-dark&light.png)
 
 ## Core Features
 
