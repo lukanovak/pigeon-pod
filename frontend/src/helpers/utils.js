@@ -68,7 +68,7 @@ export function showWarning(message) {
     color: toastConstants.WARNING_COLOR,
     title: i18next.t('warning'),
     message: message,
-    position: 'top-right',
+    position: 'bottom-right',
     autoClose: toastConstants.WARNING_TIMEOUT,
   });
 }
@@ -78,7 +78,7 @@ export function showSuccess(message) {
     color: toastConstants.SUCCESS_COLOR,
     title: i18next.t('success'),
     message: message,
-    position: 'top-right',
+    position: 'bottom-right',
     autoClose: toastConstants.SUCCESS_TIMEOUT,
   });
 }
@@ -88,7 +88,7 @@ export function showInfo(message) {
     color: toastConstants.INFO_COLOR,
     title: i18next.t('info'),
     message: message,
-    position: 'top-right',
+    position: 'bottom-right',
     autoClose: toastConstants.INFO_TIMEOUT,
   });
 }
@@ -98,7 +98,7 @@ export function showNotice(message) {
     color: toastConstants.NOTICE_COLOR,
     title: i18next.t('notice'),
     message: message,
-    position: 'top-right',
+    position: 'bottom-right',
     autoClose: toastConstants.NOTICE_TIMEOUT,
   });
 }

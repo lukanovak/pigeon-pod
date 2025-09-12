@@ -14,6 +14,7 @@ import {
   CopyButton,
   Tooltip,
   ActionIcon,
+  Divider,
 } from '@mantine/core';
 import { UserContext } from '../../context/User/UserContext.jsx';
 import { hasLength, useForm } from '@mantine/form';
@@ -135,48 +136,56 @@ const UserSetting = () => {
 
   return (
     <Container size="lg" mt="lg">
+      {!state?.user ? (
+        <Stack>
+          <Paper shadow="xs" p="md">
+            <Text c="dimmed">{t('loading')}...</Text>
+          </Paper>
+        </Stack>
+      ) : (
       <Stack>
         <Paper shadow="xs" p="md">
           <Stack>
             <Title order={4}>{t('account_setting')}</Title>
             <Group>
               <Text c="dimmed">{t('username')}:</Text>
-              <Text>{state.user.username}</Text>
+              <Text>{state.user?.username}</Text>
+              <Button hiddenFrom='sm' fullWidth onClick={openChangeUsername}>{t('change_username')}</Button>
+              <Button hiddenFrom='sm' fullWidth onClick={openResetPassword}>{t('reset_password')}</Button>
             </Group>
+            <Divider hiddenFrom='sm' />
             <Group>
               <Text c="dimmed">API Key:</Text>
-              <Text>{state.user.apiKey ? state.user.apiKey : t('not_set')}</Text>
-              {state.user.apiKey ? (
-                <CopyButton value={state.user.apiKey} timeout={1000}>
-                  {({ copied, copy }) => (
-                    <Tooltip label={copied ? t('copied') : t('copy')} position="right" withArrow>
-                      <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy}>
-                        {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </CopyButton>
-              ) : null}
+              <Text truncate>{state.user?.apiKey ? state.user.apiKey : t('not_set')}</Text>
+              <Button onClick={openConfirmGenerateApiKey} hiddenFrom='sm' fullWidth>
+                {state.user?.apiKey ? t('change_api_key') : t('generate_api_key')}
+              </Button>
             </Group>
+            <Divider hiddenFrom='sm' />
             <Group>
               <Text c="dimmed">YouTube API Key:</Text>
-              <Text>
-                {state.user.youtubeApiKey ? state.user.youtubeApiKey : t('youtube_api_key_not_set')}
+              <Text truncate>
+                {state.user?.youtubeApiKey ? state.user.youtubeApiKey : t('youtube_api_key_not_set')}
               </Text>
+              <Button onClick={openEditYoutubeApiKey} hiddenFrom='sm' fullWidth>
+                {state.user?.youtubeApiKey ? t('edit_youtube_api_key') : t('set_youtube_api_key')}
+              </Button>
             </Group>
-            <Group mt="md">
+            <Divider hiddenFrom='sm' />
+            <Group mt="md" visibleFrom="sm">
               <Button onClick={openChangeUsername}>{t('change_username')}</Button>
               <Button onClick={openResetPassword}>{t('reset_password')}</Button>
               <Button onClick={openConfirmGenerateApiKey}>
-                {state.user.apiKey ? t('change_api_key') : t('generate_api_key')}
+                {state.user?.apiKey ? t('change_api_key') : t('generate_api_key')}
               </Button>
               <Button onClick={openEditYoutubeApiKey}>
-                {state.user.youtubeApiKey ? t('edit_youtube_api_key') : t('set_youtube_api_key')}
+                {state.user?.youtubeApiKey ? t('edit_youtube_api_key') : t('set_youtube_api_key')}
               </Button>
             </Group>
           </Stack>
         </Paper>
       </Stack>
+      )}
 
       <Modal opened={resetPasswordOpened} onClose={closeResetPassword} title={t('reset_password')}>
         <form onSubmit={resetPasswordForm.onSubmit((values) => resetPassword(values))}>

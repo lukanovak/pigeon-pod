@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserContext } from '../context/User/UserContext.jsx';
-import { API, showError } from '../helpers';
+import { API, showError, showWarning } from '../helpers';
 import logo from '../assets/pigeon.png';
 import {
   Anchor,
@@ -27,7 +27,7 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (searchParams.get('expired')) {
-      showError(t('not_logged_in_or_expired'));
+      showWarning(t('not_logged_in_or_expired'));
     }
   }, []);
 
