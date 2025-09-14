@@ -17,12 +17,13 @@
 ## Core Features
 
 - **🎯 Smart Channel Subscription**: Quickly add channels through YouTube channel URLs
-- **📱 Auto Sync Updates**: Automatically check and sync latest channel content with incremental updates
-- **🎵 Audio Download & Conversion**: Automatically convert YouTube videos to MP3 audio files
+- **🤖 Auto Sync Updates**: Automatically check and sync latest channel content with incremental updates
 - **📻 RSS Podcast Subscription**: Generate standard RSS subscription links, compatible with any podcast client
 - **🔍 Content Filtering**: Support keyword filtering (include/exclude) and episode duration filtering
-- **🌐 Multi-language Support**: Complete support for Chinese and English interfaces
 - **📊 Episode Management**: View, delete, and retry failed episode downloads
+- **✨ Ad-free Listening**: Automatically remove intro and mid-roll ads from episodes
+- **🌐 Multi-language Support**: Complete support for Chinese and English interfaces
+- **📱 Responsive UI**: Excellent experience on any device, anytime, anywhere
 
 ## Tech Stack
 
