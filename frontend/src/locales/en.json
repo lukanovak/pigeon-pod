@@ -169,5 +169,9 @@
   "delete_episode_failed": "Failed to delete episode",
   "episode_deleted_success": "Episode has been deleted",
   "retry_failed": "Retry failed",
-  "retry_submitted": "Retry has been submitted"
+  "retry_submitted": "Retry has been submitted",
+  "manual_copy_alert_title": "This browser doesn't support auto copy",
+  "manual_copy_instruction": "Please click the button to copy the subscription link:", 
+  "click_to_copy": "Click to copy",
+  "close": "Close"
 }

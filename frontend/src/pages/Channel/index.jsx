@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useClipboard, useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
   Container,
   Grid,
@@ -37,8 +37,10 @@ import {
   formatISODuration,
   showError,
   showSuccess,
+  copyToClipboard,
 } from '../../helpers/index.js';
 import { useTranslation } from 'react-i18next';
+import CopyModal from '../../components/CopyModal';
 import './episode-image.css';
 
 const ChannelDetail = () => {
@@ -46,7 +48,6 @@ const ChannelDetail = () => {
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
   const { channelId } = useParams();
   const navigate = useNavigate();
-  const clipboard = useClipboard();
   const [channel, setChannel] = useState(null);
   const [episodes, setEpisodes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,6 +60,8 @@ const ChannelDetail = () => {
     { open: openConfirmDeleteChannel, close: closeConfirmDeleteChannel },
   ] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
+  const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
+  const [copyText, setCopyText] = useState('');
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -179,9 +182,19 @@ const ChannelDetail = () => {
         return;
       }
 
-      // Copy the RSS feed URL to clipboard
-      clipboard.copy(data);
-      showSuccess(t('subscription_link_generated_success'));
+      // 使用自定义复制功能
+      await copyToClipboard(
+        data,
+        () => {
+          // 复制成功回调
+          showSuccess(t('subscription_link_generated_success'));
+        },
+        (text) => {
+          // 需要手动复制时的回调
+          setCopyText(text);
+          openCopyModal();
+        }
+      );
     } catch (error) {
       showError(t('failed_to_generate_subscription_url'));
       console.error('Subscribe error:', error);
@@ -546,6 +559,7 @@ const ChannelDetail = () => {
       <Modal
         opened={editConfigOpened}
         onClose={closeEditConfig}
+        size="lg"
         title={t('edit_channel_configuration')}
       >
         <Stack>
@@ -584,6 +598,14 @@ const ChannelDetail = () => {
           </Group>
         </Stack>
       </Modal>
+
+      {/* Copy Modal for manual copy */}
+      <CopyModal
+        opened={copyModalOpened}
+        onClose={closeCopyModal}
+        text={copyText}
+        title={t('manual_copy_title')}
+      />
     </Container>
   );
 };

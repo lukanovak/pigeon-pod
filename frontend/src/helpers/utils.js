@@ -177,3 +177,39 @@ export function removeTrailingSlash(url) {
     return url;
   }
 }
+
+/**
+ * 检测浏览器是否支持现代复制API
+ */
+export function isClipboardSupported() {
+  return !!(navigator.clipboard && window.isSecureContext);
+}
+
+/**
+ * 自定义复制功能
+ * 支持现代浏览器的自动复制和Safari等浏览器的手动复制提示
+ * @param {string} text - 要复制的文本
+ * @param {function} onSuccess - 复制成功回调
+ * @param {function} onFallback - 需要手动复制时的回调（显示Modal等）
+ * @returns {Promise<boolean>} - 是否成功复制或需要手动复制
+ */
+export async function copyToClipboard(text, onSuccess, onFallback) {
+  try {
+    // 检查是否支持现代复制API
+    if (isClipboardSupported()) {
+      await navigator.clipboard.writeText(text);
+      if (onSuccess) onSuccess();
+      return true;
+    } else {
+      // 不支持现代复制API，直接触发手动复制流程
+      // console.warn('浏览器不支持现代复制API，需要手动复制');
+      if (onFallback) onFallback(text);
+      return false;
+    }
+  } catch (error) {
+    // console.warn('自动复制失败，需要手动复制:', error);
+    // 自动复制失败，触发手动复制流程
+    if (onFallback) onFallback(text);
+    return false;
+  }
+}
