@@ -2,7 +2,9 @@
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <p>Turn your favorite YouTube channels into podcast channels in the simplest and most elegant way.</p>
-  <p>If self-hosting isn't your thing, take a look at our upcoming online services: [PigeonPod](https://pigeonpod.asimov.top/)</p>
+  <p>If self-hosting isn't your thing, take a look at our upcoming online services:
+    <a target="_blank" href="https://pigeonpod.asimov.top/">PigeonPod</a>
+  </p>
 </div>
 
 [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README-ZH.md)
