@@ -75,7 +75,7 @@ docker-compose up -d
 ```
 
 4. 访问应用
-打开浏览器访问 `http://{localhost}:8834`
+打开浏览器访问 `http://{localhost}:8834`，**默认用户名密码：`root/Root@123.`**
 
 ## 开发指南
 
