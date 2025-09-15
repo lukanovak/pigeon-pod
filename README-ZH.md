@@ -2,6 +2,7 @@
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <p>用最简单优雅的方式，将你喜爱的 YouTube 频道转换为播客频道。</p>
+  <p>如果你不喜欢自托管，欢迎看看我们即将上线的在线服务：[PigeonPod](https://pigeonpod.asimov.top/)</p>
 </div>
 
 [![English README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README.md)
@@ -24,6 +25,10 @@
 - **✨ 免广告收听**: 自动去除节目片头和中间的贴片广告
 - **🌐 多语言支持**: 完整支持中文和英文界面
 - **📱 自适应UI**: 随时随地在任何设备上获得优秀体验
+
+## 文档
+
+- [How to get YouTube API Key](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
 
 
 ## 技术栈
@@ -59,7 +64,7 @@ services:
     ports:
       - '8834:8080'
     environment:
-      - 'PIGEON_BASE_URL=https://xxxx.xxx' # set to your domain
+      - 'PIGEON_BASE_URL=https://pigeonpod.asimov.top' # set to your domain
       - 'PIGEON_AUDIO_FILE_PATH=/data/audio/' # set to your audio file path
       - 'SPRING_DATASOURCE_URL=jdbc:sqlite:/data/pigeon-pod.db' # set to your database path
     volumes:
