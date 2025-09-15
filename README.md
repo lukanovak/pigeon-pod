@@ -1,7 +1,7 @@
 <div align="center">
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
-  <p>Turn your favorite YouTube channels into podcast channels in the simplest and most elegant way.</p>
+  <h2>Turn your favorite YouTube channels into podcast channels in the simplest and most elegant way.</h2>
   <p>If self-hosting isn't your thing, take a look at our upcoming online services:
     <a target="_blank" href="https://pigeonpod.asimov.top/">PigeonPod</a>
   </p>
