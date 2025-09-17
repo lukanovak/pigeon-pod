@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,13 +39,22 @@ public class RssService {
   private final ChannelService channelService;
   private final EpisodeService episodeService;
 
-  // 从 application.properties 读取你的应用基础 URL
+  // 从 application.properties 读取应用基础 URL
   @Value("${pigeon.base-url}")
   private String appBaseUrl;
 
   public RssService(ChannelService channelService, EpisodeService episodeService) {
     this.channelService = channelService;
     this.episodeService = episodeService;
+  }
+
+  @PostConstruct
+  private void init() {
+    // 在依赖注入完成后，处理 appBaseUrl 值
+    if (appBaseUrl != null && appBaseUrl.endsWith("/")) {
+      appBaseUrl = appBaseUrl.substring(0, appBaseUrl.length() - 1);
+      log.info("已移除 appBaseUrl 末尾的斜杠，处理后的值为: {}", appBaseUrl);
+    }
   }
 
   /**

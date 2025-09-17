@@ -65,7 +65,7 @@ services:
     ports:
       - '8834:8080'
     environment:
-      - 'PIGEON_BASE_URL=https://pigeonpod.asimov.top/' # set to your domain
+      - 'PIGEON_BASE_URL=https://pigeonpod.asimov.top' # set to your domain
       - 'PIGEON_AUDIO_FILE_PATH=/data/audio/' # set to your audio file path
       - 'SPRING_DATASOURCE_URL=jdbc:sqlite:/data/pigeon-pod.db' # set to your database path
     volumes:
