@@ -1,13 +1,13 @@
 <div align="center">
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
-  <p>用最简单优雅的方式，将你喜爱的 YouTube 频道转换为播客频道。</p>
+  <h2>简单优雅的将你喜爱的 YouTube 频道转换为播客频道。</h2>
   <p>如果你不喜欢自托管，欢迎看看我们即将上线的在线服务：
     <a target="_blank" href="https://pigeonpod.asimov.top/">PigeonPod</a>
   </p>
 </div>
 
-[![English README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README.md)
+[![English README](https://img.shields.io/badge/README-English-red?style=flat-square)](README.md)
 
 ## Screenshots
 
