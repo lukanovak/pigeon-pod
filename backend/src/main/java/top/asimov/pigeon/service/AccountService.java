@@ -26,6 +26,16 @@ public class AccountService {
     this.messageSource = messageSource;
   }
 
+  public String getApiKey() {
+    String loginId = (String) StpUtil.getLoginId();
+    User user = userMapper.selectById(loginId);
+    String apiKey = user.getApiKey();
+    if (!ObjectUtils.isEmpty(apiKey)) {
+      return apiKey;
+    }
+    return generateApiKey();
+  }
+
   public String generateApiKey() {
     String loginId = (String) StpUtil.getLoginId();
     User user = userMapper.selectById(loginId);

@@ -33,17 +33,17 @@ public class ChannelService {
 
   private final ChannelMapper channelMapper;
   private final EpisodeService episodeService;
-  private final UserMapper userMapper;
   private final ApplicationEventPublisher eventPublisher;
   private final YoutubeHelper youtubeHelper;
+  private final AccountService accountService;
 
   public ChannelService(ChannelMapper channelMapper, EpisodeService episodeService,
-      UserMapper userMapper, ApplicationEventPublisher eventPublisher, YoutubeHelper youtubeHelper) {
+      ApplicationEventPublisher eventPublisher, YoutubeHelper youtubeHelper, AccountService accountService) {
     this.channelMapper = channelMapper;
     this.episodeService = episodeService;
-    this.userMapper = userMapper;
     this.eventPublisher = eventPublisher;
     this.youtubeHelper = youtubeHelper;
+    this.accountService = accountService;
   }
 
   @PostConstruct
@@ -245,11 +245,9 @@ public class ChannelService {
   }
 
   public String getChannelRssFeedUrl(String channelHandler) {
-    String loginId = (String) StpUtil.getLoginId();
-    User user = userMapper.selectById(loginId);
-    String apiKey = user.getApiKey();
+    String apiKey = accountService.getApiKey();
     if (ObjectUtils.isEmpty(apiKey)) {
-      throw new BusinessException("API Key is not set, please generate it in the user setting.");
+      throw new BusinessException("Get API Key failed. Please check your account settings.");
     }
     return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apikey=" + apiKey;
   }

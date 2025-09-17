@@ -123,7 +123,7 @@
   "enter_new_username": "请输入新用户名",
   "new_username": "新用户名",
   "username_changed_success": "用户名修改成功！",
-  "enter_youtube_channel_url": "输入YouTube频道链接",
+  "enter_youtube_channel_url": "输入YouTube频道链接: https://www.youtube.com/@{channel_handler}",
   "new_channel": "新频道",
   "updated": "更新",
   "no_channels_available": "暂无频道，请添加新频道",
