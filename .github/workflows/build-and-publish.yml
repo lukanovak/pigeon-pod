@@ -44,7 +44,7 @@ jobs:
       - name: Extract version from pom.xml
         id: extract-version
         run: |
-          VERSION=$(grep -oP '<version>\K[^<]+' backend/pom.xml | head -1)
+          VERSION=$(grep -A 1 '<artifactId>pigeon-pod</artifactId>' backend/pom.xml | grep '<version>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
 
