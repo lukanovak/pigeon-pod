@@ -1,6 +1,5 @@
 package top.asimov.pigeon.service;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,11 +16,9 @@ import top.asimov.pigeon.constant.ChannelSource;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.ChannelMapper;
-import top.asimov.pigeon.mapper.UserMapper;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.ChannelPack;
 import top.asimov.pigeon.model.Episode;
-import top.asimov.pigeon.model.User;
 import top.asimov.pigeon.util.YoutubeHelper;
 
 @Log4j2
