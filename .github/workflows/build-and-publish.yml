@@ -3,7 +3,7 @@ name: Build and Publish Docker Image to GHCR
 # 触发工作流的事件
 on:
   push:
-    paths-ignore:
+    paths-ignore: # 忽略对这些文件的更改，不触发工作流
       - 'README.md'
       - 'README-ZH.md'
       - LICENSE
@@ -11,9 +11,10 @@ on:
       - documents/**
     branches:
       - main  # 当有代码推送到 main 分支时触发
+      - release  # 当有代码推送到 release 分支时触发
   workflow_dispatch: # 允许手动在 Actions 页面触发此工作流
   pull_request:
-    paths-ignore:
+    paths-ignore: # 忽略对这些文件的更改，不触发工作流
       - 'README.md'
       - 'README-ZH.md'
       - LICENSE

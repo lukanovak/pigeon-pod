@@ -61,14 +61,15 @@
 version: '3.9'
 services:
   pigeon-pod:
-    image: 'ghcr.io/aizhimou/pigeon-pod:main'
+    # 在这里查看最新版本 https://github.com/aizhimou/pigeon-pod/pkgs/container/pigeon-pod
+    image: 'ghcr.io/aizhimou/pigeon-pod:release-${version}' # 替换 ${version} 为最新版本号，例如 1.0.0
     container_name: pigeon-pod
     ports:
       - '8834:8080'
     environment:
-      - 'PIGEON_BASE_URL=https://pigeonpod.asimov.top' # set to your domain
-      - 'PIGEON_AUDIO_FILE_PATH=/data/audio/' # set to your audio file path
-      - 'SPRING_DATASOURCE_URL=jdbc:sqlite:/data/pigeon-pod.db' # set to your database path
+      - 'PIGEON_BASE_URL=https://pigeonpod.asimov.top' # 替换为你的域名
+      - 'PIGEON_AUDIO_FILE_PATH=/data/audio/' # 替换为你的音频文件路径
+      - 'SPRING_DATASOURCE_URL=jdbc:sqlite:/data/pigeon-pod.db' # 替换为你的数据库路径
     volumes:
       - data:/data
 
