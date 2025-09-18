@@ -11,10 +11,10 @@
 
 ## Screenshots
 
-### Channel list
+- 订阅列表
 ![index-dark&light](documents/screenshots/index-dark&light.png)
 
-### Channel detail
+- 节目详情
 ![detail-dark&light](documents/screenshots/detail-dark&light.png)
 
 ## 核心功能
@@ -27,30 +27,6 @@
 - **✨ 免广告收听**: 自动去除节目片头和中间的贴片广告
 - **🌐 多语言支持**: 完整支持中文和英文界面
 - **📱 自适应UI**: 随时随地在任何设备上获得优秀体验
-
-## 文档
-
-- [How to get YouTube API Key](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
-
-
-## 技术栈
-
-### 后端
-- **Java 17** - 核心语言
-- **Spring Boot 3.5** - 应用框架
-- **SQLite** - 轻量级数据库
-- **Sa-Token** - 权限认证框架
-- **YouTube Data API v3** - YouTube 数据获取
-- **yt-dlp** - 视频下载工具
-- **Rome** - RSS 生成库
-
-### 前端
-- **React 19** - 用户界面框架
-- **Vite 7** - 构建工具
-- **Mantine 8** - UI 组件库
-- **React Router 7** - 路由管理
-- **i18next** - 国际化支持
-- **Axios** - HTTP 客户端
 
 ## 部署方式
 
@@ -82,8 +58,33 @@ volumes:
 docker-compose up -d
 ```
 
-4. 访问应用
+3. 访问应用
 打开浏览器访问 `http://{localhost}:8834`，**默认用户名密码：`root/Root@123.`**
+
+## 文档
+
+- [如何获取 ouTube Data API 密钥](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
+- [配置 YouTube Cookie](documents/youtube-cookie-setup-zh.md)
+
+
+## 技术栈
+
+### 后端
+- **Java 17** - 核心语言
+- **Spring Boot 3.5** - 应用框架
+- **SQLite** - 轻量级数据库
+- **Sa-Token** - 权限认证框架
+- **YouTube Data API v3** - YouTube 数据获取
+- **yt-dlp** - 视频下载工具
+- **Rome** - RSS 生成库
+
+### 前端
+- **React 19** - 用户界面框架
+- **Vite 7** - 构建工具
+- **Mantine 8** - UI 组件库
+- **React Router 7** - 路由管理
+- **i18next** - 国际化支持
+- **Axios** - HTTP 客户端
 
 ## 开发指南
 

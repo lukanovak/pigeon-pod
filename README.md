@@ -11,10 +11,10 @@
 
 ## Screenshots
 
-### Channel list
+- Channel list
 ![index-dark&light](documents/screenshots/index-dark&light.png)
 
-### Channel detail
+- Channel detail
 ![detail-dark&light](documents/screenshots/detail-dark&light.png)
 
 ## Core Features
@@ -27,29 +27,6 @@
 - **✨ Ad-free Listening**: Automatically remove intro and mid-roll ads from episodes
 - **🌐 Multi-language Support**: Complete support for Chinese and English interfaces
 - **📱 Responsive UI**: Excellent experience on any device, anytime, anywhere
-
-## Documentation
-
-- [How to get YouTube API Key](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
-
-## Tech Stack
-
-### Backend
-- **Java 17** - Core language
-- **Spring Boot 3.5** - Application framework
-- **SQLite** - Lightweight database
-- **Sa-Token** - Authentication framework
-- **YouTube Data API v3** - YouTube data retrieval
-- **yt-dlp** - Video download tool
-- **Rome** - RSS generation library
-
-### Frontend
-- **React 19** - UI framework
-- **Vite 7** - Build tool
-- **Mantine 8** - UI component library
-- **React Router 7** - Route management
-- **i18next** - Internationalization support
-- **Axios** - HTTP client
 
 ## Deployment
 
@@ -84,6 +61,31 @@ docker-compose up -d
 
 3. Access the application
 Open your browser and visit `http://localhost:8834` with **default username and password: `root/Root@123.`**
+
+## Documentation
+
+- [How to get YouTube API Key](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
+- [Youtube cookie setup](documents/youtube-cookie-setup-en.md)
+
+
+## Tech Stack
+
+### Backend
+- **Java 17** - Core language
+- **Spring Boot 3.5** - Application framework
+- **SQLite** - Lightweight database
+- **Sa-Token** - Authentication framework
+- **YouTube Data API v3** - YouTube data retrieval
+- **yt-dlp** - Video download tool
+- **Rome** - RSS generation library
+
+### Frontend
+- **React 19** - UI framework
+- **Vite 7** - Build tool
+- **Mantine 8** - UI component library
+- **React Router 7** - Route management
+- **i18next** - Internationalization support
+- **Axios** - HTTP client
 
 ## Development Guide
 
