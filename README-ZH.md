@@ -25,6 +25,7 @@
 - **🔍 内容过滤**: 支持关键词（包含/排除）和节目时长过滤
 - **📊 节目管理**: 查看、删除、重试下载失败的节目
 - **✨ 免广告收听**: 自动去除节目片头和中间的贴片广告
+- **🍪 自定义 Cookies**: 支持通过上传 Cookies 订阅年龄限制内容和会员节目内容
 - **🌐 多语言支持**: 完整支持中文和英文界面
 - **📱 自适应UI**: 随时随地在任何设备上获得优秀体验
 
@@ -63,8 +64,8 @@ docker-compose up -d
 
 ## 文档
 
-- [如何获取 ouTube Data API 密钥](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
-- [配置 YouTube Cookie](documents/youtube-cookie-setup-zh.md)
+- [如何获取 YouTube Data API 密钥](documents/how-to-get-youtube-api-key-zh.md)
+- [如何配置 YouTube Cookies](documents/youtube-cookie-setup-zh.md)
 
 
 ## 技术栈

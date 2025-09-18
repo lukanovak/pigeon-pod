@@ -25,6 +25,7 @@
 - **🔍 Content Filtering**: Support keyword filtering (include/exclude) and episode duration filtering
 - **📊 Episode Management**: View, delete, and retry failed episode downloads
 - **✨ Ad-free Listening**: Automatically remove intro and mid-roll ads from episodes
+- **🍪 Custom Cookies**: Supports subscription of age-restricted content and membership content by uploading cookies.
 - **🌐 Multi-language Support**: Complete support for Chinese and English interfaces
 - **📱 Responsive UI**: Excellent experience on any device, anytime, anywhere
 
@@ -64,8 +65,8 @@ Open your browser and visit `http://localhost:8834` with **default username and 
 
 ## Documentation
 
-- [How to get YouTube API Key](https://github.com/mxpv/podsync/blob/main/docs/how_to_get_youtube_api_key.md)
-- [Youtube cookie setup](documents/youtube-cookie-setup-en.md)
+- [How to get YouTube API Key](documents/how-to-get-youtube-api-key-en.md)
+- [How to setup YouTube Cookies](documents/youtube-cookie-setup-en.md)
 
 
 ## Tech Stack
