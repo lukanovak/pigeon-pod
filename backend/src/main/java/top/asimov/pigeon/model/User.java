@@ -26,6 +26,10 @@ public class User {
 
     private String apiKey;
     private String youtubeApiKey;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String cookiesContent;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

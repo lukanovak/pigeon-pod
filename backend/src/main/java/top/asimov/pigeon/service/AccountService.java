@@ -123,4 +123,25 @@ public class AccountService {
     return user.getYoutubeApiKey();
   }
 
+  /**
+   * 更新用户的cookies内容
+   * @param userId 用户ID
+   * @param cookiesContent cookies内容
+   */
+  public void updateUserCookies(String userId, String cookiesContent) {
+    User user = userMapper.selectById(userId);
+    if (user != null) {
+      user.setCookiesContent(cookiesContent);
+      userMapper.updateById(user);
+    }
+  }
+
+  public void deleteCookie(String userId) {
+    User user = userMapper.selectById(userId);
+    if (user != null) {
+      user.setCookiesContent("");
+      userMapper.updateById(user);
+    }
+  }
+
 }

@@ -2,7 +2,9 @@ package top.asimov.pigeon.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.util.SaResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,4 +45,17 @@ public class AccountController {
     return SaResult.data(accountService.updateYoutubeApiKey(user.getId(), user.getYoutubeApiKey()));
   }
 
+  @PostMapping("/cookies")
+  public SaResult updateCookies(@RequestBody User user) {
+    accountService.updateUserCookies(user.getId(), user.getCookiesContent());
+    return SaResult.data(user);
+  }
+
+  @DeleteMapping("/cookies/{userId}")
+  public SaResult deleteCookies(@PathVariable("userId") String userId) {
+    accountService.deleteCookie(userId);
+    return SaResult.ok();
+  }
+
 }
+

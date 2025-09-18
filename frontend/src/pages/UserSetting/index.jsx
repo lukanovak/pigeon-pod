@@ -11,18 +11,23 @@ import {
   Title,
   Text,
   Modal,
-  CopyButton,
-  Tooltip,
-  ActionIcon,
-  Divider,
+  FileInput,
+  Divider, ActionIcon, Alert, Anchor,
 } from '@mantine/core';
 import { UserContext } from '../../context/User/UserContext.jsx';
 import { hasLength, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
 import {
-  IconCheck,
-  IconCopy,
+  IconAlertCircle,
+  IconCookie,
+  IconEdit,
+  IconEditCircle,
+  IconEditOff,
   IconLock,
+  IconLockPassword,
+  IconPassword,
+  IconPasswordFingerprint,
+  IconRefresh,
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
@@ -43,12 +48,16 @@ const UserSetting = () => {
   // YouTube Data API Key states
   const [editYoutubeApiKeyOpened, { open: openEditYoutubeApiKey, close: closeEditYoutubeApiKey }] =
     useDisclosure(false);
-  const [youtubeApiKey, setYoutubeAoiKey] = useState('');
+  const [youtubeApiKey, setYoutubeApiKey] = useState('');
+
+  // Cookie upload states
+  const [uploadCookiesOpened, { open: openUploadCookies, close: closeUploadCookies }] = useDisclosure(false);
+  const [cookieFile, setCookieFile] = useState(null);
+  const [cookieUploading, setCookieUploading] = useState(false);
 
   const resetPassword = async (values) => {
     setResetPasswordLoading(true);
     const res = await API.post('/api/account/reset-password', {
-      id: state.user.id,
       password: values.oldPassword,
       newPassword: values.newPassword,
     });
@@ -122,6 +131,44 @@ const UserSetting = () => {
     }
   };
 
+  const uploadCookies = async () => {
+    if (!cookieFile) return;
+
+    setCookieUploading(true);
+
+    // 读取文件文本内容
+    const fileContent = await cookieFile.text();
+
+    // 发送文本内容到接口
+    const res = await API.post('/api/account/cookies', {
+      id: state.user.id,
+      cookiesContent: fileContent
+    });
+
+    const { code, msg } = res.data;
+
+    if (code === 200) {
+      showSuccess(t('cookies_upload_success'));
+      closeUploadCookies();
+      setCookieFile(null);
+    } else {
+      showError(msg);
+    }
+
+    setCookieUploading(false);
+  };
+
+  const deleteCookie = async () => {
+    const res = await API.delete('/api/account/cookies/' + state.user.id);
+    const { code, msg } = res.data;
+    if (code === 200) {
+      showSuccess(t('Cookie deleted successfully'));
+      closeUploadCookies();
+    } else {
+      showError(msg);
+    }
+  };
+
   const resetPasswordForm = useForm({
     mode: 'uncontrolled',
     initialValues: {
@@ -143,50 +190,59 @@ const UserSetting = () => {
           </Paper>
         </Stack>
       ) : (
-      <Stack>
-        <Paper shadow="xs" p="md">
-          <Stack>
-            <Title order={4}>{t('account_setting')}</Title>
-            <Group>
-              <Text c="dimmed">{t('username')}:</Text>
-              <Text>{state.user?.username}</Text>
-              <Button hiddenFrom='sm' fullWidth onClick={openChangeUsername}>{t('change_username')}</Button>
-              <Button hiddenFrom='sm' fullWidth onClick={openResetPassword}>{t('reset_password')}</Button>
-            </Group>
-            <Divider hiddenFrom='sm' />
-            <Group>
-              <Text c="dimmed">API Key:</Text>
-              <Text truncate>{state.user?.apiKey ? state.user.apiKey : t('not_set')}</Text>
-              <Button onClick={openConfirmGenerateApiKey} hiddenFrom='sm' fullWidth>
-                {state.user?.apiKey ? t('change_api_key') : t('generate_api_key')}
-              </Button>
-            </Group>
-            <Divider hiddenFrom='sm' />
-            <Group>
-              <Text c="dimmed">YouTube API Key:</Text>
-              <Text truncate>
-                {state.user?.youtubeApiKey ? state.user.youtubeApiKey : t('youtube_api_key_not_set')}
-              </Text>
-              <Button onClick={openEditYoutubeApiKey} hiddenFrom='sm' fullWidth>
-                {state.user?.youtubeApiKey ? t('edit_youtube_api_key') : t('set_youtube_api_key')}
-              </Button>
-            </Group>
-            <Divider hiddenFrom='sm' />
-            <Group mt="md" visibleFrom="sm">
-              <Button onClick={openChangeUsername}>{t('change_username')}</Button>
-              <Button onClick={openResetPassword}>{t('reset_password')}</Button>
-              <Button onClick={openConfirmGenerateApiKey}>
-                {state.user?.apiKey ? t('change_api_key') : t('generate_api_key')}
-              </Button>
-              <Button onClick={openEditYoutubeApiKey}>
-                {state.user?.youtubeApiKey ? t('edit_youtube_api_key') : t('set_youtube_api_key')}
-              </Button>
-            </Group>
-          </Stack>
-        </Paper>
-      </Stack>
+        <Stack>
+          <Paper shadow="xs" p="md">
+            <Stack>
+              <Title order={4}>{t('account_setting')}</Title>
+              <Group>
+                <Text c="dimmed">{t('username')}:</Text>
+                <Text>{state.user?.username}</Text>
+                <ActionIcon variant="transparent" size="sm" aria-label="Edit Youtube Api Key" onClick={openChangeUsername}>
+                  <IconEdit size={18}/>
+                </ActionIcon>
+                <ActionIcon variant="transparent" size="sm" aria-label="Edit Youtube Api Key" onClick={openResetPassword}>
+                  <IconLockPassword size={18}/>
+                </ActionIcon>
+              </Group>
+              <Divider hiddenFrom='sm' />
+
+              <Group>
+                <Text c="dimmed">API Key:</Text>
+                <ActionIcon variant="transparent" size="sm" aria-label="Edit Youtube Api Key" onClick={openConfirmGenerateApiKey} hiddenFrom='sm'>
+                  <IconRefresh size={18}/>
+                </ActionIcon>
+                <Text truncate>{state.user?.apiKey ? state.user.apiKey : t('not_set')}</Text>
+                <ActionIcon variant="transparent" size="sm" aria-label="Edit Youtube Api Key" onClick={openConfirmGenerateApiKey} visibleFrom="sm">
+                  <IconRefresh size={18}/>
+                </ActionIcon>
+              </Group>
+              <Divider hiddenFrom='sm' />
+
+              <Group>
+                <Text c="dimmed">YouTube API Key:</Text>
+                <ActionIcon variant="transparent" size="sm" aria-label="Edit Youtube Api Key" onClick={openEditYoutubeApiKey} hiddenFrom='sm'>
+                  <IconEdit size={18}/>
+                </ActionIcon>
+                <Text truncate>
+                  {state.user?.youtubeApiKey ? state.user.youtubeApiKey : t('youtube_api_key_not_set')}
+                </Text>
+                <ActionIcon variant="transparent" size="sm" aria-label="Edit Youtube Api Key" onClick={openEditYoutubeApiKey} visibleFrom='sm'>
+                  <IconEdit size={18}/>
+                </ActionIcon>
+              </Group>
+              <Divider hiddenFrom='sm' />
+
+              <Group mt="md">
+                <Button onClick={openUploadCookies}>
+                  设置 Cookies
+                </Button>
+              </Group>
+            </Stack>
+          </Paper>
+        </Stack>
       )}
 
+      {/* Reset Password Modal */}
       <Modal opened={resetPasswordOpened} onClose={closeResetPassword} title={t('reset_password')}>
         <form onSubmit={resetPasswordForm.onSubmit((values) => resetPassword(values))}>
           <PasswordInput
@@ -218,6 +274,7 @@ const UserSetting = () => {
         </form>
       </Modal>
 
+      {/* Confirm Generate API Key Modal */}
       <Modal
         opened={confirmGenerateApiKeyOpened}
         onClose={closeConfirmGenerateApiKey}
@@ -236,6 +293,7 @@ const UserSetting = () => {
         </Group>
       </Modal>
 
+      {/* Change Username Modal */}
       <Modal
         opened={changeUsernameOpened}
         onClose={closeChangeUsername}
@@ -269,7 +327,7 @@ const UserSetting = () => {
           label={t('youtube_data_api_key')}
           placeholder={t('enter_youtube_data_api_key')}
           value={youtubeApiKey}
-          onChange={(event) => setYoutubeAoiKey(event.currentTarget.value)}
+          onChange={(event) => setYoutubeApiKey(event.currentTarget.value)}
           withAsterisk
           leftSection={<IconLock size={16} />}
         />
@@ -280,6 +338,52 @@ const UserSetting = () => {
             }}
           >
             {t('confirm')}
+          </Button>
+        </Group>
+      </Modal>
+
+      {/* Upload Cookies Modal */}
+      <Modal
+        opened={uploadCookiesOpened}
+        onClose={closeUploadCookies}
+        size='lg'
+        title="管理 YouTube Cookies"
+      >
+        <Stack>
+          <Alert>
+            <Text c="red" size='sm' fw={500}>
+              ⚠️ By using your account, you run the risk of it being banned (temporarily or permanently). Be mindful with the request rate and amount of downloads you make with an account. Use it only when necessary, or consider using a throwaway account.
+            </Text>
+            <Anchor target="_blank" href="https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies" size='sm' display='block' mt='xs'>
+              📒 See instructions on how to export YouTube cookies
+            </Anchor>
+          </Alert>
+
+          <Button variant="default" onClick={deleteCookie}>
+            清除已上传的 Cookies
+          </Button>
+
+          <Text  mt='lg'>
+            上传 / 更新 YouTube cookies
+          </Text>
+          <FileInput
+            label="YouTube cookies 文件"
+            placeholder="选择文件..."
+            accept="text/plain"
+            onChange={setCookieFile}
+            leftSection={<IconCookie size={16} />}
+          />
+        </Stack>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={closeUploadCookies}>
+            取消
+          </Button>
+          <Button
+            onClick={uploadCookies}
+            loading={cookieUploading}
+            disabled={!cookieFile}
+          >
+            上传
           </Button>
         </Group>
       </Modal>
