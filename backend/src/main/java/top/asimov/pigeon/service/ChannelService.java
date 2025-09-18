@@ -8,6 +8,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -33,14 +35,17 @@ public class ChannelService {
   private final ApplicationEventPublisher eventPublisher;
   private final YoutubeHelper youtubeHelper;
   private final AccountService accountService;
+  private final MessageSource messageSource;
 
   public ChannelService(ChannelMapper channelMapper, EpisodeService episodeService,
-      ApplicationEventPublisher eventPublisher, YoutubeHelper youtubeHelper, AccountService accountService) {
+      ApplicationEventPublisher eventPublisher, YoutubeHelper youtubeHelper, AccountService accountService,
+      MessageSource messageSource) {
     this.channelMapper = channelMapper;
     this.episodeService = episodeService;
     this.eventPublisher = eventPublisher;
     this.youtubeHelper = youtubeHelper;
     this.accountService = accountService;
+    this.messageSource = messageSource;
   }
 
   @PostConstruct
@@ -55,20 +60,20 @@ public class ChannelService {
   public ChannelPack fetchChannel(Channel channel) {
     String channelSource = channel.getChannelSource();
     if (ObjectUtils.isEmpty(channelSource)) {
-      throw new BusinessException("channelSource cannot be empty!");
+      throw new BusinessException(messageSource.getMessage("channel.source.empty", null, LocaleContextHolder.getLocale()));
     }
 
     String channelId = channel.getId();
     if (StringUtils.hasText(channelId)) {
       Channel existChannel = channelMapper.selectById(channelId);
       if (existChannel != null) {
-        throw new BusinessException("Channel already exists with name: " + channel.getName());
+        throw new BusinessException(messageSource.getMessage("channel.already.exists", new Object[]{channel.getName()}, LocaleContextHolder.getLocale()));
       }
     }
 
     String channelUrl = channel.getChannelUrl();
     if (ObjectUtils.isEmpty(channelUrl)) {
-      throw new BusinessException("channelUrl cannot be empty!");
+      throw new BusinessException(messageSource.getMessage("channel.url.empty", null, LocaleContextHolder.getLocale()));
     }
 
     String handler = youtubeHelper.getHandleFromUrl(channelUrl);
@@ -145,7 +150,7 @@ public class ChannelService {
   public Channel channelDetail(String id) {
     Channel channel = channelMapper.selectById(id);
     if (channel == null) {
-      throw new BusinessException("Channel not found with id: " + id);
+      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{id}, LocaleContextHolder.getLocale()));
     }
     String handler = channel.getHandler();
     String channelSource = channel.getChannelSource();
@@ -181,7 +186,7 @@ public class ChannelService {
     // 1. 获取频道信息，确认存在
     Channel channel = channelMapper.selectById(channelId);
     if (channel == null) {
-      throw new BusinessException("频道不存在，ID: " + channelId);
+      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
     }
 
     // 2. 查询该频道下所有的episodes
@@ -200,7 +205,7 @@ public class ChannelService {
       log.info("频道 {} 删除成功", channel.getName());
     } else {
       log.error("频道 {} 删除失败", channel.getName());
-      throw new BusinessException("删除频道失败");
+      throw new BusinessException(messageSource.getMessage("channel.delete.failed", null, LocaleContextHolder.getLocale()));
     }
   }
 
@@ -244,7 +249,7 @@ public class ChannelService {
   public String getChannelRssFeedUrl(String channelHandler) {
     String apiKey = accountService.getApiKey();
     if (ObjectUtils.isEmpty(apiKey)) {
-      throw new BusinessException("Get API Key failed. Please check your account settings.");
+      throw new BusinessException(messageSource.getMessage("channel.api.key.failed", null, LocaleContextHolder.getLocale()));
     }
     return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apikey=" + apiKey;
   }
@@ -252,7 +257,7 @@ public class ChannelService {
   public Channel updateChannelConfig(String channelId,Channel configuration) {
     Channel existingChannel = channelMapper.selectById(channelId);
     if (existingChannel == null) {
-      throw new BusinessException("Channel not found with id: " + channelId);
+      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
     }
 
     // 只更新允许修改的字段
@@ -268,7 +273,7 @@ public class ChannelService {
       return existingChannel;
     } else {
       log.error("频道 {} 配置更新失败", existingChannel.getName());
-      throw new BusinessException("更新频道配置失败");
+      throw new BusinessException(messageSource.getMessage("channel.config.update.failed", null, LocaleContextHolder.getLocale()));
     }
   }
 
@@ -307,7 +312,7 @@ public class ChannelService {
       log.info("删除了 {} 条episode记录", count);
     } catch (Exception e) {
       log.error("删除episode记录时出错", e);
-      throw new BusinessException("删除episode记录失败: " + e.getMessage());
+      throw new BusinessException(messageSource.getMessage("episode.delete.records.failed", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
     }
   }
 

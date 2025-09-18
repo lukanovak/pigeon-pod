@@ -26,6 +26,8 @@ import java.util.List;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import top.asimov.pigeon.exception.BusinessException;
@@ -38,14 +40,16 @@ public class RssService {
 
   private final ChannelService channelService;
   private final EpisodeService episodeService;
+  private final MessageSource messageSource;
 
   // 从 application.properties 读取应用基础 URL
   @Value("${pigeon.base-url}")
   private String appBaseUrl;
 
-  public RssService(ChannelService channelService, EpisodeService episodeService) {
+  public RssService(ChannelService channelService, EpisodeService episodeService, MessageSource messageSource) {
     this.channelService = channelService;
     this.episodeService = episodeService;
+    this.messageSource = messageSource;
   }
 
   @PostConstruct
@@ -65,7 +69,7 @@ public class RssService {
     // 1. 获取频道信息
     Channel channel = channelService.findByHandler(channelHandler);
     if (ObjectUtils.isEmpty(channel)) {
-      throw new BusinessException("Channel not found with handler: " + channelHandler);
+      throw new BusinessException(messageSource.getMessage("channel.not.found.handler", new Object[]{channelHandler}, LocaleContextHolder.getLocale()));
     }
 
     // 2. 创建 SyndFeed (RSS 的顶层对象)

@@ -39,7 +39,6 @@ const Home = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
 
-
   const fetchChannels = async () => {
     const res = await API.get('/api/channel/list');
     const { code, msg, data } = res.data;
@@ -99,7 +98,7 @@ const Home = () => {
 
   const filterChannel = async () => {
     if (!preview) {
-      closeEditConfig()
+      closeEditConfig();
       return;
     }
     setFilterLoading(true);
@@ -112,7 +111,7 @@ const Home = () => {
     }
     setEpisodes(data);
     setFilterLoading(false);
-    closeEditConfig()
+    closeEditConfig();
   };
 
   useEffect(() => {
@@ -144,10 +143,7 @@ const Home = () => {
       <Grid mt={isSmallScreen ? 'md' : 'lg'}>
         {channels.length > 0 ? (
           channels.map((channel) => (
-            <Grid.Col
-              key={channel.id}
-              span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}
-            >
+            <Grid.Col key={channel.id} span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}>
               <Card
                 shadow="sm"
                 padding="sm"
@@ -264,39 +260,43 @@ const Home = () => {
 
                       {/* Episode details */}
                       <Grid.Col span={{ base: 12, sm: 9 }}>
-                          <Text
-                                fw={700}
-                                style={{
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
-                                title={episode.title}
-                              >
-                                {episode.title}
-                              </Text>
-                          <Text size="sm" lineClamp={isSmallScreen ? 2 : 4} style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}>
-                            {episode.description
-                              ? episode.description
-                              : t('no_description_available')}
+                        <Text
+                          fw={700}
+                          style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                          title={episode.title}
+                        >
+                          {episode.title}
+                        </Text>
+                        <Text
+                          size="sm"
+                          lineClamp={isSmallScreen ? 2 : 4}
+                          style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}
+                        >
+                          {episode.description
+                            ? episode.description
+                            : t('no_description_available')}
+                        </Text>
+                        <Group mt="xs" justify="space-between">
+                          <Text size="sm" c="dimmed">
+                            <IconClock
+                              size={14}
+                              style={{
+                                display: 'inline',
+                                verticalAlign: 'text-bottom',
+                              }}
+                            />{' '}
+                            {episode.publishedAt
+                              ? formatISODateTime(episode.publishedAt)
+                              : t('unknown_date')}
                           </Text>
-                          <Group mt="xs" justify="space-between">
-                            <Text size="sm" c="dimmed">
-                              <IconClock
-                                size={14}
-                                style={{
-                                  display: 'inline',
-                                  verticalAlign: 'text-bottom',
-                                }}
-                              />{' '}
-                              {episode.publishedAt
-                                ? formatISODateTime(episode.publishedAt)
-                                : t('unknown_date')}
-                            </Text>
-                            <Text c="dimmed" size="sm">
-                              {formatISODuration(episode.duration)}
-                            </Text>
-                          </Group>
+                          <Text c="dimmed" size="sm">
+                            {formatISODuration(episode.duration)}
+                          </Text>
+                        </Group>
                       </Grid.Col>
                     </Grid>
                   </Card>
@@ -331,7 +331,7 @@ const Home = () => {
             placeholder={t('multiple_keywords_space_separated')}
             value={channel.excludeKeywords}
             onChange={(event) => {
-              setChannel({ ...channel, excludeKeywords: event.target.value })
+              setChannel({ ...channel, excludeKeywords: event.target.value });
               setPreview(true);
             }}
           />
@@ -341,7 +341,7 @@ const Home = () => {
             placeholder="0"
             value={channel.minimumDuration}
             onChange={(value) => {
-              setChannel({ ...channel, minimumDuration: value })
+              setChannel({ ...channel, minimumDuration: value });
               setPreview(true);
             }}
           />
@@ -360,7 +360,12 @@ const Home = () => {
             onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
           />
           <Group mt="md" justify={isSmallScreen ? 'stretch' : 'flex-end'}>
-            <Button variant="filled" loading={filerLoading} onClick={filterChannel} fullWidth={isSmallScreen}>
+            <Button
+              variant="filled"
+              loading={filerLoading}
+              onClick={filterChannel}
+              fullWidth={isSmallScreen}
+            >
               {t('confirm')}
             </Button>
           </Group>

@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,10 +25,12 @@ public class EpisodeService {
 
   private final EpisodeMapper episodeMapper;
   private final ApplicationEventPublisher eventPublisher;
+  private final MessageSource messageSource;
 
-  public EpisodeService(EpisodeMapper episodeMapper, ApplicationEventPublisher eventPublisher) {
+  public EpisodeService(EpisodeMapper episodeMapper, ApplicationEventPublisher eventPublisher, MessageSource messageSource) {
     this.episodeMapper = episodeMapper;
     this.eventPublisher = eventPublisher;
+    this.messageSource = messageSource;
   }
 
   public Page<Episode> episodePage(String channelId, Page<Episode> page) {
@@ -69,7 +73,7 @@ public class EpisodeService {
         Files.deleteIfExists(Paths.get(audioFilePath));
       } catch (Exception e) {
         log.error("Failed to delete audio file: " + audioFilePath, e);
-        throw new BusinessException("Failed to delete audio file: " + audioFilePath);
+        throw new BusinessException(messageSource.getMessage("episode.delete.audio.failed", new Object[]{audioFilePath}, LocaleContextHolder.getLocale()));
       }
     }
     return episodeMapper.deleteById(id);
@@ -93,7 +97,7 @@ public class EpisodeService {
     Episode episode = episodeMapper.selectById(episodeId);
     if (episode == null) {
       log.error("Episode not found with id: {}", episodeId);
-      throw new BusinessException("Episode not found with id: " + episodeId);
+      throw new BusinessException(messageSource.getMessage("episode.not.found", new Object[]{episodeId}, LocaleContextHolder.getLocale()));
     }
 
     // 2. 删除当前episode的audio file，可能有，也可能没有，需要做好错误处理

@@ -32,26 +32,20 @@ const CopyModal = ({ opened, onClose, text }) => {
   };
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      withCloseButton={false}
-      size="lg"
-    >
+    <Modal opened={opened} onClose={onClose} withCloseButton={false} size="lg">
       <Stack>
         <Alert
           icon={<IconAlertCircle size={16} />}
           title={t('manual_copy_alert_title')}
           color="orange"
-        >
-        </Alert>
+        ></Alert>
 
         <Text size="sm" c="dimmed">
           {t('manual_copy_instruction')}
         </Text>
 
         <TextInput
-        //   label={t('content_to_copy')}
+          //   label={t('content_to_copy')}
           value={text}
           readOnly
           rightSection={

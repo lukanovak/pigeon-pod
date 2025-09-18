@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -40,9 +42,11 @@ public class YoutubeHelper {
   private static final JacksonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
   private final AccountService accountService;
+  private final MessageSource messageSource;
 
-  public YoutubeHelper(AccountService accountService) {
+  public YoutubeHelper(AccountService accountService, MessageSource messageSource) {
     this.accountService = accountService;
+    this.messageSource = messageSource;
   }
 
   public Channel fetchYoutubeChannelByUrl(String channelUrl) {
@@ -207,7 +211,7 @@ public class YoutubeHelper {
       return resultEpisodes;
 
     } catch (Exception e) {
-      throw new BusinessException("获取频道新视频时发生错误: " + e.getMessage());
+      throw new BusinessException(messageSource.getMessage("youtube.fetch.videos.error", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
     }
   }
 
@@ -272,12 +276,12 @@ public class YoutubeHelper {
       List<com.google.api.services.youtube.model.Channel> channels = response.getItems();
 
       if (ObjectUtils.isEmpty(channels)) {
-        throw new BusinessException("未找到频道信息");
+        throw new BusinessException(messageSource.getMessage("youtube.channel.not.found", null, LocaleContextHolder.getLocale()));
       }
 
       return channels.get(0);
     } catch (GeneralSecurityException | IOException e) {
-      throw new BusinessException("获取频道信息失败" + e.getMessage());
+      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
     }
   }
 
@@ -288,7 +292,7 @@ public class YoutubeHelper {
       // 从URL提取handle
       String handle = getHandleFromUrl(channelUrl);
       if (handle == null) {
-        throw new BusinessException("无效的YouTube频道URL");
+        throw new BusinessException(messageSource.getMessage("youtube.invalid.url", null, LocaleContextHolder.getLocale()));
       }
 
       YouTube youtubeService = getService();
@@ -308,9 +312,9 @@ public class YoutubeHelper {
         // 第一个结果就是我们想要的频道
         return searchResults.get(0).getSnippet().getChannelId();
       }
-      throw new BusinessException("未找到频道信息");
+      throw new BusinessException(messageSource.getMessage("youtube.channel.not.found", null, LocaleContextHolder.getLocale()));
     } catch (GeneralSecurityException | IOException e) {
-      throw new BusinessException("获取频道信息失败" + e.getMessage());
+      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
     }
   }
 
@@ -325,7 +329,7 @@ public class YoutubeHelper {
   private String getYoutubeApiKey() {
     String youtubeApiKey = accountService.getYoutubeApiKey("0");
     if (ObjectUtils.isEmpty(youtubeApiKey)) {
-      throw new BusinessException("YouTube API key is not set, please set it in the user setting.");
+      throw new BusinessException(messageSource.getMessage("youtube.api.key.not.set", null, LocaleContextHolder.getLocale()));
     }
     return youtubeApiKey;
   }

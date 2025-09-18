@@ -193,7 +193,7 @@ const ChannelDetail = () => {
           // 需要手动复制时的回调
           setCopyText(text);
           openCopyModal();
-        }
+        },
       );
     } catch (error) {
       showError(t('failed_to_generate_subscription_url'));
@@ -263,9 +263,7 @@ const ChannelDetail = () => {
   return (
     <Container size="xl" py={isSmallScreen ? 'md' : 'xl'}>
       {/* Channel Header Section */}
-      <Paper withBorder radius="md" mb="lg"
-             p={{base: 'xs', md: 'md', lg: 'lg'}}
-             >
+      <Paper withBorder radius="md" mb="lg" p={{ base: 'xs', md: 'md', lg: 'lg' }}>
         <Grid>
           {/* Left column with avatar */}
           <Grid.Col span={{ base: 4, sm: 3 }}>
@@ -281,22 +279,24 @@ const ChannelDetail = () => {
 
           {/* Right column with channel details */}
           <Grid.Col span={{ base: 8, sm: 9 }}>
-            <Badge hiddenFrom={'xs'}
-                   component="a"
-                   href={channel.channelUrl}
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   variant="light"
-                   color="#ff0033"
-                   size='sm'
-                   leftSection={<IconBrandYoutubeFilled size={16} />}
-                   style={{ cursor: 'pointer' }}
+            <Badge
+              hiddenFrom={'xs'}
+              component="a"
+              href={channel.channelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="light"
+              color="#ff0033"
+              size="sm"
+              leftSection={<IconBrandYoutubeFilled size={16} />}
+              style={{ cursor: 'pointer' }}
             >
               @{channel.handler}
             </Badge>
             <Group mb={isSmallScreen ? '0' : 'sm'}>
               <Title order={isSmallScreen ? 3 : 2}>{channel.name}</Title>
-              <Badge visibleFrom={'xs'}
+              <Badge
+                visibleFrom={'xs'}
                 component="a"
                 href={channel.channelUrl}
                 target="_blank"
@@ -311,8 +311,11 @@ const ChannelDetail = () => {
               </Badge>
             </Group>
 
-            <Text size="sm" lineClamp={isSmallScreen ? 2 : 4}
-                  style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}>
+            <Text
+              size="sm"
+              lineClamp={isSmallScreen ? 2 : 4}
+              style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}
+            >
               {channel.description ? channel.description : t('no_description_available')}
             </Text>
 
@@ -445,7 +448,9 @@ const ChannelDetail = () => {
                     <Stack>
                       <Box>
                         <Group justify="space-between">
-                          <Box style={{ maxWidth: isSmallScreen ? '66%' : '85%', overflow: 'hidden' }}>
+                          <Box
+                            style={{ maxWidth: isSmallScreen ? '66%' : '85%', overflow: 'hidden' }}
+                          >
                             <Title
                               order={isSmallScreen ? 5 : 4}
                               style={{
@@ -458,14 +463,17 @@ const ChannelDetail = () => {
                               {episode.title}
                             </Title>
                           </Box>
-                          <Text c="dimmed" style={{whiteSpace: 'nowrap' }}>
+                          <Text c="dimmed" style={{ whiteSpace: 'nowrap' }}>
                             {formatISODuration(episode.duration)}
                           </Text>
                         </Group>
 
-                        <Text size="sm" mt="xs"
-                              lineClamp={isSmallScreen ? 3 : 4}
-                              style={{ minHeight: isSmallScreen ? '0' : '4rem' }}>
+                        <Text
+                          size="sm"
+                          mt="xs"
+                          lineClamp={isSmallScreen ? 3 : 4}
+                          style={{ minHeight: isSmallScreen ? '0' : '4rem' }}
+                        >
                           {episode.description
                             ? episode.description
                             : t('no_description_available')}
