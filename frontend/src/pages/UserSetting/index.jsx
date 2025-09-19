@@ -51,6 +51,7 @@ const UserSetting = () => {
   const resetPassword = async (values) => {
     setResetPasswordLoading(true);
     const res = await API.post('/api/account/reset-password', {
+      ...state.user,
       password: values.oldPassword,
       newPassword: values.newPassword,
     });
