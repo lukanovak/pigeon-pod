@@ -66,6 +66,7 @@ docker-compose up -d
 
 - [如何获取 YouTube Data API 密钥](documents/how-to-get-youtube-api-key-zh.md)
 - [如何配置 YouTube Cookies](documents/youtube-cookie-setup-zh.md)
+- [如何获取 YouTube 频道 ID](documents/how-to-get-youtube-channel-id-en.md)
 
 
 ## 技术栈

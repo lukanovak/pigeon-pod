@@ -67,6 +67,7 @@ Open your browser and visit `http://localhost:8834` with **default username and 
 
 - [How to get YouTube API Key](documents/how-to-get-youtube-api-key-en.md)
 - [How to setup YouTube Cookies](documents/youtube-cookie-setup-en.md)
+- [How to get YouTube channel ID](documents/how-to-get-youtube-channel-id-en.md)
 
 
 ## Tech Stack
