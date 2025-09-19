@@ -2,6 +2,8 @@ package top.asimov.pigeon.service;
 
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -21,11 +23,13 @@ public class PrepareDownloadService {
 
   /**
    * 开启一个独立的事务来准备下载任务。
+   * 使用重试机制处理可能的数据库锁定冲突。
    *
    * @param videoId 视频ID
    * @return 如果成功将状态更新为DOWNLOADING，则返回true，否则返回false。
    */
   @Transactional
+  @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 100, multiplier = 2))
   public boolean prepareDownload(String videoId) {
     Episode episode = episodeMapper.selectById(videoId);
     if (ObjectUtils.isEmpty(episode)) {

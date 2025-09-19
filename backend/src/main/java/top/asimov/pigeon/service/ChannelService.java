@@ -71,23 +71,50 @@ public class ChannelService {
       }
     }
 
-    String channelUrl = channel.getChannelUrl();
-    if (ObjectUtils.isEmpty(channelUrl)) {
+    String channelInput = channel.getChannelUrl();
+    if (ObjectUtils.isEmpty(channelInput)) {
       throw new BusinessException(messageSource.getMessage("channel.url.empty", null, LocaleContextHolder.getLocale()));
     }
 
-    String handler = youtubeHelper.getHandleFromUrl(channelUrl);
+    // 智能检测输入类型并获取频道信息
+    com.google.api.services.youtube.model.Channel ytChannel;
+    String actualChannelUrl;
+    String handler = null;
+    
+    try {
+      ytChannel = youtubeHelper.fetchYoutubeChannelByUrl(channelInput);
+      String ytChannelId = ytChannel.getId();
+      
+      // 根据输入类型设置相应的字段
+      if (youtubeHelper.isYouTubeChannelId(channelInput.trim())) {
+        // 输入是频道 ID，构造标准的频道 URL
+        actualChannelUrl = "https://www.youtube.com/channel/" + ytChannelId;
+        log.info("使用频道 ID 获取频道信息: {}", ytChannelId);
+      } else if (channelInput.contains("/channel/")) {
+        // 输入是 /channel/ 格式的链接
+        actualChannelUrl = channelInput;
+        log.info("使用 /channel/ 链接获取频道信息: {}", channelInput);
+      } else {
+        // 输入是 @handle 格式的链接
+        actualChannelUrl = channelInput;
+        handler = youtubeHelper.getHandleFromUrl(channelInput);
+        log.info("使用 @handle 链接获取频道信息: {} -> {}", channelInput, ytChannelId);
+      }
+      
+    } catch (Exception e) {
+      log.error("获取频道信息失败，输入: {}, 错误: {}", channelInput, e.getMessage());
+      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed", 
+          new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+    }
 
-    com.google.api.services.youtube.model.Channel ytChannel = youtubeHelper.fetchYoutubeChannelByUrl(channelUrl);
     String ytChannelId = ytChannel.getId();
-
     Channel fetchedChannel = Channel.builder()
         .id(ytChannelId)
-        .handler(handler)
+        .handler(handler)  // 只有 @handle 格式才会有 handler
         .name(ytChannel.getSnippet().getTitle())
         .avatarUrl(ytChannel.getSnippet().getThumbnails().getHigh().getUrl())
         .description(ytChannel.getSnippet().getDescription())
-        .channelUrl(channelUrl)
+        .channelUrl(actualChannelUrl)
         .subscribedAt(LocalDateTime.now())
         .channelSource(channelSource)
         .build();
@@ -151,11 +178,6 @@ public class ChannelService {
     Channel channel = channelMapper.selectById(id);
     if (channel == null) {
       throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{id}, LocaleContextHolder.getLocale()));
-    }
-    String handler = channel.getHandler();
-    String channelSource = channel.getChannelSource();
-    if (ChannelSource.YOUTUBE.name().equals(channelSource)) {
-      channel.setChannelUrl("https://www.youtube.com/@" + handler);
     }
     return channel;
   }

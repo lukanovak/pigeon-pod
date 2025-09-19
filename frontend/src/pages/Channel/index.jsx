@@ -273,42 +273,28 @@ const ChannelDetail = () => {
                 alt={channel.name}
                 size={isSmallScreen ? 100 : 180}
                 radius="md"
+                component="a"
+                href={channel.channelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ cursor: 'pointer' }}
               />
             </Center>
           </Grid.Col>
 
           {/* Right column with channel details */}
           <Grid.Col span={{ base: 8, sm: 9 }}>
-            <Badge
-              hiddenFrom={'xs'}
-              component="a"
-              href={channel.channelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="light"
-              color="#ff0033"
-              size="sm"
-              leftSection={<IconBrandYoutubeFilled size={16} />}
-              style={{ cursor: 'pointer' }}
-            >
-              @{channel.handler}
-            </Badge>
             <Group mb={isSmallScreen ? '0' : 'sm'}>
-              <Title order={isSmallScreen ? 3 : 2}>{channel.name}</Title>
-              <Badge
-                visibleFrom={'xs'}
+              <Title
+                order={isSmallScreen ? 3 : 2}
                 component="a"
                 href={channel.channelUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                variant="light"
-                color="#ff0033"
-                size={'lg'}
-                leftSection={<IconBrandYoutubeFilled size={16} />}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
               >
-                @{channel.handler}
-              </Badge>
+                {channel.name}
+              </Title>
             </Group>
 
             <Text

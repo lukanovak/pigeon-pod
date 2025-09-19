@@ -123,7 +123,7 @@
   "enter_new_username": "Please enter new username",
   "new_username": "New Username",
   "username_changed_success": "Username changed successfully!",
-  "enter_youtube_channel_url": "Enter YouTube channel URL: https://www.youtube.com/@{channel_handler}",
+  "enter_youtube_channel_url": "Enter YouTube channel URL or channel ID, like https://www.youtube.com/@xxxx or UCUGLols3-2y_rJZZsgRzray",
   "new_channel": "New Channel",
   "updated": "updated",
   "no_channels_available": "No channels available, please add a new channel",
