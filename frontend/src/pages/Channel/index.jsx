@@ -174,7 +174,7 @@ const ChannelDetail = () => {
 
   const handleSubscribe = async () => {
     try {
-      const response = await API.get(`/api/channel/subscribe?handler=${channel.handler}`);
+      const response = await API.get(`/api/channel/subscribe/${channel.id}`);
       const { code, msg, data } = response.data;
 
       if (code !== 200) {

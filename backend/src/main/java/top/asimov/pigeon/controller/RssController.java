@@ -20,10 +20,10 @@ public class RssController {
     this.rssService = rssService;
   }
 
-  @GetMapping(value = "/{channelHandler}.xml", produces = MediaType.APPLICATION_XML_VALUE)
-  public ResponseEntity<String> getRssFeed(@PathVariable String channelHandler) {
+  @GetMapping(value = "/{channelIdentification}.xml", produces = MediaType.APPLICATION_XML_VALUE)
+  public ResponseEntity<String> getRssFeed(@PathVariable String channelIdentification) {
     try {
-      String rssXml = rssService.generateRssFeed(channelHandler);
+      String rssXml = rssService.generateRssFeed(channelIdentification);
       return ResponseEntity.ok(rssXml);
     } catch (Exception e) {
       return ResponseEntity.internalServerError().body("无法生成 RSS feed。");

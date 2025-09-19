@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.service.ChannelService;
@@ -38,9 +37,9 @@ public class ChannelController {
     return SaResult.data(channel);
   }
 
-  @GetMapping("/subscribe")
-  public SaResult getSubscribeUrl(@RequestParam(name = "handler") String handler) {
-    String feedUrl = channelService.getChannelRssFeedUrl(handler);
+  @GetMapping("/subscribe/{id}")
+  public SaResult getSubscribeUrl(@PathVariable(name = "id") String id) {
+    String feedUrl = channelService.getChannelRssFeedUrl(id);
     return SaResult.data(feedUrl);
   }
 

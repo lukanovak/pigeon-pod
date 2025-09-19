@@ -1,10 +1,10 @@
 package top.asimov.pigeon.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import top.asimov.pigeon.constant.ChannelSource;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.ChannelMapper;
@@ -190,9 +189,15 @@ public class ChannelService {
         .collect(Collectors.toList());
   }
 
-  public Channel findByHandler(String handler) {
+  public Channel findChannelByIdentification(String channelIdentification) {
+    // 先按ID查询
+    Channel channel = channelMapper.selectById(channelIdentification);
+    if (channel != null) {
+      return channel;
+    }
+    // 再按handler查询
     LambdaQueryWrapper<Channel> queryWrapper = new LambdaQueryWrapper<>();
-    queryWrapper.eq(Channel::getHandler, handler);
+    queryWrapper.eq(Channel::getHandler, channelIdentification);
     return channelMapper.selectOne(queryWrapper);
   }
 
@@ -268,12 +273,20 @@ public class ChannelService {
     log.info("为频道 {} 的新节目发布了下载事件。", channel.getName());
   }
 
-  public String getChannelRssFeedUrl(String channelHandler) {
+  public String getChannelRssFeedUrl(String channelId) {
+    Channel channel = channelMapper.selectById(channelId);
+    if (ObjectUtils.isEmpty(channel)) {
+      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
+    }
     String apiKey = accountService.getApiKey();
     if (ObjectUtils.isEmpty(apiKey)) {
       throw new BusinessException(messageSource.getMessage("channel.api.key.failed", null, LocaleContextHolder.getLocale()));
     }
-    return appBaseUrl + "/api/rss/" + channelHandler + ".xml?apikey=" + apiKey;
+    String handler = channel.getHandler();
+    if (StringUtils.hasText(handler)) {
+      return appBaseUrl + "/api/rss/" + handler + ".xml?apikey=" + apiKey;
+    }
+    return appBaseUrl + "/api/rss/" + channelId + ".xml?apikey=" + apiKey;
   }
 
   public Channel updateChannelConfig(String channelId,Channel configuration) {

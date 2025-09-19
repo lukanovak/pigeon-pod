@@ -67,7 +67,7 @@ public class RssService {
   //@Cacheable(value = "rssFeeds", key = "#channelHandler")
   public String generateRssFeed(String channelHandler) throws MalformedURLException {
     // 1. 获取频道信息
-    Channel channel = channelService.findByHandler(channelHandler);
+    Channel channel = channelService.findChannelByIdentification(channelHandler);
     if (ObjectUtils.isEmpty(channel)) {
       throw new BusinessException(messageSource.getMessage("channel.not.found.handler", new Object[]{channelHandler}, LocaleContextHolder.getLocale()));
     }
