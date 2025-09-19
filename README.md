@@ -61,7 +61,7 @@ docker-compose up -d
 ```
 
 3. Access the application
-Open your browser and visit `http://localhost:8834` with **default username and password: `root/Root@123`**
+Open your browser and visit `http://localhost:8834` with **default username: `root` and default password: `Root@123`**
 
 ## Documentation
 
