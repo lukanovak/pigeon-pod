@@ -45,4 +45,6 @@ node_modules/
 # OS
 .DS_Store
 
-data/*
+backend/src/main/resources/static/
+data
+release
