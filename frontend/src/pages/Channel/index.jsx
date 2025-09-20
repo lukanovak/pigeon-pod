@@ -521,7 +521,7 @@ const ChannelDetail = () => {
                               {t('retry')}
                             </Button>
                           ) : null}
-                          {episode.downloadStatus !== 'DOWNLOADING' ? (
+                          {episode.downloadStatus !== 'DOWNLOADING' && episode.downloadStatus !== 'QUEUED' ? (
                             <Button
                               size="compact-xs"
                               variant="outline"

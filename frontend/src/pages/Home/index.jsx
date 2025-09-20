@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { API, formatISODateTime, formatISODuration, showError } from '../../helpers';
+import {
+  API,
+  formatISODateTime,
+  formatISODuration,
+  showError,
+  showInfo,
+  showSuccess,
+} from '../../helpers';
 import {
   Container,
   Button,
@@ -89,8 +96,10 @@ const Home = () => {
       return;
     }
 
+    showSuccess(data.message);
+
     // Add the new channel at the beginning of the channels list
-    setChannels((prevChannels) => [data, ...prevChannels]);
+    setChannels((prevChannels) => [data.channel, ...prevChannels]);
 
     setAddChannelLoading(false);
     close();

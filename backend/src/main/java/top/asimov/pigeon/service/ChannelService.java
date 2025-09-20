@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
+import top.asimov.pigeon.event.ChannelInitializationEvent;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.model.Channel;
@@ -150,47 +151,91 @@ public class ChannelService {
 
   /**
    * 保存频道并初始化下载最新的视频
+   * 当initialEpisodes较大时（> 10），使用异步处理模式
    *
    * @param channel 要保存的频道信息
-   * @return 保存后的频道对象
+   * @return 包含频道信息和处理状态的Map对象
    */
   @Transactional
-  public Channel saveChannel(Channel channel) {
+  public java.util.Map<String, Object> saveChannel(Channel channel) {
     Integer initialEpisodes = channel.getInitialEpisodes();
     if (initialEpisodes == null || initialEpisodes <= 0) {
       initialEpisodes = 3;
     }
 
     String channelId = channel.getId();
+    boolean isAsyncMode = initialEpisodes > 10; // 超过10个视频时使用异步模式
 
-    List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
-        channelId, null,
-        initialEpisodes, channel.getContainKeywords(),
-        channel.getExcludeKeywords(), channel.getMinimumDuration());
+    if (isAsyncMode) {
+      // 异步模式：先保存频道基本信息，然后异步处理视频获取
+      log.info("频道 {} 设置的初始视频数量较多({}), 启用异步处理模式", channel.getName(), initialEpisodes);
+      
+      // 先保存频道基本信息
+      channelMapper.insert(channel);
+      
+      // 发布异步初始化事件
+      ChannelInitializationEvent event = new ChannelInitializationEvent(
+          this, channelId, initialEpisodes, 
+          channel.getContainKeywords(), 
+          channel.getExcludeKeywords(), 
+          channel.getMinimumDuration());
+      eventPublisher.publishEvent(event);
+      
+      log.info("已发布频道异步初始化事件，频道: {}, 初始视频数量: {}", channel.getName(), initialEpisodes);
+      
+      // 返回异步处理状态
+      java.util.Map<String, Object> result = new java.util.HashMap<>();
+      result.put("channel", channel);
+      result.put("isAsync", true);
+      result.put("message", messageSource.getMessage("channel.async.processing", 
+          new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
+      return result;
+      
+    } else {
+      // 同步模式：直接处理少量视频
+      log.info("频道 {} 设置的初始视频数量较少({}), 使用同步处理模式", channel.getName(), initialEpisodes);
+      
+      List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
+          channelId, null, initialEpisodes, 
+          channel.getContainKeywords(),
+          channel.getExcludeKeywords(), 
+          channel.getMinimumDuration());
 
-    Episode latestEpisode = episodes.get(0);
-    for (Episode episode : episodes) {
-      // 找到publishDate最新的那个视频
-      if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
-        latestEpisode = episode;
+      if (!episodes.isEmpty()) {
+        Episode latestEpisode = episodes.get(0);
+        for (Episode episode : episodes) {
+          // 找到publishDate最新的那个视频
+          if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
+            latestEpisode = episode;
+          }
+        }
+
+        // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
+        channel.setLastSyncVideoId(latestEpisode.getId());
+        channel.setLastSyncTimestamp(LocalDateTime.now());
+        channelMapper.insert(channel);
+        episodeService.saveEpisodes(episodes);
+
+        // 发布事件通知有新视频下载
+        List<String> savedEpisodeIds = episodes.stream()
+            .map(Episode::getId)
+            .collect(Collectors.toList());
+        EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
+        eventPublisher.publishEvent(event);
+        log.info("发布 EpisodesCreatedEvent 事件，包含 {} 个 episode ID。", savedEpisodeIds.size());
+      } else {
+        // 没有找到视频，只保存频道信息
+        channelMapper.insert(channel);
       }
+
+      // 返回同步处理结果
+      java.util.Map<String, Object> result = new java.util.HashMap<>();
+      result.put("channel", channel);
+      result.put("isAsync", false);
+      result.put("message", messageSource.getMessage("channel.sync.completed", 
+          new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
+      return result;
     }
-
-    // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
-    channel.setLastSyncVideoId(latestEpisode.getId());
-    channel.setLastSyncTimestamp(LocalDateTime.now());
-    channelMapper.insert(channel);
-    episodeService.saveEpisodes(episodes);
-
-    // 发布事件通知有新视频下载
-    List<String> savedEpisodeIds = episodes.stream()
-        .map(Episode::getId)
-        .collect(Collectors.toList());
-    EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
-    eventPublisher.publishEvent(event);
-    log.info("发布 EpisodesCreatedEvent 事件，包含 {} 个 episode ID。", savedEpisodeIds.size());
-
-    return channel;
   }
 
   /**
@@ -374,6 +419,63 @@ public class ChannelService {
     } else {
       log.error("频道 {} 配置更新失败", existingChannel.getName());
       throw new BusinessException(messageSource.getMessage("channel.config.update.failed", null, LocaleContextHolder.getLocale()));
+    }
+  }
+
+  /**
+   * 异步处理频道初始化，获取并保存初始化的视频
+   *
+   * @param channelId 频道ID
+   * @param initialEpisodes 要获取的初始视频数量
+   * @param containKeywords 包含关键词
+   * @param excludeKeywords 排除关键词
+   * @param minimumDuration 最小时长
+   */
+  @Transactional
+  public void processChannelInitializationAsync(String channelId, Integer initialEpisodes,
+      String containKeywords, String excludeKeywords, Integer minimumDuration) {
+    log.info("开始异步处理频道初始化，频道ID: {}, 初始视频数量: {}", channelId, initialEpisodes);
+    
+    try {
+      // 获取频道的初始视频
+      List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
+          channelId, null, initialEpisodes, containKeywords, excludeKeywords, minimumDuration);
+      
+      if (episodes.isEmpty()) {
+        log.warn("频道 {} 没有获取到任何视频", channelId);
+        return;
+      }
+
+      // 找到最新的视频
+      Episode latestEpisode = episodes.get(0);
+      for (Episode episode : episodes) {
+        if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
+          latestEpisode = episode;
+        }
+      }
+
+      // 更新频道的同步信息
+      Channel channel = channelMapper.selectById(channelId);
+      if (channel != null) {
+        channel.setLastSyncVideoId(latestEpisode.getId());
+        channel.setLastSyncTimestamp(LocalDateTime.now());
+        channelMapper.updateById(channel);
+      }
+
+      // 保存视频信息
+      episodeService.saveEpisodes(episodes);
+
+      // 发布事件通知下载
+      List<String> savedEpisodeIds = episodes.stream()
+          .map(Episode::getId)
+          .collect(Collectors.toList());
+      EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
+      eventPublisher.publishEvent(event);
+      
+      log.info("频道 {} 异步初始化完成，保存了 {} 个视频", channelId, episodes.size());
+      
+    } catch (Exception e) {
+      log.error("频道 {} 异步初始化失败: {}", channelId, e.getMessage(), e);
     }
   }
 
