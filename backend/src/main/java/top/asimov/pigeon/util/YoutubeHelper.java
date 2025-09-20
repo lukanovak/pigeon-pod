@@ -51,18 +51,17 @@ public class YoutubeHelper {
   }
 
   /**
-   * 根据输入获取 YouTube 频道信息
-   * 支持多种输入格式:
-   * 1. 直接的频道 ID: UCuAXFkgsw1L7xaCfnd5JJOw
-   * 2. @handle 链接: https://www.youtube.com/@StorytellerFan
-   * 3. /channel/ 链接: https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw
+   * 根据输入获取 YouTube 频道信息 支持多种输入格式: 1. 直接的频道 ID: UCuAXFkgsw1L7xaCfnd5JJOw 2. @handle 链接:
+   * https://www.youtube.com/@StorytellerFan 3. /channel/ 链接:
+   * https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw
+   *
    * @param input 频道输入（URL 或 ID）
    * @return YouTube 频道信息
    */
   public Channel fetchYoutubeChannelByUrl(String input) {
     // 首先尝试直接提取频道 ID
     String channelId = extractChannelId(input);
-    
+
     if (channelId != null) {
       // 直接使用频道 ID 获取信息
       return fetchYoutubeChannelByYoutubeChannelId(channelId);
@@ -73,6 +72,12 @@ public class YoutubeHelper {
     }
   }
 
+  /**
+   * 从频道 URL 中提取 handle 例如: https://www.youtube.com/@StorytellerFan -> StorytellerFan
+   *
+   * @param channelUrl 频道 URL
+   * @return 提取的 handle，如果无法提取则返回 null
+   */
   public String getHandleFromUrl(String channelUrl) {
     if (channelUrl == null || !channelUrl.contains("@")) {
       return null;
@@ -82,8 +87,8 @@ public class YoutubeHelper {
   }
 
   /**
-   * 检测输入是否为 YouTube 频道 ID
-   * YouTube 频道 ID 格式: UC + 22个字符，总共24个字符
+   * 检测输入是否为 YouTube 频道 ID YouTube 频道 ID 格式: UC + 22个字符，总共24个字符
+   *
    * @param input 输入字符串
    * @return 如果是频道 ID 返回 true，否则返回 false
    */
@@ -91,21 +96,20 @@ public class YoutubeHelper {
     if (input == null || input.trim().isEmpty()) {
       return false;
     }
-    
+
     String trimmed = input.trim();
     // YouTube 频道 ID 通常以 UC 开头，总长度为 24 个字符
     // 例如: UCuAXFkgsw1L7xaCfnd5JJOw
-    return trimmed.length() == 24 && 
-           trimmed.startsWith("UC") && 
-           trimmed.matches("^[A-Za-z0-9_-]{24}$");
+    return trimmed.length() == 24 &&
+        trimmed.startsWith("UC") &&
+        trimmed.matches("^[A-Za-z0-9_-]{24}$");
   }
 
   /**
-   * 从输入中提取频道 ID
-   * 支持多种输入格式:
-   * 1. 直接的频道 ID: UCuAXFkgsw1L7xaCfnd5JJOw
-   * 2. 频道链接: https://www.youtube.com/@StorytellerFan
-   * 3. 频道页面链接: https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw
+   * 从输入中提取频道 ID 支持多种输入格式: 1. 直接的频道 ID: UCuAXFkgsw1L7xaCfnd5JJOw 2. 频道链接:
+   * https://www.youtube.com/@StorytellerFan 3. 频道页面链接:
+   * https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw
+   *
    * @param input 输入字符串
    * @return 频道 ID，如果无法解析则返回 null
    */
@@ -113,14 +117,14 @@ public class YoutubeHelper {
     if (input == null || input.trim().isEmpty()) {
       return null;
     }
-    
+
     String trimmed = input.trim();
-    
+
     // 1. 检查是否直接是频道 ID
     if (isYouTubeChannelId(trimmed)) {
       return trimmed;
     }
-    
+
     // 2. 检查是否是 /channel/ 格式的链接
     if (trimmed.contains("/channel/")) {
       int channelIndex = trimmed.indexOf("/channel/");
@@ -135,16 +139,27 @@ public class YoutubeHelper {
       if (slashIndex > 0) {
         channelId = channelId.substring(0, slashIndex);
       }
-      
+
       if (isYouTubeChannelId(channelId)) {
         return channelId;
       }
     }
-    
+
     // 3. 如果不是以上格式，返回 null，让调用者使用传统的 handle 搜索方式
     return null;
   }
 
+  /**
+   * 抓取指定 YouTube 频道的视频列表
+   *
+   * @param channelId         频道 ID
+   * @param lastSyncedVideoId 上次同步的视频 ID（用于增量抓取）
+   * @param fetchNum          本次抓取的视频数量
+   * @param containKeywords   标题必须包含的关键词，多个关键词用空格分隔，包含一个即匹配
+   * @param excludeKeywords   标题必须不包含的关键词，多个关键词用空格分隔，包含一个即排除
+   * @param minimalDuration   最小视频时长（分钟），null 表示不限制
+   * @return 视频列表
+   */
   public List<Episode> fetchYoutubeChannelVideos(String channelId, String lastSyncedVideoId,
       int fetchNum, String containKeywords, String excludeKeywords, Integer minimalDuration) {
     try {
@@ -222,7 +237,7 @@ public class YoutubeHelper {
             // 这是 live 节目，跳过
             continue;
           }
-          
+
           String duration = videoInfo.getDuration();
           durationCache.put(item.getId(), duration);
 
@@ -307,15 +322,18 @@ public class YoutubeHelper {
       return resultEpisodes;
 
     } catch (Exception e) {
-      throw new BusinessException(messageSource.getMessage("youtube.fetch.videos.error", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("youtube.fetch.videos.error", new Object[]{e.getMessage()},
+              LocaleContextHolder.getLocale()));
     }
   }
 
   /**
    * 获取视频时长并检测是否为 live 节目
+   *
    * @param youtubeService YouTube 服务
-   * @param apiKey API 密钥
-   * @param item 播放列表项
+   * @param apiKey         API 密钥
+   * @param item           播放列表项
    * @return VideoInfo 包含时长和 live 状态，如果是 live 节目返回 null
    */
   private VideoInfo fetchVideoInfo(YouTube youtubeService, String apiKey,
@@ -335,16 +353,16 @@ public class YoutubeHelper {
 
     Video video = videos.get(0);
     String liveBroadcastContent = video.getSnippet().getLiveBroadcastContent();
-    
+
     // 检查是否为 live 内容
     if ("live".equals(liveBroadcastContent) || "upcoming".equals(liveBroadcastContent)) {
       log.info("跳过 live 节目: {} - {}", videoId, item.getSnippet().getTitle());
       return null; // 返回 null 表示这是 live 节目，应该跳过
     }
-    
+
     // 额外检查：如果有 liveStreamingDetails，说明是 live 相关内容
     if (video.getLiveStreamingDetails() != null) {
-      if (video.getLiveStreamingDetails().getScheduledStartTime() != null && 
+      if (video.getLiveStreamingDetails().getScheduledStartTime() != null &&
           video.getLiveStreamingDetails().getActualEndTime() == null) {
         log.info("跳过即将开始的 live 节目: {} - {}", videoId, item.getSnippet().getTitle());
         return null;
@@ -359,24 +377,30 @@ public class YoutubeHelper {
    * 视频信息类，包含时长和是否为 live 的信息
    */
   private static class VideoInfo {
+
     private final String duration;
     private final boolean isLive;
-    
+
     public VideoInfo(String duration, boolean isLive) {
       this.duration = duration;
       this.isLive = isLive;
     }
-    
+
     public String getDuration() {
       return duration;
     }
-    
+
     public boolean isLive() {
       return isLive;
     }
   }
 
-
+  /**
+   * 使用频道 ID 获取频道详细信息
+   *
+   * @param channelId 频道 ID
+   * @return 频道信息
+   */
   private Channel fetchYoutubeChannelByYoutubeChannelId(String channelId) {
     try {
       String youtubeApiKey = getYoutubeApiKey();
@@ -393,15 +417,24 @@ public class YoutubeHelper {
       List<com.google.api.services.youtube.model.Channel> channels = response.getItems();
 
       if (ObjectUtils.isEmpty(channels)) {
-        throw new BusinessException(messageSource.getMessage("youtube.channel.not.found", null, LocaleContextHolder.getLocale()));
+        throw new BusinessException(messageSource.getMessage("youtube.channel.not.found", null,
+            LocaleContextHolder.getLocale()));
       }
 
       return channels.get(0);
     } catch (GeneralSecurityException | IOException e) {
-      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()},
+              LocaleContextHolder.getLocale()));
     }
   }
 
+  /**
+   * 使用频道 URL 或 handle 搜索并获取频道 ID
+   *
+   * @param channelUrl 频道 URL 或 handle
+   * @return 频道 ID
+   */
   private String fetchYoutubeChannelIdByUrl(String channelUrl) {
     try {
       String youtubeApiKey = getYoutubeApiKey();
@@ -409,7 +442,8 @@ public class YoutubeHelper {
       // 从URL提取handle
       String handle = getHandleFromUrl(channelUrl);
       if (handle == null) {
-        throw new BusinessException(messageSource.getMessage("youtube.invalid.url", null, LocaleContextHolder.getLocale()));
+        throw new BusinessException(
+            messageSource.getMessage("youtube.invalid.url", null, LocaleContextHolder.getLocale()));
       }
 
       YouTube youtubeService = getService();
@@ -429,12 +463,22 @@ public class YoutubeHelper {
         // 第一个结果就是我们想要的频道
         return searchResults.get(0).getSnippet().getChannelId();
       }
-      throw new BusinessException(messageSource.getMessage("youtube.channel.not.found", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(messageSource.getMessage("youtube.channel.not.found", null,
+          LocaleContextHolder.getLocale()));
     } catch (GeneralSecurityException | IOException e) {
-      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()},
+              LocaleContextHolder.getLocale()));
     }
   }
 
+  /**
+   * 创建并返回 YouTube 服务对象
+   *
+   * @return YouTube 服务对象
+   * @throws GeneralSecurityException 安全异常
+   * @throws IOException              IO 异常
+   */
   private YouTube getService() throws GeneralSecurityException, IOException {
     return new YouTube.Builder(
         GoogleNetHttpTransport.newTrustedTransport(),
@@ -445,6 +489,7 @@ public class YoutubeHelper {
 
   /**
    * 检测视频是否为 live 节目
+   *
    * @param videoId 视频ID
    * @return 如果是 live 节目返回 true，否则返回 false
    */
@@ -461,7 +506,7 @@ public class YoutubeHelper {
 
       VideoListResponse videoResponse = videoRequest.execute();
       List<Video> videos = videoResponse.getItems();
-      
+
       if (CollectionUtils.isEmpty(videos)) {
         // 视频不存在，可能已被删除
         return false;
@@ -469,23 +514,23 @@ public class YoutubeHelper {
 
       Video video = videos.get(0);
       String liveBroadcastContent = video.getSnippet().getLiveBroadcastContent();
-      
+
       // 检查是否为 live 内容
       if ("live".equals(liveBroadcastContent) || "upcoming".equals(liveBroadcastContent)) {
         return true;
       }
-      
+
       // 额外检查：如果有 liveStreamingDetails，说明是 live 相关内容
       if (video.getLiveStreamingDetails() != null) {
         // 如果有预定开始时间但没有实际结束时间，可能是即将开始或正在进行的直播
-        if (video.getLiveStreamingDetails().getScheduledStartTime() != null && 
+        if (video.getLiveStreamingDetails().getScheduledStartTime() != null &&
             video.getLiveStreamingDetails().getActualEndTime() == null) {
           return true;
         }
       }
-      
+
       return false;
-      
+
     } catch (Exception e) {
       // API 调用失败时，记录警告但不阻止下载
       // 可能是网络问题或 API 配额问题
@@ -493,10 +538,16 @@ public class YoutubeHelper {
     }
   }
 
+  /**
+   * 获取 YouTube API Key
+   *
+   * @return YouTube API Key
+   */
   private String getYoutubeApiKey() {
     String youtubeApiKey = accountService.getYoutubeApiKey("0");
     if (ObjectUtils.isEmpty(youtubeApiKey)) {
-      throw new BusinessException(messageSource.getMessage("youtube.api.key.not.set", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(messageSource.getMessage("youtube.api.key.not.set", null,
+          LocaleContextHolder.getLocale()));
     }
     return youtubeApiKey;
   }
