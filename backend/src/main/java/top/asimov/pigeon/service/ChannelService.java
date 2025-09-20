@@ -138,8 +138,14 @@ public class ChannelService {
    */
   public List<Episode> previewChannel(Channel channel) {
     String channelId = channel.getId();
-    return youtubeHelper.fetchYoutubeChannelVideos(channelId, null, 3,
-        channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
+    int fetchNum = 3;
+    String containKeywords = channel.getContainKeywords();
+    String excludeKeywords = channel.getExcludeKeywords();
+    if (StringUtils.hasText(containKeywords) || StringUtils.hasText(excludeKeywords)) {
+      fetchNum = 5; // 有关键词时多拉取一些，方便确认过滤规则效果
+    }
+    return youtubeHelper.fetchYoutubeChannelVideos(channelId, null, fetchNum,
+        containKeywords, excludeKeywords, channel.getMinimumDuration());
   }
 
   /**
