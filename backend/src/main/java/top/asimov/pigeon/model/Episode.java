@@ -27,5 +27,6 @@ public class Episode {
     private String duration; // in ISO 8601 format
     private String downloadStatus;
     private String audioFilePath;
+    private String errorLog;
     private LocalDateTime createdAt;
 }

@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import top.asimov.pigeon.constant.EpisodeDownloadStatus;
+import top.asimov.pigeon.constant.EpisodeStatus;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Episode;
 import top.asimov.pigeon.model.Episode.EpisodeBuilder;
@@ -267,7 +267,7 @@ public class YoutubeHelper {
                   Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
                   ZoneId.systemDefault()))
               .duration(duration)
-              .downloadStatus(EpisodeDownloadStatus.PENDING.name())
+              .downloadStatus(EpisodeStatus.PENDING.name())
               .createdAt(LocalDateTime.now());
 
           if (item.getSnippet().getThumbnails() != null) {

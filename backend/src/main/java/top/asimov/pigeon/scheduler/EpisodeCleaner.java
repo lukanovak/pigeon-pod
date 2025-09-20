@@ -3,11 +3,12 @@ package top.asimov.pigeon.scheduler;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import top.asimov.pigeon.mapper.EpisodeMapper;
 
 @Log4j2
-@Service
+@Component
 public class EpisodeCleaner {
 
   private final EpisodeMapper episodeMapper;

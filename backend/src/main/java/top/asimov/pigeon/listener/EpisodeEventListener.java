@@ -6,25 +6,26 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
-import top.asimov.pigeon.service.DownloadService;
+import top.asimov.pigeon.service.DownloadTaskSubmitter;
 
 @Log4j2
 @Component
 public class EpisodeEventListener {
 
-  private final DownloadService downloadService;
+  private final DownloadTaskSubmitter downloadTaskSubmitter;
 
-  public EpisodeEventListener(DownloadService downloadService) {
-    this.downloadService = downloadService;
+  public EpisodeEventListener(DownloadTaskSubmitter downloadTaskSubmitter) {
+    this.downloadTaskSubmitter = downloadTaskSubmitter;
   }
 
-  // **最关键的注解**
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleEpisodesCreated(EpisodesCreatedEvent event) {
     log.info("监听到事务已提交的 EpisodesCreatedEvent 事件，开始处理下载任务。");
     List<String> episodeIds = event.getEpisodeIds();
+
     for (String episodeId : episodeIds) {
-      downloadService.downloadAudio(episodeId);
+      downloadTaskSubmitter.submitDownloadTask(episodeId);
     }
   }
+
 }

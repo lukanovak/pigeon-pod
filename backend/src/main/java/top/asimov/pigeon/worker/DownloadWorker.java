@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import top.asimov.pigeon.constant.EpisodeDownloadStatus;
+import top.asimov.pigeon.constant.EpisodeStatus;
 import top.asimov.pigeon.mapper.EpisodeMapper;
 import top.asimov.pigeon.model.Episode;
 import top.asimov.pigeon.service.CookiesService;
@@ -35,6 +35,11 @@ public class DownloadWorker {
 
   public void download(String videoId) {
     Episode episode = episodeMapper.selectById(videoId);
+
+    // 标记为真正的DOWNLOADING
+    episode.setDownloadStatus(EpisodeStatus.DOWNLOADING.name());
+    updateEpisodeWithRetry(episode);
+
     String tempCookiesFile = null;
 
     try {
@@ -44,7 +49,8 @@ public class DownloadWorker {
       // 双重保险：检测是否为 live 节目（通常已在获取节目信息时过滤）
       if (youtubeHelper.isLiveVideo(videoId)) {
         log.warn("下载时检测到 live 节目，跳过下载: {}", episode.getTitle());
-        episode.setDownloadStatus(EpisodeDownloadStatus.FAILED.name());
+        // 直接删除这个 episode，live 结束后变成普通视频之后，在订阅源更新时会自动重新添加
+        episodeMapper.deleteById(videoId);
         return;
       }
 
@@ -61,6 +67,7 @@ public class DownloadWorker {
       }
       while ((line = errorReader.readLine()) != null) {
         log.error("[yt-dlp-err] {}", line);
+        episode.setErrorLog(line);
       }
 
       int exitCode = process.waitFor(); // 等待命令执行完成
@@ -70,16 +77,17 @@ public class DownloadWorker {
         // 假设输出文件名就是 videoId.mp3
         String finalPath = audioStoragePath + videoId + ".mp3";
         episode.setAudioFilePath(finalPath);
-        episode.setDownloadStatus(EpisodeDownloadStatus.COMPLETED.name());
+        episode.setDownloadStatus(EpisodeStatus.COMPLETED.name());
         log.info("下载成功: {}", episode.getTitle());
       } else {
-        episode.setDownloadStatus(EpisodeDownloadStatus.FAILED.name());
+        episode.setDownloadStatus(EpisodeStatus.FAILED.name());
         log.error("下载失败，退出码 {}: {}", exitCode, episode.getTitle());
       }
 
     } catch (Exception e) {
       log.error("下载时发生异常: {}", episode.getTitle(), e);
-      episode.setDownloadStatus(EpisodeDownloadStatus.FAILED.name());
+      episode.setErrorLog(e.toString());
+      episode.setDownloadStatus(EpisodeStatus.FAILED.name());
     } finally {
       // 清理临时cookies文件
       if (tempCookiesFile != null) {
@@ -127,7 +135,10 @@ public class DownloadWorker {
    * 使用重试机制更新 Episode 状态，处理可能的数据库锁定冲突
    * @param episode 要更新的 Episode
    */
-  @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 100, multiplier = 2))
+  @Retryable(
+      retryFor = {Exception.class},
+      maxAttempts = 5,
+      backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
   private void updateEpisodeWithRetry(Episode episode) {
     try {
       episodeMapper.updateById(episode);

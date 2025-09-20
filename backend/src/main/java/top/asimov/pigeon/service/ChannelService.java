@@ -56,6 +56,12 @@ public class ChannelService {
     }
   }
 
+  /**
+   * 根据用户输入的频道信息，智能检测并获取频道详情
+   *
+   * @param channel 包含用户输入的频道URL或ID等信息
+   * @return 包含频道详情和预览视频列表的ChannelPack对象
+   */
   public ChannelPack fetchChannel(Channel channel) {
     String channelSource = channel.getChannelSource();
     if (ObjectUtils.isEmpty(channelSource)) {
@@ -124,12 +130,24 @@ public class ChannelService {
     return ChannelPack.builder().channel(fetchedChannel).episodes(episodes).build();
   }
 
+  /**
+   * 预览频道的最新视频
+   *
+   * @param channel 包含频道ID和筛选条件的Channel对象
+   * @return 预览的视频列表
+   */
   public List<Episode> previewChannel(Channel channel) {
     String channelId = channel.getId();
     return youtubeHelper.fetchYoutubeChannelVideos(channelId, null, 3,
         channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
   }
 
+  /**
+   * 保存频道并初始化下载最新的视频
+   *
+   * @param channel 要保存的频道信息
+   * @return 保存后的频道对象
+   */
   @Transactional
   public Channel saveChannel(Channel channel) {
     Integer initialEpisodes = channel.getInitialEpisodes();
@@ -169,10 +187,21 @@ public class ChannelService {
     return channel;
   }
 
+  /**
+   * 获取所有频道列表，包含最后上传时间
+   *
+   * @return 频道列表
+   */
   public List<Channel> selectChannelList() {
-    return channelMapper.selectChannelWithLastUploadedAt();
+    return channelMapper.selectChannelsByLastUploadedAt();
   }
 
+  /**
+   * 获取频道详情
+   *
+   * @param id 频道ID
+   * @return 频道对象
+   */
   public Channel channelDetail(String id) {
     Channel channel = channelMapper.selectById(id);
     if (channel == null) {
@@ -181,6 +210,12 @@ public class ChannelService {
     return channel;
   }
 
+  /**
+   * 查找所有需要同步的频道
+   *
+   * @param checkTime 检查时间点，所有 lastSyncTimestamp 早于该时间点的频道都需要同步
+   * @return 需要同步的频道列表
+   */
   public List<Channel> findDueForSync(LocalDateTime checkTime) {
     List<Channel> channels = channelMapper.selectList(new LambdaQueryWrapper<>());
     return channels.stream()
@@ -189,6 +224,12 @@ public class ChannelService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * 根据频道ID或handler查找频道
+   *
+   * @param channelIdentification 频道ID或handler
+   * @return 频道对象，如果未找到则返回null
+   */
   public Channel findChannelByIdentification(String channelIdentification) {
     // 先按ID查询
     Channel channel = channelMapper.selectById(channelIdentification);
@@ -236,11 +277,16 @@ public class ChannelService {
     }
   }
 
+  /**
+   * 同步频道，检查是否有新视频并处理
+   *
+   * @param channel 要同步的频道对象
+   */
   @Transactional
   public void refreshChannel(Channel channel) {
     log.info("正在同步频道: {}", channel.getName());
 
-    // 1. 获取增量视频
+    // 1. 获取增量视频，默认一个小时检查一次，所以这里限制最多拉取5个新视频
     List<Episode> newEpisodes = youtubeHelper.fetchYoutubeChannelVideos(
         channel.getId(), channel.getLastSyncVideoId(), 5,
         channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
@@ -273,6 +319,12 @@ public class ChannelService {
     log.info("为频道 {} 的新节目发布了下载事件。", channel.getName());
   }
 
+  /**
+   * 获取频道的RSS订阅链接
+   *
+   * @param channelId 频道ID
+   * @return RSS订阅链接
+   */
   public String getChannelRssFeedUrl(String channelId) {
     Channel channel = channelMapper.selectById(channelId);
     if (ObjectUtils.isEmpty(channel)) {
@@ -289,6 +341,13 @@ public class ChannelService {
     return appBaseUrl + "/api/rss/" + channelId + ".xml?apikey=" + apiKey;
   }
 
+  /**
+   * 更新频道的配置项
+   *
+   * @param channelId     频道ID
+   * @param configuration 包含更新配置的Channel对象
+   * @return 更新后的频道对象
+   */
   public Channel updateChannelConfig(String channelId,Channel configuration) {
     Channel existingChannel = channelMapper.selectById(channelId);
     if (existingChannel == null) {

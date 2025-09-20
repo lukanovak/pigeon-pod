@@ -3,6 +3,7 @@ package top.asimov.pigeon.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Update;
 import top.asimov.pigeon.model.Episode;
 
 @Mapper
@@ -26,4 +27,7 @@ public interface EpisodeMapper extends BaseMapper<Episode> {
       + "                          on m.channel_id = n.channel_id"
       + "             where m.rn <= n.minus_num)")
   void deleteEpisodesOverChannelMaximum();
+
+  @Update("update episode set download_status = #{downloadStatus} where id = #{id}")
+  void updateDownloadStatus(String id, String downloadStatus);
 }

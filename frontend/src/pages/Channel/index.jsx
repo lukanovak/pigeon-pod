@@ -21,6 +21,7 @@ import {
   Loader,
   TextInput,
   NumberInput,
+  Tooltip,
 } from '@mantine/core';
 import {
   IconBrandApplePodcast,
@@ -207,6 +208,8 @@ const ChannelDetail = () => {
         return 'green';
       case 'DOWNLOADING':
         return 'blue';
+      case 'QUEUED':
+        return 'cyan';
       case 'PENDING':
         return 'yellow';
       case 'FAILED':
@@ -481,12 +484,29 @@ const ChannelDetail = () => {
                               : t('unknown_date')}
                           </Text>
                           {episode.downloadStatus && episode.downloadStatus !== 'COMPLETED' ? (
-                            <Badge
-                              color={getDownloadStatusColor(episode.downloadStatus)}
-                              variant="light"
-                            >
-                              {episode.downloadStatus}
-                            </Badge>
+                            episode.downloadStatus === 'FAILED' ? (
+                              <Tooltip
+                                multiline
+                                w={300}
+                                withArrow
+                                transitionProps={{ duration: 200 }}
+                                label={episode.errorLog || t('unknown_error')}
+                              >
+                                <Badge
+                                  variant="light"
+                                  color={getDownloadStatusColor(episode.downloadStatus)}
+                                >
+                                  {episode.downloadStatus}
+                                </Badge>
+                              </Tooltip>
+                            ) : (
+                              <Badge
+                                color={getDownloadStatusColor(episode.downloadStatus)}
+                                variant="light"
+                              >
+                                {episode.downloadStatus}
+                              </Badge>
+                            )
                           ) : null}
                         </Group>
                         <Group>
