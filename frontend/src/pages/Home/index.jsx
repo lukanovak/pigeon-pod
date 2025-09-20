@@ -4,7 +4,6 @@ import {
   formatISODateTime,
   formatISODuration,
   showError,
-  showInfo,
   showSuccess,
 } from '../../helpers';
 import {
