@@ -11,6 +11,7 @@ on:
       - documents/**
     branches:
       - release  # 当有代码推送到 release 分支时触发
+      - main  # 当有代码推送到 main 分支时触发
   workflow_dispatch: # 允许手动在 Actions 页面触发此工作流
   pull_request:
     paths-ignore: # 忽略对这些文件的更改，不触发工作流
@@ -90,21 +91,3 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.generate-tag.outputs.tag }}
           platforms: linux/amd64,linux/arm64
-
-      # 步骤 7: 触发 Portainer Stack 更新
-      - name: Trigger Portainer Stack Update
-        if: success()
-        run: |
-          # 创建临时的 docker-compose.yml 文件，替换 image 标签
-          sed "s|image: 'ghcr.io/aizhimou/pigeon-pod:.*'|image: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.generate-tag.outputs.tag }}'|g" docker-compose.yml > docker-compose-temp.yml
-          
-          STACK_CONTENT=$(cat docker-compose-temp.yml | jq -Rs .)
-
-          curl -X PUT \
-            -H "X-API-Key: ${{ secrets.PORTAINER_API_TOKEN }}" \
-            -H "Content-Type: application/json; charset=utf-8" \
-            -d "{\"pullImage\": true, \"stackFileContent\": $STACK_CONTENT}" \
-            ${{ secrets.PORTAINER_UPDATE_STACK_URL }}
-          
-          # 清理临时文件
-          rm docker-compose-temp.yml
