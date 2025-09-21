@@ -33,6 +33,8 @@
 
 ### Using Docker Compose (Recommended)
 
+** Make sure you have Docker and Docker Compose installed on your machine.**
+
 1. Use the docker-compose configuration file, modify environment variables according to your needs
 ```yml
 version: '3.9'
@@ -63,6 +65,29 @@ docker-compose up -d
 3. Access the application
 Open your browser and visit `http://localhost:8834` with **default username: `root` and default password: `Root@123`**
 
+### Run with JAR
+
+** Make sure you have Java 17+ and yt-dlp installed on your machine.**
+
+1. Download the latest release JAR from [Releases](https://github.com/aizhimou/pigeon-pod/releases)
+
+2. Create data directory in the same directory as the JAR file.
+```bash
+mkdir -p data
+```
+
+3. Run the application
+```bash
+java -jar -DPIGEON_BASE_URL=http://localhost:8080 \  # set to your domain
+           -DPIGEON_AUDIO_FILE_PATH=/path/to/your/audio/ \  # set to your audio file path
+           -Dspring.datasource.url=jdbc:sqlite:/path/to/your/pigeon-pod.db \  # set to your database path
+           pigeon-pod-x.x.x.jar
+```
+
+4. Access the application
+Open your browser and visit `http://localhost:8080` with **default username: `root` and default password: `Root@123`**
+
+
 ## Documentation
 
 - [How to get YouTube API Key](documents/how-to-get-youtube-api-key-en.md)
@@ -75,17 +100,19 @@ Open your browser and visit `http://localhost:8834` with **default username: `ro
 ### Backend
 - **Java 17** - Core language
 - **Spring Boot 3.5** - Application framework
-- **SQLite** - Lightweight database
+- **MyBatis-Plus 3.5** - ORM framework
 - **Sa-Token** - Authentication framework
+- **SQLite** - Lightweight database
+- **Flyway** - Database migration tool
 - **YouTube Data API v3** - YouTube data retrieval
 - **yt-dlp** - Video download tool
 - **Rome** - RSS generation library
 
 ### Frontend
-- **React 19** - UI framework
+- **Javascript (ES2024)** - Core language
+- **React 19** - Application framework
 - **Vite 7** - Build tool
 - **Mantine 8** - UI component library
-- **React Router 7** - Route management
 - **i18next** - Internationalization support
 - **Axios** - HTTP client
 

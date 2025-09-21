@@ -33,6 +33,8 @@
 
 ### 使用 Docker Compose（推荐）
 
+**确保你的机器上已安装 Docker 和 Docker Compose。**
+
 1. 使用 docker-compose 配置文件，注意根据自己的需求修改环境变量
 ```yml
 version: '3.9'
@@ -62,6 +64,26 @@ docker-compose up -d
 3. 访问应用
 打开浏览器访问 `http://{localhost}:8834`，**默认用户名: `root`，密码：`Root@123`**
 
+### 使用 JAR 包运行
+**确保你的机器上已安装 Java 17+ 和 yt-dlp。**
+1. 从 [Releases](https://github.com/aizhimou/pigeon-pod/releases) 下载最新的发布 JAR 包
+
+2. 在与 JAR 包相同的目录下创建数据目录
+```bash
+mkdir -p data
+```
+
+3. 运行应用
+```bash
+java -jar -DPIGEON_BASE_URL=http://localhost:8080 \  # 替换为你的域名
+           -DPIGEON_AUDIO_FILE_PATH=/path/to/your/audio/ \  # 替换为你的音频文件路径
+           -Dspring.datasource.url=jdbc:sqlite:/path/to/your/pigeon-pod.db \  # 替换为你的数据库路径
+           pigeon-pod-x.x.x.jar
+```
+
+4. 访问应用
+打开浏览器访问 `http://localhost:8080`，**默认用户名: `root`，密码：`Root@123`**
+
 ## 文档
 
 - [如何获取 YouTube Data API 密钥](documents/how-to-get-youtube-api-key-zh.md)
@@ -74,17 +96,19 @@ docker-compose up -d
 ### 后端
 - **Java 17** - 核心语言
 - **Spring Boot 3.5** - 应用框架
+- **MyBatis-Plus 3.5** - ORM 框架
 - **SQLite** - 轻量级数据库
+- **Flyway** - 数据库版本管理工具
 - **Sa-Token** - 权限认证框架
 - **YouTube Data API v3** - YouTube 数据获取
 - **yt-dlp** - 视频下载工具
 - **Rome** - RSS 生成库
 
 ### 前端
-- **React 19** - 用户界面框架
+- **Javascript (ES2024)** - 核心语言
+- **React 19** - 应用框架
 - **Vite 7** - 构建工具
 - **Mantine 8** - UI 组件库
-- **React Router 7** - 路由管理
 - **i18next** - 国际化支持
 - **Axios** - HTTP 客户端
 
