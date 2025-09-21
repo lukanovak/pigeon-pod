@@ -98,12 +98,12 @@ public class ChannelService {
         log.info("使用频道 ID 获取频道信息: {}", ytChannelId);
       } else if (channelInput.contains("/channel/")) {
         // 输入是 /channel/ 格式的链接
-        actualChannelUrl = channelInput;
-        log.info("使用 /channel/ 链接获取频道信息: {}", channelInput);
+        actualChannelUrl = "https://www.youtube.com/channel/" + ytChannelId;
+        log.info("使用 /channel/ 链接获取频道信息: {} -> {}", channelInput, ytChannelId);
       } else {
         // 输入是 @handle 格式的链接
-        actualChannelUrl = channelInput;
         handler = youtubeHelper.getHandleFromUrl(channelInput);
+        actualChannelUrl = "https://www.youtube.com/@" + handler;
         log.info("使用 @handle 链接获取频道信息: {} -> {}", channelInput, ytChannelId);
       }
       

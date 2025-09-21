@@ -3,6 +3,7 @@ package top.asimov.pigeon.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import top.asimov.pigeon.model.Episode;
 
@@ -30,4 +31,7 @@ public interface EpisodeMapper extends BaseMapper<Episode> {
 
   @Update("update episode set download_status = #{downloadStatus} where id = #{id}")
   void updateDownloadStatus(String id, String downloadStatus);
+
+  @Select("select c.name from episode e join channel c  on c.id = e.channel_id where e.id = #{episodeId}")
+  String getChannelNameByEpisodeId(String episodeId);
 }

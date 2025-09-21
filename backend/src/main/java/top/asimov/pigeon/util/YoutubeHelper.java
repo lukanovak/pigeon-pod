@@ -83,6 +83,10 @@ public class YoutubeHelper {
       return null;
     }
     int atIndex = channelUrl.lastIndexOf('@');
+    int slashIndex = channelUrl.indexOf('/', atIndex);
+    if (slashIndex > 0) {
+      return channelUrl.substring(atIndex + 1, slashIndex);
+    }
     return channelUrl.substring(atIndex + 1);
   }
 

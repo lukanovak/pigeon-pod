@@ -1,9 +1,11 @@
 package top.asimov.pigeon.worker;
 
+import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
@@ -33,6 +35,15 @@ public class DownloadWorker {
     this.youtubeHelper = youtubeHelper;
   }
 
+  @PostConstruct
+  private void init() {
+    // 在依赖注入完成后，处理 audioStoragePath 值
+    if (audioStoragePath != null && !audioStoragePath.endsWith("/")) {
+      audioStoragePath = audioStoragePath + "/";
+      log.info("配置的audioStoragePath值末尾没有/，已调整为: {}", audioStoragePath);
+    }
+  }
+
   public void download(String videoId) {
     Episode episode = episodeMapper.selectById(videoId);
 
@@ -54,8 +65,14 @@ public class DownloadWorker {
         return;
       }
 
+      String channelName = episodeMapper.getChannelNameByEpisodeId(videoId);
+      String safeTitle = getSafeTitle(episode.getTitle());
+
+      // 构建输出目录：audioStoragePath/{channel name}/
+      String outputDirPath = audioStoragePath + sanitizeFileName(channelName) + File.separator;
+
       // 获取下载进程
-      Process process = getProcess(videoId, tempCookiesFile);
+      Process process = getProcess(videoId, tempCookiesFile, outputDirPath, safeTitle);
 
       // 读取命令输出和错误，非常重要，否则可能导致进程阻塞
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -74,8 +91,7 @@ public class DownloadWorker {
 
       // 根据结果更新最终状态
       if (exitCode == 0) {
-        // 假设输出文件名就是 videoId.mp3
-        String finalPath = audioStoragePath + videoId + ".mp3";
+        String finalPath = audioStoragePath + sanitizeFileName(channelName) + File.separator + safeTitle + ".mp3";
         episode.setAudioFilePath(finalPath);
         episode.setDownloadStatus(EpisodeStatus.COMPLETED.name());
         log.info("下载成功: {}", episode.getTitle());
@@ -98,15 +114,14 @@ public class DownloadWorker {
     }
   }
 
-  private Process getProcess(String videoId, String cookiesFilePath) throws IOException {
-    // 确保目录存在
-    File dir = new File(audioStoragePath);
-    if (!dir.exists() && !dir.mkdirs()) {
-      throw new RuntimeException("无法创建目录: " + audioStoragePath);
+  private Process getProcess(String videoId, String cookiesFilePath, String outputDirPath, String safeTitle) throws IOException {
+    File outputDir = new File(outputDirPath);
+    if (!outputDir.exists() && !outputDir.mkdirs()) {
+      throw new RuntimeException("无法创建目录: " + outputDirPath);
     }
 
-    // 准备并执行 yt-dlp 命令
-    String outputTemplate = audioStoragePath + "%(id)s.%(ext)s";
+    // 输出模板：{outputDir}/{title}.%(ext)s
+    String outputTemplate = outputDirPath + safeTitle + ".%(ext)s";
     String videoUrl = "https://www.youtube.com/watch?v=" + videoId;
 
     List<String> command = new ArrayList<>();
@@ -127,8 +142,32 @@ public class DownloadWorker {
     command.add(videoUrl);
 
     ProcessBuilder processBuilder = new ProcessBuilder(command);
-    processBuilder.directory(new File(audioStoragePath)); // 设置工作目录
+    processBuilder.directory(outputDir); // 设置工作目录
     return processBuilder.start();
+  }
+
+  // 处理title，按UTF-8字节长度截断，最多200字节，结尾加...，并去除非法字符
+  private String getSafeTitle(String title) {
+    if (title == null) return "untitled";
+    String clean = sanitizeFileName(title);
+    byte[] bytes = clean.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    if (bytes.length <= 200) {
+      return clean;
+    }
+    // 截断到200字节以内，避免截断多字节字符
+    int byteCount = 0;
+    int i = 0;
+    for (; i < clean.length(); i++) {
+      int charBytes = String.valueOf(clean.charAt(i)).getBytes(StandardCharsets.UTF_8).length;
+      if (byteCount + charBytes > 200) break;
+      byteCount += charBytes;
+    }
+    return clean.substring(0, i) + "...";
+  }
+
+  // 过滤非法文件名字符
+  private String sanitizeFileName(String name) {
+    return name.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
   }
 
   /**
