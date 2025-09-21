@@ -72,6 +72,9 @@ function Header() {
               <Menu.Item onClick={() => changeLanguageWithStorage('es')}>
                 {t('header_lang_es')}
               </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('ja')}>
+                {t('header_lang_ja')}
+              </Menu.Item>
             </Menu.Dropdown>
           </Menu>
           <ActionIcon variant="default" size="sm">
