@@ -1,13 +1,11 @@
 import React, { useContext } from 'react';
 import {
   ActionIcon,
-  Flex,
   Group,
   Image,
   Menu,
   Paper,
   Text,
-  Title,
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
@@ -70,6 +68,9 @@ function Header() {
               </Menu.Item>
               <Menu.Item onClick={() => changeLanguageWithStorage('zh')}>
                 {t('header_lang_zh')}
+              </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('es')}>
+                {t('header_lang_es')}
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

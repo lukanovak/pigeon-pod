@@ -140,7 +140,8 @@ public class RssService {
       output.output(feed, writer);
       return writer.toString();
     } catch (Exception e) {
-      throw new RuntimeException("生成 RSS feed 时出错", e);
+      throw new RuntimeException(messageSource.getMessage("system.generate.rss.failed", 
+          null, LocaleContextHolder.getLocale()), e);
     }
   }
 

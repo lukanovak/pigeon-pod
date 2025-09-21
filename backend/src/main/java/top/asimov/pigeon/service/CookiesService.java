@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import top.asimov.pigeon.mapper.UserMapper;
 import top.asimov.pigeon.model.User;
@@ -20,9 +22,11 @@ public class CookiesService {
   private String audioStoragePath;
 
   private final UserMapper userMapper;
+  private final MessageSource messageSource;
 
-  public CookiesService(UserMapper userMapper) {
+  public CookiesService(UserMapper userMapper, MessageSource messageSource) {
     this.userMapper = userMapper;
+    this.messageSource = messageSource;
   }
 
   /**
@@ -42,7 +46,8 @@ public class CookiesService {
       String tempDir = audioStoragePath + "temp/";
       File dir = new File(tempDir);
       if (!dir.exists() && !dir.mkdirs()) {
-        throw new RuntimeException("无法创建临时目录: " + tempDir);
+        throw new RuntimeException(messageSource.getMessage("system.create.temp.directory.failed", 
+            new Object[]{tempDir}, LocaleContextHolder.getLocale()));
       }
 
       // 创建临时cookies文件
@@ -58,7 +63,8 @@ public class CookiesService {
 
     } catch (IOException e) {
       log.error("创建临时cookies文件失败", e);
-      throw new RuntimeException("创建临时cookies文件失败", e);
+      throw new RuntimeException(messageSource.getMessage("system.create.temp.cookies.failed", 
+          null, LocaleContextHolder.getLocale()), e);
     }
   }
 

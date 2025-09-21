@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
@@ -28,11 +30,13 @@ public class DownloadWorker {
   private final EpisodeMapper episodeMapper;
   private final CookiesService cookiesService;
   private final YoutubeHelper youtubeHelper;
+  private final MessageSource messageSource;
 
-  public DownloadWorker(EpisodeMapper episodeMapper, CookiesService cookiesService, YoutubeHelper youtubeHelper) {
+  public DownloadWorker(EpisodeMapper episodeMapper, CookiesService cookiesService, YoutubeHelper youtubeHelper, MessageSource messageSource) {
     this.episodeMapper = episodeMapper;
     this.cookiesService = cookiesService;
     this.youtubeHelper = youtubeHelper;
+    this.messageSource = messageSource;
   }
 
   @PostConstruct
@@ -117,7 +121,8 @@ public class DownloadWorker {
   private Process getProcess(String videoId, String cookiesFilePath, String outputDirPath, String safeTitle) throws IOException {
     File outputDir = new File(outputDirPath);
     if (!outputDir.exists() && !outputDir.mkdirs()) {
-      throw new RuntimeException("无法创建目录: " + outputDirPath);
+      throw new RuntimeException(messageSource.getMessage("system.create.directory.failed", 
+          new Object[]{outputDirPath}, LocaleContextHolder.getLocale()));
     }
 
     // 输出模板：{outputDir}/{title}.%(ext)s
