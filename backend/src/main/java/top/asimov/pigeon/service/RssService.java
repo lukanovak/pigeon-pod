@@ -14,6 +14,7 @@ import com.rometools.rome.feed.synd.SyndEntryImpl;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.feed.synd.SyndFeedImpl;
 import com.rometools.rome.io.SyndFeedOutput;
+import java.io.File;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,6 +46,9 @@ public class RssService {
   // 从 application.properties 读取应用基础 URL
   @Value("${pigeon.base-url}")
   private String appBaseUrl;
+
+  @Value("${pigeon.audio-file-path}")
+  private String audioStoragePath;
 
   public RssService(ChannelService channelService, EpisodeService episodeService, MessageSource messageSource) {
     this.channelService = channelService;
@@ -107,7 +111,8 @@ public class RssService {
       // **关键：添加附件 (Enclosure)，即音频文件**
       try {
         SyndEnclosure enclosure = new SyndEnclosureImpl();
-        String audioUrl = appBaseUrl + "/media/" + episode.getId() + ".mp3";
+        String audioFilePath = episode.getAudioFilePath().replace(audioStoragePath, "").replace("\\", "/");
+        String audioUrl = appBaseUrl + "/media/" + audioFilePath;
         enclosure.setUrl(audioUrl);
         enclosure.setType("audio/mpeg");
         // 获取文件大小

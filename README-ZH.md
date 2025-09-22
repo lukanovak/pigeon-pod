@@ -2,20 +2,27 @@
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>简单优雅的将你喜爱的 YouTube 频道转换为播客频道。</h2>
-  <p>如果你不喜欢自托管，欢迎看看我们即将上线的在线服务：
+  <h3>如果自托管不是你的菜，欢迎看看我们即将上线的在线服务：
     <a target="_blank" href="https://pigeonpod.asimov.top/">PigeonPod</a>
-  </p>
+  </h3>
 </div>
 
-[![English README](https://img.shields.io/badge/README-English-red?style=flat-square)](README.md)
+<div align="center">
+  
+[![English README](https://img.shields.io/badge/README-English-blue)](README.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+</div>
 
 ## Screenshots
 
-- 订阅列表
 ![index-dark&light](documents/screenshots/index-dark&light.png)
+<div align="center">
+  <p style="color: gray">订阅列表</p>
+</div>
 
-- 节目详情
 ![detail-dark&light](documents/screenshots/detail-dark&light.png)
+<div align="center">
+  <p style="color: gray">节目详情</p>
+</div>
 
 ## 核心功能
 
@@ -26,7 +33,7 @@
 - **📊 节目管理**: 查看、删除、重试下载失败的节目
 - **✨ 免广告收听**: 自动去除节目片头和中间的贴片广告
 - **🍪 自定义 Cookies**: 支持通过上传 Cookies 订阅年龄限制内容和会员节目内容
-- **🌐 多语言支持**: 完整支持中文和英文界面
+- **🌐 多语言支持**: 完整支持中文，英文，西班牙语，葡萄牙语，日语，德语，法语，韩语界面
 - **📱 自适应UI**: 随时随地在任何设备上获得优秀体验
 
 ## 部署方式
@@ -192,3 +199,10 @@ pigeon-pod/
 2. 配置正确的 YouTube API 密钥
 3. 确保音频存储目录有足够的磁盘空间
 4. 定期清理旧的音频文件以节省空间
+
+---
+
+<div align="center">
+  <p>为播客爱好者用 ❤️ 制作！</p>
+  <p>⭐ 如果你喜欢 PigeonPod，请在 GitHub 上给我们一个星！</p>
+</div>

@@ -2,38 +2,45 @@
   <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>Turn your favorite YouTube channels into podcast channels in the simplest and most elegant way.</h2>
-  <p>If self-hosting isn't your thing, take a look at our upcoming online services:
+  <h3>If self-hosting isn't your thing, take a look at our upcoming online services:
     <a target="_blank" href="https://pigeonpod.asimov.top/">PigeonPod</a>
-  </p>
+  </h3>
 </div>
 
-[![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red?style=flat-square)](README-ZH.md)
+<div align="center">
+
+  [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+</div>
 
 ## Screenshots
 
-- Channel list
 ![index-dark&light](documents/screenshots/index-dark&light.png)
+<div align="center">
+  <p style="color: gray">Channel list</p>
+</div>
 
-- Channel detail
 ![detail-dark&light](documents/screenshots/detail-dark&light.png)
+<div align="center">
+  <p style="color: gray">Channel detail</p>
+</div>
 
 ## Core Features
 
-- **🎯 Smart Channel Subscription**: Quickly add channels through YouTube channel URLs
-- **🤖 Auto Sync Updates**: Automatically check and sync latest channel content with incremental updates
-- **📻 RSS Podcast Subscription**: Generate standard RSS subscription links, compatible with any podcast client
-- **🔍 Content Filtering**: Support keyword filtering (include/exclude) and episode duration filtering
-- **📊 Episode Management**: View, delete, and retry failed episode downloads
-- **✨ Ad-free Listening**: Automatically remove intro and mid-roll ads from episodes
+- **🎯 Smart Channel Subscription**: Quickly add channels through YouTube channel URLs.
+- **🤖 Auto Sync Updates**: Automatically check and sync latest channel content with incremental updates.
+- **📻 RSS Podcast Subscription**: Generate standard RSS subscription links, compatible with any podcast client.
+- **🔍 Content Filtering**: Support keyword filtering (include/exclude) and episode duration filtering.
+- **📊 Episode Management**: View, delete, and retry failed episode downloads.
+- **✨ Ad-free Listening**: Automatically remove intro and mid-roll ads from episodes.
 - **🍪 Custom Cookies**: Supports subscription of age-restricted content and membership content by uploading cookies.
-- **🌐 Multi-language Support**: Complete support for Chinese and English interfaces
-- **📱 Responsive UI**: Excellent experience on any device, anytime, anywhere
+- **🌐 Multi-language Support**: Complete support for English, Chinese, Spanish, Portuguese, Japanese, French, German, Korean interfaces.
+- **📱 Responsive UI**: Excellent experience on any device, anytime, anywhere.
 
 ## Deployment
 
 ### Using Docker Compose (Recommended)
 
-** Make sure you have Docker and Docker Compose installed on your machine.**
+**Make sure you have Docker and Docker Compose installed on your machine.**
 
 1. Use the docker-compose configuration file, modify environment variables according to your needs
 ```yml
@@ -67,7 +74,7 @@ Open your browser and visit `http://localhost:8834` with **default username: `ro
 
 ### Run with JAR
 
-** Make sure you have Java 17+ and yt-dlp installed on your machine.**
+**Make sure you have Java 17+ and yt-dlp installed on your machine.**
 
 1. Download the latest release JAR from [Releases](https://github.com/aizhimou/pigeon-pod/releases)
 
@@ -196,3 +203,10 @@ pigeon-pod/
 2. Configure correct YouTube API key
 3. Ensure audio storage directory has sufficient disk space
 4. Regularly clean up old audio files to save space
+
+---
+
+<div align="center">
+  <p>Made with ❤️ for podcast enthusiasts!</p>
+  <p>⭐ If you like PigeonPod, give us a star on GitHub!</p>
+</div>

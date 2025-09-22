@@ -75,6 +75,18 @@ function Header() {
               <Menu.Item onClick={() => changeLanguageWithStorage('ja')}>
                 {t('header_lang_ja')}
               </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('pt')}>
+                {t('header_lang_pt')}
+              </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('fr')}>
+                {t('header_lang_fr')}
+              </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('de')}>
+                {t('header_lang_de')}
+              </Menu.Item>
+              <Menu.Item onClick={() => changeLanguageWithStorage('ko')}>
+                {t('header_lang_ko')}
+              </Menu.Item>
             </Menu.Dropdown>
           </Menu>
           <ActionIcon variant="default" size="sm">
