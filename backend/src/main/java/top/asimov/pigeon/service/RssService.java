@@ -14,10 +14,11 @@ import com.rometools.rome.feed.synd.SyndEntryImpl;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.feed.synd.SyndFeedImpl;
 import com.rometools.rome.io.SyndFeedOutput;
-import java.io.File;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -62,6 +63,44 @@ public class RssService {
     if (appBaseUrl != null && appBaseUrl.endsWith("/")) {
       appBaseUrl = appBaseUrl.substring(0, appBaseUrl.length() - 1);
       log.info("已移除 appBaseUrl 末尾的斜杠，处理后的值为: {}", appBaseUrl);
+    }
+  }
+
+  /**
+   * 安全地编码URL路径，处理包含CJK字符和ASCII字符的文件路径
+   * 确保所有字符都能被浏览器和HTTP客户端正确处理
+   */
+  private String encodeUrlPath(String path) {
+    if (path == null || path.isEmpty()) {
+      return path;
+    }
+    
+    try {
+      // 分割路径为各个部分，分别编码每个部分，然后重新组合
+      String[] pathParts = path.split("/");
+      StringBuilder encodedPath = new StringBuilder();
+      
+      for (int i = 0; i < pathParts.length; i++) {
+        if (i > 0) {
+          encodedPath.append("/");
+        }
+        
+        String part = pathParts[i];
+        if (part.isEmpty()) {
+          continue;
+        }
+        
+        // 使用URLEncoder进行完整的百分号编码，然后将+替换为%20
+        // 这样可以确保所有非ASCII字符（包括CJK字符）都被正确编码
+        String encoded = URLEncoder.encode(part, StandardCharsets.UTF_8)
+            .replace("+", "%20");
+        encodedPath.append(encoded);
+      }
+      
+      return encodedPath.toString();
+    } catch (Exception e) {
+      log.warn("URL路径编码失败，使用原始路径: {}", path, e);
+      return path;
     }
   }
 
@@ -112,7 +151,9 @@ public class RssService {
       try {
         SyndEnclosure enclosure = new SyndEnclosureImpl();
         String audioFilePath = episode.getAudioFilePath().replace(audioStoragePath, "").replace("\\", "/");
-        String audioUrl = appBaseUrl + "/media/" + audioFilePath;
+        // 对包含CJK字符的路径进行安全编码
+        String encodedAudioFilePath = encodeUrlPath(audioFilePath);
+        String audioUrl = appBaseUrl + "/media/" + encodedAudioFilePath;
         enclosure.setUrl(audioUrl);
         enclosure.setType("audio/mpeg");
         // 获取文件大小

@@ -120,9 +120,16 @@ public class DownloadWorker {
 
   private Process getProcess(String videoId, String cookiesFilePath, String outputDirPath, String safeTitle) throws IOException {
     File outputDir = new File(outputDirPath);
-    if (!outputDir.exists() && !outputDir.mkdirs()) {
-      throw new RuntimeException(messageSource.getMessage("system.create.directory.failed", 
-          new Object[]{outputDirPath}, LocaleContextHolder.getLocale()));
+    // 确保目录存在，如果不存在则创建，支持并发安全
+    if (!outputDir.exists()) {
+      // 使用 mkdirs() 创建目录，即使多线程同时调用也是安全的
+      // mkdirs() 返回 false 可能因为：1) 创建失败，2) 目录已存在（其他线程创建的）
+      outputDir.mkdirs();
+      // 再次检查目录是否存在，这是最可靠的方式
+      if (!outputDir.exists()) {
+        throw new RuntimeException(messageSource.getMessage("system.create.directory.failed", 
+            new Object[]{outputDirPath}, LocaleContextHolder.getLocale()));
+      }
     }
 
     // 输出模板：{outputDir}/{title}.%(ext)s

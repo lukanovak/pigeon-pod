@@ -86,6 +86,22 @@ public class EpisodeService {
   }
 
   /**
+   * 根据节目ID列表获取节目状态
+   * @param episodeIds 节目ID列表
+   * @return 节目状态列表（只包含状态相关字段）
+   */
+  public List<Episode> getEpisodeStatusByIds(List<String> episodeIds) {
+    if (episodeIds == null || episodeIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
+    queryWrapper.in(Episode::getId, episodeIds);
+    // 只选择状态相关的字段，减少网络传输
+    queryWrapper.select(Episode::getId, Episode::getDownloadStatus, Episode::getErrorLog);
+    return episodeMapper.selectList(queryWrapper);
+  }
+
+  /**
    * 重试下载episode音频文件
    * @param episodeId episode id
    */

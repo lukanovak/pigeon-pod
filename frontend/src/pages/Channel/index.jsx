@@ -44,6 +44,9 @@ import { useTranslation } from 'react-i18next';
 import CopyModal from '../../components/CopyModal';
 import './episode-image.css';
 
+// 需要跟踪状态变化的节目状态常量（移到组件外部避免重复创建）
+const ACTIVE_STATUSES = ['PENDING', 'QUEUED', 'DOWNLOADING'];
+
 const ChannelDetail = () => {
   const { t } = useTranslation();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
@@ -63,6 +66,7 @@ const ChannelDetail = () => {
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
+  const [refreshTimer, setRefreshTimer] = useState(null);
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -144,6 +148,15 @@ const ChannelDetail = () => {
     }
   }, [currentPage, fetchEpisodes]);
 
+  // 组件卸载时清理定时器
+  useEffect(() => {
+    return () => {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+    };
+  }, [refreshTimer]);
+
   // Update channel config
   const updateChannelConfig = async () => {
     const res = await API.put(`/api/channel/config/${channelId}`, channel);
@@ -218,6 +231,75 @@ const ChannelDetail = () => {
         return 'gray';
     }
   };
+
+  // 检查是否有需要跟踪状态变化的节目（PENDING, QUEUED, DOWNLOADING）
+  const hasActiveEpisodes = useCallback(() => {
+    return episodes.some(episode => ACTIVE_STATUSES.includes(episode.downloadStatus));
+  }, [episodes]);
+
+  // 刷新活跃状态节目的状态（PENDING, QUEUED, DOWNLOADING）
+  const refreshActiveEpisodes = useCallback(async () => {
+    if (!hasActiveEpisodes()) return;
+    
+    try {
+      // 获取当前活跃状态的节目ID列表
+      const activeIds = episodes
+        .filter(episode => ACTIVE_STATUSES.includes(episode.downloadStatus))
+        .map(episode => episode.id);
+      
+      if (activeIds.length === 0) return;
+      
+      // 使用专门的API端点获取特定节目的状态
+      const res = await API.post('/api/episode/status', activeIds);
+      const { code, data } = res.data;
+      
+      if (code !== 200) {
+        console.error('Failed to fetch episode status');
+        return;
+      }
+      
+      // 更新对应节目的状态，保持分页不变，只更新状态相关字段
+      setEpisodes(prevEpisodes => 
+        prevEpisodes.map(episode => {
+          const updatedEpisode = data.find(updated => updated.id === episode.id);
+          if (updatedEpisode) {
+            // 只更新状态相关的字段，保持其他字段不变
+            return {
+              ...episode,
+              downloadStatus: updatedEpisode.downloadStatus,
+              errorLog: updatedEpisode.errorLog
+            };
+          }
+          return episode;
+        })
+      );
+    } catch (error) {
+      console.error('Failed to refresh active episodes:', error);
+    }
+  }, [episodes, hasActiveEpisodes]);
+
+  // 自动刷新活跃状态节目的状态（PENDING, QUEUED, DOWNLOADING）
+  useEffect(() => {
+    let timer = null;
+
+    // 如果有活跃状态的节目，设置3秒定时器
+    if (hasActiveEpisodes()) {
+      timer = setInterval(() => {
+        refreshActiveEpisodes();
+      }, 3000);
+      
+      setRefreshTimer(timer);
+    } else {
+      setRefreshTimer(null);
+    }
+    
+    // 清理函数
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [hasActiveEpisodes, refreshActiveEpisodes]);
 
   const handlePlay = (episode) => {
     // 新标签页打开YouTube视频链接
