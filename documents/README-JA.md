@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>お気に入りのYouTubeチャンネルを、最もシンプルでエレガントな方法でポッドキャストチャンネルに変換します。</h2>
   <h3>セルフホスティングがお好みでない場合は、こちらの今後のオンラインサービスをご覧ください：
@@ -9,17 +9,17 @@
 
 <div align="center">
   
-[![English README](https://img.shields.io/badge/README-English-blue)](README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+[![English README](https://img.shields.io/badge/README-English-blue)](../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
 </div>
 
 ## スクリーンショット
 
-![index-dark&light](documents/screenshots/index-dark&light.png)
+![index-dark&light](screenshots/index-dark&light.png)
 <div align="center">
   <p style="color: gray">チャンネル一覧</p>
 </div>
 
-![detail-dark&light](documents/screenshots/detail-dark&light.png)
+![detail-dark&light](screenshots/detail-dark&light.png)
 <div align="center">
   <p style="color: gray">チャンネル詳細</p>
 </div>
@@ -96,9 +96,9 @@ java -jar -DPIGEON_BASE_URL=http://localhost:8080 \  # お使いのドメイン�
 
 ## ドキュメント
 
-- [YouTube APIキーの取得方法](documents/how-to-get-youtube-api-key-en.md)
-- [YouTubeクッキーの設定方法](documents/youtube-cookie-setup-en.md)
-- [YouTubeチャンネルIDの取得方法](documents/how-to-get-youtube-channel-id-en.md)
+- [YouTube APIキーの取得方法](how-to-get-youtube-api-key-en.md)
+- [YouTubeクッキーの設定方法](youtube-cookie-setup-en.md)
+- [YouTubeチャンネルIDの取得方法](how-to-get-youtube-channel-id-en.md)
 
 ## 技術スタック
 

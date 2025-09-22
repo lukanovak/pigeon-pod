@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>좋아하는 YouTube 채널을 가장 간단하고 우아한 방법으로 팟캐스트 채널로 변환하세요.</h2>
   <h3>셀프 호스팅이 부담스럽다면, 곧 출시될 온라인 서비스를 확인해보세요:
@@ -9,17 +9,17 @@
 
 <div align="center">
   
-[![English README](https://img.shields.io/badge/README-English-blue)](README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md)
+[![English README](https://img.shields.io/badge/README-English-blue)](../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md)
 </div>
 
 ## 스크린샷
 
-![index-dark&light](documents/screenshots/index-dark&light.png)
+![index-dark&light](screenshots/index-dark&light.png)
 <div align="center">
   <p style="color: gray">채널 목록</p>
 </div>
 
-![detail-dark&light](documents/screenshots/detail-dark&light.png)
+![detail-dark&light](screenshots/detail-dark&light.png)
 <div align="center">
   <p style="color: gray">채널 상세</p>
 </div>
@@ -96,9 +96,9 @@ java -jar -DPIGEON_BASE_URL=http://localhost:8080 \  # 도메인으로 설정
 
 ## 문서
 
-- [YouTube API 키 얻는 방법](documents/how-to-get-youtube-api-key-en.md)
-- [YouTube 쿠키 설정 방법](documents/youtube-cookie-setup-en.md)
-- [YouTube 채널 ID 얻는 방법](documents/how-to-get-youtube-channel-id-en.md)
+- [YouTube API 키 얻는 방법](how-to-get-youtube-api-key-en.md)
+- [YouTube 쿠키 설정 방법](youtube-cookie-setup-en.md)
+- [YouTube 채널 ID 얻는 방법](how-to-get-youtube-channel-id-en.md)
 
 ## 기술 스택
 

@@ -9,7 +9,7 @@
 
 <div align="center">
 
-  [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+  [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](documents/README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](documents/README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](documents/README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](documents/README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](documents/README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](documents/README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](documents/README-KO.md)
 </div>
 
 ## Screenshots

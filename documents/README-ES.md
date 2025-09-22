@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>Convierte tus canales favoritos de YouTube en canales de podcast de la manera más simple y elegante.</h2>
   <h3>Si el auto-hospedaje no es lo tuyo, echa un vistazo a nuestros próximos servicios en línea:
@@ -9,17 +9,17 @@
 
 <div align="center">
   
-[![English README](https://img.shields.io/badge/README-English-blue)](README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+[![English README](https://img.shields.io/badge/README-English-blue)](../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
 </div>
 
 ## Capturas de Pantalla
 
-![index-dark&light](documents/screenshots/index-dark&light.png)
+![index-dark&light](screenshots/index-dark&light.png)
 <div align="center">
   <p style="color: gray">Lista de canales</p>
 </div>
 
-![detail-dark&light](documents/screenshots/detail-dark&light.png)
+![detail-dark&light](screenshots/detail-dark&light.png)
 <div align="center">
   <p style="color: gray">Detalle del canal</p>
 </div>
@@ -96,9 +96,9 @@ Abre tu navegador y visita `http://localhost:8080` con **usuario por defecto: `r
 
 ## Documentación
 
-- [Cómo obtener la clave API de YouTube](documents/how-to-get-youtube-api-key-en.md)
-- [Cómo configurar las cookies de YouTube](documents/youtube-cookie-setup-en.md)
-- [Cómo obtener el ID del canal de YouTube](documents/how-to-get-youtube-channel-id-en.md)
+- [Cómo obtener la clave API de YouTube](how-to-get-youtube-api-key-en.md)
+- [Cómo configurar las cookies de YouTube](youtube-cookie-setup-en.md)
+- [Cómo obtener el ID del canal de YouTube](how-to-get-youtube-channel-id-en.md)
 
 ## Stack Tecnológico
 
