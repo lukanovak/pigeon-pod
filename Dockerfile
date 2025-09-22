@@ -19,6 +19,7 @@ RUN apk add --update --no-cache ffmpeg openjdk-17-default-jvm python3 py3-pip sq
     && pip3 install --no-cache-dir yt-dlp
 WORKDIR /app
 COPY --from=backend-build /app/target/*.jar app.jar
-ENV JAVA_OPTS=""
+ENV LANG=C.UTF-8
+ENV JAVA_OPTS="-Dfile.encoding=UTF-8"
 EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
