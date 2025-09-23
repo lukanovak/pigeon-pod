@@ -180,7 +180,7 @@ const ChannelDetail = () => {
       return;
     }
 
-    showSuccess(t('channel_deleted_success', { name: channel.name }));
+    showSuccess(t('channel_deleted_success'));
 
     // Navigate back to the channels list page
     navigate('/');

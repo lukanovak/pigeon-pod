@@ -74,7 +74,7 @@
   "update_channel_config_failed": "채널 설정 업데이트에 실패했습니다",
   "channel_config_updated": "채널 설정이 업데이트되었습니다",
   "delete_channel_failed": "채널 삭제에 실패했습니다",
-  "channel_deleted_success": "채널 {name}이(가) 삭제되었습니다",
+  "channel_deleted_success": "채널 이(가) 삭제되었습니다",
   "delete_episode_failed": "에피소드 삭제에 실패했습니다",
   "episode_deleted_success": "에피소드가 삭제되었습니다",
   "retry_failed": "재시도에 실패했습니다",

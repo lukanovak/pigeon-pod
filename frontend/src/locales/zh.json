@@ -74,7 +74,7 @@
   "update_channel_config_failed": "更新频道配置失败",
   "channel_config_updated": "频道配置已更新",
   "delete_channel_failed": "删除频道失败",
-  "channel_deleted_success": "频道 {name} 已被删除",
+  "channel_deleted_success": "频道已删除",
   "delete_episode_failed": "删除单集失败",
   "episode_deleted_success": "单集已被删除",
   "retry_failed": "重试失败",

@@ -74,7 +74,7 @@
   "update_channel_config_failed": "Failed to update channel configuration",
   "channel_config_updated": "Channel configuration updated",
   "delete_channel_failed": "Failed to delete channel",
-  "channel_deleted_success": "Channel {name} has been deleted",
+  "channel_deleted_success": "Channel has been deleted",
   "delete_episode_failed": "Failed to delete episode",
   "episode_deleted_success": "Episode has been deleted",
   "retry_failed": "Retry failed",

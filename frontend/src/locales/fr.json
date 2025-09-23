@@ -74,7 +74,7 @@
   "update_channel_config_failed": "Échec de la mise à jour de la configuration de la chaîne",
   "channel_config_updated": "Configuration de la chaîne mise à jour",
   "delete_channel_failed": "Échec de la suppression de la chaîne",
-  "channel_deleted_success": "La chaîne {name} a été supprimée",
+  "channel_deleted_success": "La chaîne a été supprimée",
   "delete_episode_failed": "Échec de la suppression de l'épisode",
   "episode_deleted_success": "L'épisode a été supprimé",
   "retry_failed": "Échec de la nouvelle tentative",

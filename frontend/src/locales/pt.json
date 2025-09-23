@@ -74,7 +74,7 @@
   "update_channel_config_failed": "Falha ao atualizar a configuração do canal",
   "channel_config_updated": "Configuração do canal atualizada",
   "delete_channel_failed": "Falha ao excluir o canal",
-  "channel_deleted_success": "Canal {name} foi excluído",
+  "channel_deleted_success": "Canal foi excluído",
   "delete_episode_failed": "Falha ao excluir o episódio",
   "episode_deleted_success": "Episódio foi excluído",
   "retry_failed": "Falha na tentativa",

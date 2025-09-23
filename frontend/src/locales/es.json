@@ -74,7 +74,7 @@
   "update_channel_config_failed": "Error al actualizar la configuración del canal",
   "channel_config_updated": "Configuración del canal actualizada",
   "delete_channel_failed": "Error al eliminar el canal",
-  "channel_deleted_success": "El canal {name} ha sido eliminado",
+  "channel_deleted_success": "El canal ha sido eliminado",
   "delete_episode_failed": "Error al eliminar el episodio",
   "episode_deleted_success": "El episodio ha sido eliminado",
   "retry_failed": "Error en el reintento",

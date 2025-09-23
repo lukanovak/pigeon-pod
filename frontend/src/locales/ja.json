@@ -74,7 +74,7 @@
   "update_channel_config_failed": "チャンネル設定の更新に失敗しました",
   "channel_config_updated": "チャンネル設定を更新しました",
   "delete_channel_failed": "チャンネルの削除に失敗しました",
-  "channel_deleted_success": "チャンネル「{name}」を削除しました",
+  "channel_deleted_success": "チャンネルを削除しました",
   "delete_episode_failed": "エピソードの削除に失敗しました",
   "episode_deleted_success": "エピソードを削除しました",
   "retry_failed": "再試行に失敗しました",
