@@ -1,6 +1,5 @@
 package top.asimov.pigeon.service;
 
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import top.asimov.pigeon.worker.DownloadWorker;
 
