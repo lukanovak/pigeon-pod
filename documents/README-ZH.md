@@ -48,7 +48,7 @@ version: '3.9'
 services:
   pigeon-pod:
     # 在这里查看最新版本 https://github.com/aizhimou/pigeon-pod/pkgs/container/pigeon-pod
-    image: 'ghcr.io/aizhimou/pigeon-pod:release-${version}' # 替换 ${version} 为最新版本号，例如 1.0.0
+    image: 'ghcr.io/aizhimou/pigeon-pod:release-1.5.1'
     container_name: pigeon-pod
     ports:
       - '8834:8080'
