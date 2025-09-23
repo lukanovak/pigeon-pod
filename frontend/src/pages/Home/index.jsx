@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { IconCheck, IconClock, IconSearch, IconSettings } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import VersionUpdateAlert from '../../components/VersionUpdateAlert';
 
 const Home = () => {
   const { t } = useTranslation();
@@ -128,6 +129,7 @@ const Home = () => {
 
   return (
     <Container size="lg" mt="lg">
+      <VersionUpdateAlert />
       <Group pos="relative" wrap="wrap" gap="sm">
         <Input
           leftSection={<IconSearch size={16} />}

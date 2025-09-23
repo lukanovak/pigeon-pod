@@ -104,5 +104,10 @@
   "not_logged_in_or_expired": "ログインしていないか、セッションが期限切れです。再度ログインしてください。",
   "password_reset_success": "パスワードをリセットしました！次回は新しいパスワードでログインしてください。",
   "api_key_generated": "APIキーを生成しました！",
-  "unknown_error": "不明なエラー"
+  "unknown_error": "不明なエラー",
+  "new_version_available": "新しいバージョンが利用可能",
+  "new_version_available_description": "PigeonPod が利用可能になりました",
+  "view_upgrade_details": "アップグレードの詳細を表示",
+  "remind_later": "後で通知",
+  "skip_this_version": "このバージョンをスキップ"
 }

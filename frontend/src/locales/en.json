@@ -104,5 +104,10 @@
   "not_logged_in_or_expired": "Not logged in or session expired, please login again.",
   "password_reset_success": "Password reset successfully! Use new password to login next time.",
   "api_key_generated": "API Key generated successfully!",
-  "unknown_error": "Unknown error"
+  "unknown_error": "Unknown error",
+  "new_version_available": "New Version Available",
+  "new_version_available_description": "PigeonPod is now available",
+  "view_upgrade_details": "View Upgrade Details",
+  "remind_later": "Remind Later",
+  "skip_this_version": "Skip This Version"
 }

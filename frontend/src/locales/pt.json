@@ -104,5 +104,10 @@
   "not_logged_in_or_expired": "Não logado ou sessão expirada, por favor faça login novamente.",
   "password_reset_success": "Senha redefinida com sucesso! Use a nova senha para fazer login da próxima vez.",
   "api_key_generated": "Chave API gerada com sucesso!",
-  "unknown_error": "Erro desconhecido"
+  "unknown_error": "Erro desconhecido",
+  "new_version_available": "Nova versão disponível",
+  "new_version_available_description": "PigeonPod já está disponível",
+  "view_upgrade_details": "Ver detalhes da atualização",
+  "remind_later": "Lembrar mais tarde",
+  "skip_this_version": "Pular esta versão"
 }

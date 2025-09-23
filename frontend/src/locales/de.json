@@ -104,5 +104,10 @@
   "not_logged_in_or_expired": "Nicht angemeldet oder Sitzung abgelaufen, bitte melden Sie sich erneut an.",
   "password_reset_success": "Passwort erfolgreich zurückgesetzt! Verwenden Sie das neue Passwort für die nächste Anmeldung.",
   "api_key_generated": "API-Schlüssel erfolgreich generiert!",
-  "unknown_error": "Unbekannter Fehler"
+  "unknown_error": "Unbekannter Fehler",
+  "new_version_available": "Neue Version verfügbar",
+  "new_version_available_description": "PigeonPod ist jetzt verfügbar",
+  "view_upgrade_details": "Upgrade-Details anzeigen",
+  "remind_later": "Später erinnern",
+  "skip_this_version": "Diese Version überspringen"
 }

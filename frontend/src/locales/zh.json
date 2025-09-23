@@ -104,5 +104,10 @@
   "not_logged_in_or_expired": "未登录或会话已过期，请重新登录。",
   "password_reset_success": "密码重置成功！下次请使用新密码登录。",
   "api_key_generated": "API Key 生成成功！",
-  "unknown_error": "未知错误"
+  "unknown_error": "未知错误",
+  "new_version_available": "发现新版本",
+  "new_version_available_description": "PigeonPod 有新版本可用",
+  "view_upgrade_details": "查看升级详情",
+  "remind_later": "晚点再提示",
+  "skip_this_version": "跳过此版本"
 }
