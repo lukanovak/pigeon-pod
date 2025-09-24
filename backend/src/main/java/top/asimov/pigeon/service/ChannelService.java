@@ -480,9 +480,12 @@ public class ChannelService {
   }
 
   /**
-   * 删除episodes对应的音频文件
+   * 删除episodes对应的音频文件，并在删除完所有文件后清理空的频道文件夹
    */
   private void deleteAudioFiles(List<Episode> episodes) {
+    java.util.Set<String> channelDirectories = new java.util.HashSet<>();
+    
+    // 删除所有音频文件，同时收集频道目录路径
     for (Episode episode : episodes) {
       String audioFilePath = episode.getAudioFilePath();
       if (!ObjectUtils.isEmpty(audioFilePath)) {
@@ -492,6 +495,11 @@ public class ChannelService {
             boolean deleted = audioFile.delete();
             if (deleted) {
               log.info("音频文件删除成功: {}", audioFilePath);
+              // 收集父目录路径（频道文件夹）
+              java.io.File parentDir = audioFile.getParentFile();
+              if (parentDir != null) {
+                channelDirectories.add(parentDir.getAbsolutePath());
+              }
             } else {
               log.warn("音频文件删除失败: {}", audioFilePath);
             }
@@ -501,6 +509,30 @@ public class ChannelService {
         } catch (Exception e) {
           log.error("删除音频文件时出错: {}", audioFilePath, e);
         }
+      }
+    }
+    
+    // 检查并删除空的频道文件夹
+    for (String channelDirPath : channelDirectories) {
+      try {
+        java.io.File channelDir = new java.io.File(channelDirPath);
+        if (channelDir.exists() && channelDir.isDirectory()) {
+          // 检查目录是否为空
+          java.io.File[] files = channelDir.listFiles();
+          if (files != null && files.length == 0) {
+            boolean deleted = channelDir.delete();
+            if (deleted) {
+              log.info("空的频道文件夹删除成功: {}", channelDirPath);
+            } else {
+              log.warn("空的频道文件夹删除失败: {}", channelDirPath);
+            }
+          } else {
+            log.info("频道文件夹不为空，保留: {} (包含 {} 个文件/子目录)", 
+                channelDirPath, files != null ? files.length : 0);
+          }
+        }
+      } catch (Exception e) {
+        log.error("检查或删除频道文件夹时出错: {}", channelDirPath, e);
       }
     }
   }
