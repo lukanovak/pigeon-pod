@@ -20,7 +20,7 @@ import {
 import { UserContext } from '../../context/User/UserContext.jsx';
 import { hasLength, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { IconCookie, IconEdit, IconLock, IconLockPassword, IconRefresh } from '@tabler/icons-react';
+import { IconCookie, IconEdit, IconLock, IconLockPassword, IconRefresh, IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 const UserSetting = () => {
@@ -36,6 +36,10 @@ const UserSetting = () => {
   const [changeUsernameOpened, { open: openChangeUsername, close: closeChangeUsername }] =
     useDisclosure(false);
   const [newUsername, setNewUsername] = useState('');
+
+  // API Key visibility states
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [showYoutubeApiKey, setShowYoutubeApiKey] = useState(false);
 
   // YouTube Data API Key states
   const [editYoutubeApiKeyOpened, { open: openEditYoutubeApiKey, close: closeEditYoutubeApiKey }] =
@@ -216,17 +220,39 @@ const UserSetting = () => {
                 <ActionIcon
                   variant="transparent"
                   size="sm"
-                  aria-label="Edit Youtube Api Key"
+                  aria-label="Regenerate API Key"
                   onClick={openConfirmGenerateApiKey}
                   hiddenFrom="sm"
                 >
                   <IconRefresh size={18} />
                 </ActionIcon>
-                <Text truncate>{state.user?.apiKey ? state.user.apiKey : t('not_set')}</Text>
+                    {state.user?.apiKey ? (
+                  <PasswordInput
+                    value={state.user.apiKey}
+                    readOnly
+                    variant="unstyled"
+                    size="sm"
+                    style={{ flex: 1, maxWidth: '300px' }}
+                    visible={showApiKey}
+                    onVisibilityChange={setShowApiKey}
+                    rightSection={
+                      <ActionIcon
+                        variant="transparent"
+                        size="sm"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        aria-label="Toggle API Key visibility"
+                      >
+                        {showApiKey ? <IconEyeOff size={20} /> : <IconEye size={20} />}
+                      </ActionIcon>
+                    }
+                  />
+                ) : (
+                  <Text c="dimmed">{t('not_set')}</Text>
+                )}
                 <ActionIcon
                   variant="transparent"
                   size="sm"
-                  aria-label="Edit Youtube Api Key"
+                  aria-label="Regenerate API Key"
                   onClick={openConfirmGenerateApiKey}
                   visibleFrom="sm"
                 >
@@ -246,11 +272,29 @@ const UserSetting = () => {
                 >
                   <IconEdit size={18} />
                 </ActionIcon>
-                <Text truncate>
-                  {state.user?.youtubeApiKey
-                    ? state.user.youtubeApiKey
-                    : t('youtube_api_key_not_set')}
-                </Text>
+                    {state.user?.youtubeApiKey ? (
+                  <PasswordInput
+                    value={state.user.youtubeApiKey}
+                    readOnly
+                    variant="unstyled"
+                    size="sm"
+                    style={{ flex: 1, maxWidth: '300px' }}
+                    visible={showYoutubeApiKey}
+                    onVisibilityChange={setShowYoutubeApiKey}
+                    rightSection={
+                      <ActionIcon
+                        variant="transparent"
+                        size="sm"
+                        onClick={() => setShowYoutubeApiKey(!showYoutubeApiKey)}
+                        aria-label="Toggle YouTube API Key visibility"
+                      >
+                        {showYoutubeApiKey ? <IconEyeOff size={20} /> : <IconEye size={20} />}
+                      </ActionIcon>
+                    }
+                  />
+                ) : (
+                  <Text c="dimmed">{t('youtube_api_key_not_set')}</Text>
+                )}
                 <ActionIcon
                   variant="transparent"
                   size="sm"
