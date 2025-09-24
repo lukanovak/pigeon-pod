@@ -58,6 +58,7 @@ const UserSetting = () => {
     const { code, msg } = res.data;
     if (code === 200) {
       showSuccess(t('password_reset_success'));
+      closeResetPassword();
     } else {
       showError(msg);
     }
