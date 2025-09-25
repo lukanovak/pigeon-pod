@@ -423,32 +423,32 @@ const ChannelDetail = () => {
             </Flex>
           </Grid.Col>
         </Grid>
-        {/* Buttons for extra small screens */}
-        <Flex hiddenFrom={'xs'} gap="sm" align="flex-center" mt="xs">
+        {/* Buttons for tiny screens */}
+        <Group hiddenFrom={'xs'} gap='xs' mt="xs" wrap="no-wrap" >
           <Button
-            size="compact-xs"
-            leftSection={<IconBrandApplePodcast size={12} />}
+            size="xs"
+            leftSection={<IconBrandApplePodcast size={14} />}
             onClick={handleSubscribe}
           >
             {t('subscribe')}
           </Button>
           <Button
-            size="compact-xs"
+            size="xs"
             color="orange"
-            leftSection={<IconSettings size={12} />}
+            leftSection={<IconSettings size={14} />}
             onClick={openEditConfig}
           >
             {t('config')}
           </Button>
           <Button
-            size="compact-xs"
+            size="xs"
             color="pink"
-            leftSection={<IconBackspace size={12} />}
+            leftSection={<IconBackspace size={14} />}
             onClick={openConfirmDeleteChannel}
           >
             {t('delete')}
           </Button>
-        </Flex>
+        </Group>
       </Paper>
 
       {/* Episodes Section */}

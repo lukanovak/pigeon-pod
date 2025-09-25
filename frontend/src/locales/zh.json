@@ -40,7 +40,7 @@
   "enter_new_username": "请输入新用户名",
   "new_username": "新用户名",
   "username_changed_success": "用户名修改成功！",
-  "enter_youtube_channel_url": "输入YouTube频道链接或频道ID，如 https://www.youtube.com/@xxxx 或 UCUGLols3-2y_rJZZsgRzray",
+  "enter_youtube_channel_url": "输入YouTube频道链接，频道ID或播放列表链接",
   "new_channel": "新频道",
   "updated": "更新",
   "no_channels_available": "暂无频道，请添加新频道",

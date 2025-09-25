@@ -40,7 +40,7 @@
   "enter_new_username": "新しいユーザー名を入力してください",
   "new_username": "新しいユーザー名",
   "username_changed_success": "ユーザー名を変更しました！",
-  "enter_youtube_channel_url": "YouTubeチャンネルのURLまたはチャンネルIDを入力してください（例：https://www.youtube.com/@xxxx または UCUGLols3-2y_rJZZsgRzray）",
+  "enter_youtube_channel_url": "YouTubeチャンネルのリンク、チャンネルIDまたは再生リストのリンクを入力してください（例：https://www.youtube.com/@xxxx または UCUGLols3-2y_rJZZsgRzray）",
   "new_channel": "新しいチャンネル",
   "updated": "更新済み",
   "no_channels_available": "利用可能なチャンネルがありません。新しいチャンネルを追加してください",
