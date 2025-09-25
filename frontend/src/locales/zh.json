@@ -74,6 +74,7 @@
   "youtube_api_key_saved": "YouTube API密钥保存成功！",
   "update_channel_config_failed": "更新频道配置失败",
   "channel_config_updated": "频道配置已更新",
+  "channel_config_updated_and_add_history_episodes_task_submitted": "频道配置已更新；历史节目下载任务已提交，请稍后刷新页面查看。",
   "delete_channel_failed": "删除频道失败",
   "channel_deleted_success": "频道已删除",
   "delete_episode_failed": "删除单集失败",
@@ -110,5 +111,7 @@
   "new_version_available_description": "PigeonPod 有新版本可用",
   "view_upgrade_details": "查看升级详情",
   "remind_later": "晚点再提示",
-  "skip_this_version": "跳过此版本"
+  "skip_this_version": "跳过此版本",
+  "hour": "小时",
+  "minute": "分"
 }

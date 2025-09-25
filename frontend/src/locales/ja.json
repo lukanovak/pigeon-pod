@@ -74,6 +74,7 @@
   "youtube_api_key_saved": "YouTube APIキーを保存しました！",
   "update_channel_config_failed": "チャンネル設定の更新に失敗しました",
   "channel_config_updated": "チャンネル設定を更新しました",
+  "channel_config_updated_and_add_history_episodes_task_submitted": "チャンネル設定が更新されました。履歴エピソードのダウンロードタスクが送信されました。後でページを更新してご確認ください。",
   "delete_channel_failed": "チャンネルの削除に失敗しました",
   "channel_deleted_success": "チャンネルを削除しました",
   "delete_episode_failed": "エピソードの削除に失敗しました",
@@ -110,5 +111,7 @@
   "new_version_available_description": "PigeonPod が利用可能になりました",
   "view_upgrade_details": "アップグレードの詳細を表示",
   "remind_later": "後で通知",
-  "skip_this_version": "このバージョンをスキップ"
+  "skip_this_version": "このバージョンをスキップ",
+  "hour": "時間",
+  "minute": "分"
 }

@@ -8,8 +8,11 @@ import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
+import com.google.api.services.youtube.model.PlaylistItemSnippet;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.SearchResultSnippet;
+import com.google.api.services.youtube.model.ThumbnailDetails;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
@@ -213,13 +216,12 @@ public class YoutubeHelper {
           }
 
           // 获取视频信息并检测是否为 live
-          VideoInfo videoInfo = fetchVideoInfo(youtubeService, youtubeApiKey, item);
-          if (videoInfo == null) {
+          String duration = fetchVideoDurationForPlaylistItem(youtubeService, youtubeApiKey, item);
+          if (duration == null) {
             // 这是 live 节目，跳过
             continue;
           }
 
-          String duration = videoInfo.getDuration();
           durationCache.put(item.getId(), duration);
 
           // 使用提取的时长过滤方法
@@ -240,12 +242,11 @@ public class YoutubeHelper {
           String duration = durationCache.get(item.getId());
           if (!StringUtils.hasText(duration)) {
             // 如果缓存中没有，重新获取并检测 live 状态
-            VideoInfo videoInfo = fetchVideoInfo(youtubeService, youtubeApiKey, item);
-            if (videoInfo == null) {
+            duration = fetchVideoDurationForPlaylistItem(youtubeService, youtubeApiKey, item);
+            if (duration == null) {
               // 这是 live 节目，跳过
               continue;
             }
-            duration = videoInfo.getDuration();
           }
           
           // 使用提取的Episode构建方法
@@ -352,14 +353,13 @@ public class YoutubeHelper {
           String videoId = result.getId().getVideoId();
           
           // 获取视频详细信息
-          VideoInfo videoInfo = fetchVideoInfoByVideoId(youtubeService, youtubeApiKey, videoId);
-          if (videoInfo == null) {
+          String duration = fetchVideoDuration(youtubeService, youtubeApiKey, videoId,
+              result.getSnippet().getTitle());
+          if (duration == null) {
             // 这是 live 节目，跳过
             continue;
           }
 
-          String duration = videoInfo.getDuration();
-          
           // 使用提取的时长过滤方法
           if (!matchesDurationFilter(duration, minimalDuration)) {
             continue;
@@ -465,32 +465,18 @@ public class YoutubeHelper {
    * @return Episode对象
    */
   private Episode buildEpisodeFromPlaylistItem(PlaylistItem item, String channelId, String duration) {
-    EpisodeBuilder episodeBuilder = Episode.builder()
-        .id(item.getSnippet().getResourceId().getVideoId())
-        .channelId(channelId)
-        .position(item.getSnippet().getPosition().intValue())
-        .title(item.getSnippet().getTitle())
-        .description(item.getSnippet().getDescription())
-        .publishedAt(LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
-            ZoneId.systemDefault()))
-        .duration(duration)
-        .downloadStatus(EpisodeStatus.PENDING.name())
-        .createdAt(LocalDateTime.now());
+    PlaylistItemSnippet snippet = item.getSnippet();
+    EpisodeBuilder builder = newEpisodeBuilder(
+            snippet.getResourceId().getVideoId(),
+            channelId,
+            snippet.getTitle(),
+            snippet.getDescription(),
+            snippet.getPublishedAt(),
+            duration)
+        .position(snippet.getPosition() != null ? snippet.getPosition().intValue() : 0);
 
-    // 设置缩略图
-    if (item.getSnippet().getThumbnails() != null) {
-      if (item.getSnippet().getThumbnails().getDefault() != null) {
-        episodeBuilder.defaultCoverUrl(
-            item.getSnippet().getThumbnails().getDefault().getUrl());
-      }
-      if (item.getSnippet().getThumbnails().getMaxres() != null) {
-        episodeBuilder.maxCoverUrl(
-            item.getSnippet().getThumbnails().getMaxres().getUrl());
-      }
-    }
-
-    return episodeBuilder.build();
+    applyThumbnails(builder, snippet.getThumbnails());
+    return builder.build();
   }
 
   /**
@@ -502,41 +488,18 @@ public class YoutubeHelper {
    * @return Episode对象
    */
   private Episode buildEpisodeFromSearchResult(SearchResult result, String channelId, String duration) {
-    EpisodeBuilder episodeBuilder = Episode.builder()
-        .id(result.getId().getVideoId())
-        .channelId(channelId)
-        .position(0) // 搜索结果没有position信息，设为0
-        .title(result.getSnippet().getTitle())
-        .description(result.getSnippet().getDescription())
-        .publishedAt(LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(result.getSnippet().getPublishedAt().getValue()),
-            ZoneId.systemDefault()))
-        .duration(duration)
-        .downloadStatus(EpisodeStatus.PENDING.name())
-        .createdAt(LocalDateTime.now());
+    SearchResultSnippet snippet = result.getSnippet();
+    EpisodeBuilder builder = newEpisodeBuilder(
+            result.getId().getVideoId(),
+            channelId,
+            snippet.getTitle(),
+            snippet.getDescription(),
+            snippet.getPublishedAt(),
+            duration)
+        .position(0); // 搜索结果没有position信息，设为0
 
-    // 设置缩略图
-    if (result.getSnippet().getThumbnails() != null) {
-      if (result.getSnippet().getThumbnails().getDefault() != null) {
-        episodeBuilder.defaultCoverUrl(
-            result.getSnippet().getThumbnails().getDefault().getUrl());
-      }
-      // 设置最大缩略图，由低到高设置
-      if (result.getSnippet().getThumbnails().getMedium() != null) {
-        episodeBuilder.maxCoverUrl(
-            result.getSnippet().getThumbnails().getMedium().getUrl());
-      }
-      if (result.getSnippet().getThumbnails().getHigh() != null) {
-        episodeBuilder.maxCoverUrl(
-            result.getSnippet().getThumbnails().getHigh().getUrl());
-      }
-      if (result.getSnippet().getThumbnails().getMaxres() != null) {
-        episodeBuilder.maxCoverUrl(
-            result.getSnippet().getThumbnails().getMaxres().getUrl());
-      }
-    }
-
-    return episodeBuilder.build();
+    applyThumbnails(builder, snippet.getThumbnails());
+    return builder.build();
   }
 
   /**
@@ -560,113 +523,134 @@ public class YoutubeHelper {
   }
 
   /**
-   * 根据视频ID获取视频信息并检测是否为 live 节目
-   *
-   * @param youtubeService YouTube 服务
-   * @param apiKey         API 密钥
-   * @param videoId        视频 ID
-   * @return VideoInfo 包含时长和 live 状态，如果是 live 节目返回 null
+   * 获取播放列表项的视频时长，并排除 live 节目
    */
-  private VideoInfo fetchVideoInfoByVideoId(YouTube youtubeService, String apiKey,
-      String videoId) throws IOException {
-    YouTube.Videos.List videoRequest = youtubeService.videos()
+  private String fetchVideoDurationForPlaylistItem(YouTube youtubeService, String apiKey,
+      PlaylistItem item) throws IOException {
+    PlaylistItemSnippet snippet = item.getSnippet();
+    if (snippet == null || snippet.getResourceId() == null) {
+      log.warn("播放列表项缺少必要的元数据，跳过: {}", item.getId());
+      return null;
+    }
+
+    String videoId = snippet.getResourceId().getVideoId();
+    return fetchVideoDuration(youtubeService, apiKey, videoId, snippet.getTitle());
+  }
+
+  /**
+   * 获取视频时长，并排除 live 节目
+   */
+  private String fetchVideoDuration(YouTube youtubeService, String apiKey, String videoId,
+      String fallbackTitle) throws IOException {
+    Video video = fetchVideoDetails(youtubeService, apiKey, videoId);
+    if (video == null) {
+      return null;
+    }
+
+    String title = resolveTitle(video, fallbackTitle);
+    if (shouldSkipLiveContent(video, videoId, title)) {
+      return null;
+    }
+
+    if (video.getContentDetails() == null ||
+        !StringUtils.hasText(video.getContentDetails().getDuration())) {
+      log.warn("无法读取视频时长: {} - {}", videoId, title);
+      return null;
+    }
+
+    return video.getContentDetails().getDuration();
+  }
+
+  private Video fetchVideoDetails(YouTube youtubeService, String apiKey, String videoId)
+      throws IOException {
+    VideoListResponse videoResponse = youtubeService.videos()
         .list("contentDetails,snippet,liveStreamingDetails")
         .setId(videoId)
-        .setKey(apiKey);
+        .setKey(apiKey)
+        .execute();
 
-    VideoListResponse videoResponse = videoRequest.execute();
     List<Video> videos = videoResponse.getItems();
     if (CollectionUtils.isEmpty(videos)) {
       return null;
     }
 
-    Video video = videos.get(0);
-    String liveBroadcastContent = video.getSnippet().getLiveBroadcastContent();
-
-    // 检查是否为 live 内容
-    if ("live".equals(liveBroadcastContent) || "upcoming".equals(liveBroadcastContent)) {
-      log.info("跳过 live 节目: {} - {}", videoId, video.getSnippet().getTitle());
-      return null;
-    }
-
-    // 额外检查：如果有 liveStreamingDetails，说明是 live 相关内容
-    if (video.getLiveStreamingDetails() != null) {
-      if (video.getLiveStreamingDetails().getScheduledStartTime() != null &&
-          video.getLiveStreamingDetails().getActualEndTime() == null) {
-        log.info("跳过即将开始的 live 节目: {} - {}", videoId, video.getSnippet().getTitle());
-        return null;
-      }
-    }
-
-    String duration = video.getContentDetails().getDuration();
-    return new VideoInfo(duration, false);
+    return videos.get(0);
   }
 
-  /**
-   * 获取视频时长并检测是否为 live 节目
-   *
-   * @param youtubeService YouTube 服务
-   * @param apiKey         API 密钥
-   * @param item           播放列表项
-   * @return VideoInfo 包含时长和 live 状态，如果是 live 节目返回 null
-   */
-  private VideoInfo fetchVideoInfo(YouTube youtubeService, String apiKey,
-      PlaylistItem item) throws IOException {
-    String videoId = item.getSnippet().getResourceId().getVideoId();
-
-    YouTube.Videos.List videoRequest = youtubeService.videos()
-        .list("contentDetails,snippet,liveStreamingDetails")  // 添加 snippet 和 liveStreamingDetails
-        .setId(videoId)
-        .setKey(apiKey);
-
-    VideoListResponse videoResponse = videoRequest.execute();
-    List<Video> videos = videoResponse.getItems();
-    if (CollectionUtils.isEmpty(videos)) {
-      return null;
+  private String resolveTitle(Video video, String fallbackTitle) {
+    if (video.getSnippet() != null && StringUtils.hasText(video.getSnippet().getTitle())) {
+      return video.getSnippet().getTitle();
     }
-
-    Video video = videos.get(0);
-    String liveBroadcastContent = video.getSnippet().getLiveBroadcastContent();
-
-    // 检查是否为 live 内容
-    if ("live".equals(liveBroadcastContent) || "upcoming".equals(liveBroadcastContent)) {
-      log.info("跳过 live 节目: {} - {}", videoId, item.getSnippet().getTitle());
-      return null; // 返回 null 表示这是 live 节目，应该跳过
-    }
-
-    // 额外检查：如果有 liveStreamingDetails，说明是 live 相关内容
-    if (video.getLiveStreamingDetails() != null) {
-      if (video.getLiveStreamingDetails().getScheduledStartTime() != null &&
-          video.getLiveStreamingDetails().getActualEndTime() == null) {
-        log.info("跳过即将开始的 live 节目: {} - {}", videoId, item.getSnippet().getTitle());
-        return null;
-      }
-    }
-
-    String duration = video.getContentDetails().getDuration();
-    return new VideoInfo(duration, false); // false 表示不是 live
+    return fallbackTitle;
   }
 
-  /**
-   * 视频信息类，包含时长和是否为 live 的信息
-   */
-  private static class VideoInfo {
+  private boolean shouldSkipLiveContent(Video video, String videoId, String title) {
+    String liveBroadcastContent = video.getSnippet() != null
+        ? video.getSnippet().getLiveBroadcastContent()
+        : null;
 
-    private final String duration;
-    private final boolean isLive;
-
-    public VideoInfo(String duration, boolean isLive) {
-      this.duration = duration;
-      this.isLive = isLive;
+    if ("live".equals(liveBroadcastContent) || "upcoming".equals(liveBroadcastContent)) {
+      log.info("跳过 live 节目: {} - {}", videoId, title);
+      return true;
     }
 
-    public String getDuration() {
-      return duration;
+    if (video.getLiveStreamingDetails() != null &&
+        video.getLiveStreamingDetails().getScheduledStartTime() != null &&
+        video.getLiveStreamingDetails().getActualEndTime() == null) {
+      log.info("跳过即将开始的 live 节目: {} - {}", videoId, title);
+      return true;
     }
 
-    public boolean isLive() {
-      return isLive;
+    return false;
+  }
+
+  private EpisodeBuilder newEpisodeBuilder(String videoId, String channelId, String title,
+      String description, DateTime publishedAt, String duration) {
+    return Episode.builder()
+        .id(videoId)
+        .channelId(channelId)
+        .title(title)
+        .description(description)
+        .publishedAt(convertToLocalDateTime(publishedAt))
+        .duration(duration)
+        .downloadStatus(EpisodeStatus.PENDING.name())
+        .createdAt(LocalDateTime.now());
+  }
+
+  private void applyThumbnails(EpisodeBuilder builder, ThumbnailDetails thumbnails) {
+    if (thumbnails == null) {
+      return;
     }
+
+    if (thumbnails.getDefault() != null) {
+      builder.defaultCoverUrl(thumbnails.getDefault().getUrl());
+    }
+
+    String maxCoverUrl = null;
+    if (thumbnails.getMaxres() != null) {
+      maxCoverUrl = thumbnails.getMaxres().getUrl();
+    } else if (thumbnails.getStandard() != null) {
+      maxCoverUrl = thumbnails.getStandard().getUrl();
+    } else if (thumbnails.getHigh() != null) {
+      maxCoverUrl = thumbnails.getHigh().getUrl();
+    } else if (thumbnails.getMedium() != null) {
+      maxCoverUrl = thumbnails.getMedium().getUrl();
+    } else if (thumbnails.getDefault() != null) {
+      maxCoverUrl = thumbnails.getDefault().getUrl();
+    }
+
+    if (StringUtils.hasText(maxCoverUrl)) {
+      builder.maxCoverUrl(maxCoverUrl);
+    }
+  }
+
+  private LocalDateTime convertToLocalDateTime(DateTime publishedAt) {
+    if (publishedAt == null) {
+      return LocalDateTime.now();
+    }
+    return LocalDateTime.ofInstant(
+        Instant.ofEpochMilli(publishedAt.getValue()),
+        ZoneId.systemDefault());
   }
 
   /**

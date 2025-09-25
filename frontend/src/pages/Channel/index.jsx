@@ -162,14 +162,18 @@ const ChannelDetail = () => {
   // Update channel config
   const updateChannelConfig = async () => {
     const res = await API.put(`/api/channel/config/${channelId}`, channel);
-    const { code, msg } = res.data;
+    const { code, msg, data } = res.data;
 
     if (code !== 200) {
       showError(msg || t('update_channel_config_failed'));
       return;
     }
 
-    showSuccess(t('channel_config_updated'));
+    if (data.downloadHistory) {
+      showSuccess(t('channel_config_updated_and_add_history_episodes_task_submitted'));
+    } else {
+      showSuccess(t('channel_config_updated'));
+    }
     closeEditConfig();
   };
 

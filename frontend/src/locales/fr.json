@@ -74,6 +74,7 @@
   "youtube_api_key_saved": "Clé API YouTube enregistrée avec succès !",
   "update_channel_config_failed": "Échec de la mise à jour de la configuration de la chaîne",
   "channel_config_updated": "Configuration de la chaîne mise à jour",
+  "channel_config_updated_and_add_history_episodes_task_submitted": "Configuration du canal mise à jour ; tâche de téléchargement des épisodes historiques soumise. Veuillez actualiser la page plus tard pour voir.",
   "delete_channel_failed": "Échec de la suppression de la chaîne",
   "channel_deleted_success": "La chaîne a été supprimée",
   "delete_episode_failed": "Échec de la suppression de l'épisode",
@@ -110,5 +111,7 @@
   "new_version_available_description": "PigeonPod est maintenant disponible",
   "view_upgrade_details": "Voir les détails de mise à jour",
   "remind_later": "Rappeler plus tard",
-  "skip_this_version": "Ignorer cette version"
+  "skip_this_version": "Ignorer cette version",
+  "hour": "heure",
+  "minute": "min"
 }

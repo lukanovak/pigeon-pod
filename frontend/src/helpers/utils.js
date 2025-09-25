@@ -136,12 +136,12 @@ export function formatISODuration(isoDuration) {
       totalHours += Math.floor(minutes / 60);
       minutes = minutes % 60;
     }
-    parts.push(`${totalHours} 小时`);
-    if (minutes > 0) parts.push(`${minutes} 分`);
+    parts.push(`${totalHours} ${i18next.t('hour')}`);
+    if (minutes > 0) parts.push(`${minutes} ${i18next.t('minute')}`);
   } else {
     // 分钟模式（没有小时）
     const totalMinutes = days * 24 * 60 + minutes;
-    parts.push(`${totalMinutes} 分`);
+    parts.push(`${totalMinutes} ${i18next.t('minute')}`);
   }
 
   return parts.join(' ');

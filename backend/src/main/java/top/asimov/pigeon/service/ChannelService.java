@@ -15,13 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
-import top.asimov.pigeon.event.ChannelInitializationEvent;
+import top.asimov.pigeon.event.HistoryDownloadEvent;
+import top.asimov.pigeon.event.InitDownloadEvent;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.ChannelPack;
 import top.asimov.pigeon.model.Episode;
 import top.asimov.pigeon.util.YoutubeHelper;
+import java.util.HashMap;
 
 @Log4j2
 @Service
@@ -66,14 +68,16 @@ public class ChannelService {
   public ChannelPack fetchChannel(Channel channel) {
     String channelSource = channel.getChannelSource();
     if (ObjectUtils.isEmpty(channelSource)) {
-      throw new BusinessException(messageSource.getMessage("channel.source.empty", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.source.empty", null, LocaleContextHolder.getLocale()));
     }
 
     String channelId = channel.getId();
     if (StringUtils.hasText(channelId)) {
       Channel existChannel = channelMapper.selectById(channelId);
       if (existChannel != null) {
-        throw new BusinessException(messageSource.getMessage("channel.already.exists", new Object[]{channel.getName()}, LocaleContextHolder.getLocale()));
+        throw new BusinessException(messageSource.getMessage("channel.already.exists",
+            new Object[] { channel.getName() }, LocaleContextHolder.getLocale()));
       }
     }
 
@@ -86,11 +90,11 @@ public class ChannelService {
     com.google.api.services.youtube.model.Channel ytChannel;
     String actualChannelUrl;
     String handler = null;
-    
+
     try {
       ytChannel = youtubeHelper.fetchYoutubeChannelByUrl(channelInput);
       String ytChannelId = ytChannel.getId();
-      
+
       // 根据输入类型设置相应的字段
       if (youtubeHelper.isYouTubeChannelId(channelInput.trim())) {
         // 输入是频道 ID，构造标准的频道 URL
@@ -106,17 +110,17 @@ public class ChannelService {
         actualChannelUrl = "https://www.youtube.com/@" + handler;
         log.info("使用 @handle 链接获取频道信息: {} -> {}", channelInput, ytChannelId);
       }
-      
+
     } catch (Exception e) {
       log.error("获取频道信息失败，输入: {}, 错误: {}", channelInput, e.getMessage());
-      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed", 
-          new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed",
+          new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
     }
 
     String ytChannelId = ytChannel.getId();
     Channel fetchedChannel = Channel.builder()
         .id(ytChannelId)
-        .handler(handler)  // 只有 @handle 格式才会有 handler
+        .handler(handler) // 只有 @handle 格式才会有 handler
         .name(ytChannel.getSnippet().getTitle())
         .avatarUrl(ytChannel.getSnippet().getThumbnails().getHigh().getUrl())
         .description(ytChannel.getSnippet().getDescription())
@@ -127,7 +131,7 @@ public class ChannelService {
 
     // 获取最近3个视频确认是目标频道
     List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
-        ytChannelId, null, 3, null, null, null );
+        ytChannelId, null, 3, null, null, null);
     return ChannelPack.builder().channel(fetchedChannel).episodes(episodes).build();
   }
 
@@ -170,36 +174,36 @@ public class ChannelService {
     if (isAsyncMode) {
       // 异步模式：先保存频道基本信息，然后异步处理视频获取
       log.info("频道 {} 设置的初始视频数量较多({}), 启用异步处理模式", channel.getName(), initialEpisodes);
-      
+
       // 先保存频道基本信息
       channelMapper.insert(channel);
-      
-      // 发布异步初始化事件
-      ChannelInitializationEvent event = new ChannelInitializationEvent(
-          this, channelId, initialEpisodes, 
-          channel.getContainKeywords(), 
-          channel.getExcludeKeywords(), 
+
+      // 发布异步下载事件
+      InitDownloadEvent event = new InitDownloadEvent(
+          this, channelId, initialEpisodes,
+          channel.getContainKeywords(),
+          channel.getExcludeKeywords(),
           channel.getMinimumDuration());
       eventPublisher.publishEvent(event);
-      
-      log.info("已发布频道异步初始化事件，频道: {}, 初始视频数量: {}", channel.getName(), initialEpisodes);
-      
+
+      log.info("已发布频道异步下载事件，频道: {}, 初始视频数量: {}", channel.getName(), initialEpisodes);
+
       // 返回异步处理状态
       java.util.Map<String, Object> result = new java.util.HashMap<>();
       result.put("channel", channel);
       result.put("isAsync", true);
-      result.put("message", messageSource.getMessage("channel.async.processing", 
-          new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
+      result.put("message", messageSource.getMessage("channel.async.processing",
+          new Object[] { initialEpisodes }, LocaleContextHolder.getLocale()));
       return result;
-      
+
     } else {
       // 同步模式：直接处理少量视频
       log.info("频道 {} 设置的初始视频数量较少({}), 使用同步处理模式", channel.getName(), initialEpisodes);
-      
+
       List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
-          channelId, null, initialEpisodes, 
+          channelId, null, initialEpisodes,
           channel.getContainKeywords(),
-          channel.getExcludeKeywords(), 
+          channel.getExcludeKeywords(),
           channel.getMinimumDuration());
 
       if (!episodes.isEmpty()) {
@@ -233,8 +237,8 @@ public class ChannelService {
       java.util.Map<String, Object> result = new java.util.HashMap<>();
       result.put("channel", channel);
       result.put("isAsync", false);
-      result.put("message", messageSource.getMessage("channel.sync.completed", 
-          new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
+      result.put("message", messageSource.getMessage("channel.sync.completed",
+          new Object[] { initialEpisodes }, LocaleContextHolder.getLocale()));
       return result;
     }
   }
@@ -257,7 +261,8 @@ public class ChannelService {
   public Channel channelDetail(String id) {
     Channel channel = channelMapper.selectById(id);
     if (channel == null) {
-      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{id}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.not.found", new Object[] { id }, LocaleContextHolder.getLocale()));
     }
     return channel;
   }
@@ -306,7 +311,8 @@ public class ChannelService {
     // 1. 获取频道信息，确认存在
     Channel channel = channelMapper.selectById(channelId);
     if (channel == null) {
-      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.not.found", new Object[] { channelId }, LocaleContextHolder.getLocale()));
     }
 
     // 2. 查询该频道下所有的episodes
@@ -325,7 +331,8 @@ public class ChannelService {
       log.info("频道 {} 删除成功", channel.getName());
     } else {
       log.error("频道 {} 删除失败", channel.getName());
-      throw new BusinessException(messageSource.getMessage("channel.delete.failed", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.delete.failed", null, LocaleContextHolder.getLocale()));
     }
   }
 
@@ -385,11 +392,13 @@ public class ChannelService {
   public String getChannelRssFeedUrl(String channelId) {
     Channel channel = channelMapper.selectById(channelId);
     if (ObjectUtils.isEmpty(channel)) {
-      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.not.found", new Object[] { channelId }, LocaleContextHolder.getLocale()));
     }
     String apiKey = accountService.getApiKey();
     if (ObjectUtils.isEmpty(apiKey)) {
-      throw new BusinessException(messageSource.getMessage("channel.api.key.failed", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.api.key.failed", null, LocaleContextHolder.getLocale()));
     }
     String handler = channel.getHandler();
     if (StringUtils.hasText(handler)) {
@@ -405,39 +414,59 @@ public class ChannelService {
    * @param configuration 包含更新配置的Channel对象
    * @return 更新后的频道对象
    */
-  public Channel updateChannelConfig(String channelId, Channel configuration) {
+  @Transactional
+  public HashMap<String, Object> updateChannelConfig(String channelId, Channel configuration) {
+    boolean downloadHistory = false; // 是否下载历史视频
+    int downloadNumber = 0; // 下载视频数量
     Channel existingChannel = channelMapper.selectById(channelId);
     if (existingChannel == null) {
-      throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.not.found", new Object[] { channelId }, LocaleContextHolder.getLocale()));
     }
 
     Integer oldInitialEpisodes = existingChannel.getInitialEpisodes();
     Integer newInitialEpisodes = configuration.getInitialEpisodes();
-    if (newInitialEpisodes != null && newInitialEpisodes > oldInitialEpisodes) {
-      downloadHistoryEpisodes(existingChannel, newInitialEpisodes);
-    }
 
     // 只更新允许修改的字段
     existingChannel.setContainKeywords(configuration.getContainKeywords());
     existingChannel.setExcludeKeywords(configuration.getExcludeKeywords());
     existingChannel.setMinimumDuration(configuration.getMinimumDuration());
     existingChannel.setMaximumEpisodes(configuration.getMaximumEpisodes());
-    existingChannel.setInitialEpisodes(configuration.getInitialEpisodes());
+    existingChannel.setInitialEpisodes(newInitialEpisodes);
 
     int result = channelMapper.updateById(existingChannel);
     if (result > 0) {
+      // 如果新的历史下载视频数量大于旧的历史下载视频数量，则发布异步下载事件
+      if (newInitialEpisodes != null && newInitialEpisodes > oldInitialEpisodes) {
+        downloadHistory = true; // 下载历史视频
+        downloadNumber = newInitialEpisodes - oldInitialEpisodes; // 下载视频数量
+        // 发布异步下载历史视频事件
+        HistoryDownloadEvent event = new HistoryDownloadEvent(
+            this, channelId, downloadNumber,
+            existingChannel.getContainKeywords(),
+            existingChannel.getExcludeKeywords(),
+            existingChannel.getMinimumDuration());
+        eventPublisher.publishEvent(event);
+
+        log.info("已发布频道历史节目下载事件，频道: {}, 下载视频数量: {}", existingChannel.getName(), downloadNumber);
+      }
+
       log.info("频道 {} 配置更新成功", existingChannel.getName());
-      return existingChannel;
+      HashMap<String, Object> res = new HashMap<>();
+      res.put("downloadHistory", downloadHistory);
+      res.put("downloadNumber", downloadNumber);
+      return res;
     } else {
       log.error("频道 {} 配置更新失败", existingChannel.getName());
-      throw new BusinessException(messageSource.getMessage("channel.config.update.failed", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.config.update.failed", null, LocaleContextHolder.getLocale()));
     }
   }
 
   /**
    * 异步处理频道初始化，获取并保存初始化的视频
    *
-   * @param channelId 频道ID
+   * @param channelId       频道ID
    * @param initialEpisodes 要获取的初始视频数量
    * @param containKeywords 包含关键词
    * @param excludeKeywords 排除关键词
@@ -447,12 +476,12 @@ public class ChannelService {
   public void processChannelInitializationAsync(String channelId, Integer initialEpisodes,
       String containKeywords, String excludeKeywords, Integer minimumDuration) {
     log.info("开始异步处理频道初始化，频道ID: {}, 初始视频数量: {}", channelId, initialEpisodes);
-    
+
     try {
       // 获取频道的初始视频
       List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
           channelId, null, initialEpisodes, containKeywords, excludeKeywords, minimumDuration);
-      
+
       if (episodes.isEmpty()) {
         log.warn("频道 {} 没有获取到任何视频", channelId);
         return;
@@ -483,9 +512,9 @@ public class ChannelService {
           .collect(Collectors.toList());
       EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
       eventPublisher.publishEvent(event);
-      
+
       log.info("频道 {} 异步初始化完成，保存了 {} 个视频", channelId, episodes.size());
-      
+
     } catch (Exception e) {
       log.error("频道 {} 异步初始化失败: {}", channelId, e.getMessage(), e);
     }
@@ -496,7 +525,7 @@ public class ChannelService {
    */
   private void deleteAudioFiles(List<Episode> episodes) {
     java.util.Set<String> channelDirectories = new java.util.HashSet<>();
-    
+
     // 删除所有音频文件，同时收集频道目录路径
     for (Episode episode : episodes) {
       String audioFilePath = episode.getAudioFilePath();
@@ -523,7 +552,7 @@ public class ChannelService {
         }
       }
     }
-    
+
     // 检查并删除空的频道文件夹
     for (String channelDirPath : channelDirectories) {
       try {
@@ -539,7 +568,7 @@ public class ChannelService {
               log.warn("空的频道文件夹删除失败: {}", channelDirPath);
             }
           } else {
-            log.info("频道文件夹不为空，保留: {} (包含 {} 个文件/子目录)", 
+            log.info("频道文件夹不为空，保留: {} (包含 {} 个文件/子目录)",
                 channelDirPath, files != null ? files.length : 0);
           }
         }
@@ -558,21 +587,26 @@ public class ChannelService {
       log.info("删除了 {} 条episode记录", count);
     } catch (Exception e) {
       log.error("删除episode记录时出错", e);
-      throw new BusinessException(messageSource.getMessage("episode.delete.records.failed", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(messageSource.getMessage("episode.delete.records.failed",
+          new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
     }
   }
 
-  private void downloadHistoryEpisodes(Channel channel, int newInitialEpisodes) {
-    int oldInitialEpisodes = channel.getInitialEpisodes();
-    int episodesToDownload = newInitialEpisodes - oldInitialEpisodes;
+  @Transactional
+  public void processChannelDownloadHistoryAsync(String channelId, Integer episodesToDownload,
+      String containKeywords, String excludeKeywords, Integer minimumDuration) {
+    Channel channel = channelMapper.selectById(channelId);
+    if (channel == null) {
+      throw new BusinessException(
+          messageSource.getMessage("channel.not.found", new Object[] { channelId }, LocaleContextHolder.getLocale()));
+    }
     Episode earliestEpisode = episodeService.findEarliestEpisode(channel.getId());
-    // LocalDateTime subscribedAt = earliestEpisode.getPublishedAt().minusSeconds(10);
-    LocalDateTime subscribedAt = earliestEpisode.getPublishedAt().minusSeconds(1);
+    LocalDateTime earliestTime = earliestEpisode.getPublishedAt().minusSeconds(1);
     try {
       // 获取频道指定时间之前指定数量的历史视频
-      List<Episode> episodes = youtubeHelper.searchYoutubeChannelVideos(channel.getId(), 
-      episodesToDownload, subscribedAt, channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
-      
+      List<Episode> episodes = youtubeHelper.searchYoutubeChannelVideos(channelId, episodesToDownload, earliestTime,
+          containKeywords, excludeKeywords, minimumDuration);
+
       if (episodes.isEmpty()) {
         log.warn("频道 {} 没有获取到任何视频", channel.getName());
         return;
@@ -587,9 +621,8 @@ public class ChannelService {
           .collect(Collectors.toList());
       EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
       eventPublisher.publishEvent(event);
-      
+
       log.info("频道 {} 开始重新下载历史节目，准备下载 {} 个视频", channel.getName(), episodes.size());
-      
     } catch (Exception e) {
       log.error("频道 {} 重新下载历史节目失败: {}", channel.getName(), e.getMessage(), e);
     }
