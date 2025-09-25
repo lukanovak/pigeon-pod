@@ -53,6 +53,7 @@ const ChannelDetail = () => {
   const { channelId } = useParams();
   const navigate = useNavigate();
   const [channel, setChannel] = useState(null);
+  const [originalInitialEpisodes, setOriginalInitialEpisodes] = useState(0);
   const [episodes, setEpisodes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreEpisodes, setHasMoreEpisodes] = useState(true);
@@ -93,6 +94,7 @@ const ChannelDetail = () => {
       showError(msg);
     } else {
       setChannel(data);
+      setOriginalInitialEpisodes(data.initialEpisodes);
     }
   }, [channelId]);
 
@@ -679,6 +681,15 @@ const ChannelDetail = () => {
             placeholder="0"
             value={channel.minimumDuration}
             onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
+          />
+          <NumberInput
+            label={t('initial_episodes_channel')}
+            name="initialEpisodes"
+            placeholder={t('3')}
+            value={channel.initialEpisodes}
+            min={originalInitialEpisodes}
+            clampBehavior="strict"
+            onChange={(value) => setChannel({ ...channel, initialEpisodes: value })}
           />
           <NumberInput
             label={t('maximum_episodes')}

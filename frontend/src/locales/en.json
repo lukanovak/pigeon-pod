@@ -65,6 +65,7 @@
   "edit_channel_configuration": "Edit Channel Configuration",
   "maximum_episodes": "Maximum episodes to keep",
   "initial_episodes": "Initial episodes to download",
+  "initial_episodes_channel": "Download history episodes (must be greater than or equal to the current value)",
   "unlimited": "Unlimited",
   "save_changes": "Save Changes",
   "youtube_api_key_not_set": "Not set",

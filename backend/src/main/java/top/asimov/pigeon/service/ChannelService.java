@@ -161,6 +161,7 @@ public class ChannelService {
     Integer initialEpisodes = channel.getInitialEpisodes();
     if (initialEpisodes == null || initialEpisodes <= 0) {
       initialEpisodes = 3;
+      channel.setInitialEpisodes(initialEpisodes);
     }
 
     String channelId = channel.getId();
@@ -357,6 +358,11 @@ public class ChannelService {
 
     // 3. 更新频道的检查点 (lastSyncedVideoId 和 lastSyncTimestamp)
     Episode latestEpisode = newEpisodes.get(0);
+    for (Episode episode : newEpisodes) {
+      if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
+        latestEpisode = episode;
+      }
+    }
     channel.setLastSyncVideoId(latestEpisode.getId());
     channel.setLastSyncTimestamp(LocalDateTime.now());
     channelMapper.updateById(channel);
@@ -399,10 +405,16 @@ public class ChannelService {
    * @param configuration 包含更新配置的Channel对象
    * @return 更新后的频道对象
    */
-  public Channel updateChannelConfig(String channelId,Channel configuration) {
+  public Channel updateChannelConfig(String channelId, Channel configuration) {
     Channel existingChannel = channelMapper.selectById(channelId);
     if (existingChannel == null) {
       throw new BusinessException(messageSource.getMessage("channel.not.found", new Object[]{channelId}, LocaleContextHolder.getLocale()));
+    }
+
+    Integer oldInitialEpisodes = existingChannel.getInitialEpisodes();
+    Integer newInitialEpisodes = configuration.getInitialEpisodes();
+    if (newInitialEpisodes != null && newInitialEpisodes > oldInitialEpisodes) {
+      downloadHistoryEpisodes(existingChannel, newInitialEpisodes);
     }
 
     // 只更新允许修改的字段
@@ -550,5 +562,37 @@ public class ChannelService {
     }
   }
 
+  private void downloadHistoryEpisodes(Channel channel, int newInitialEpisodes) {
+    int oldInitialEpisodes = channel.getInitialEpisodes();
+    int episodesToDownload = newInitialEpisodes - oldInitialEpisodes;
+    Episode earliestEpisode = episodeService.findEarliestEpisode(channel.getId());
+    // LocalDateTime subscribedAt = earliestEpisode.getPublishedAt().minusSeconds(10);
+    LocalDateTime subscribedAt = earliestEpisode.getPublishedAt().minusSeconds(1);
+    try {
+      // 获取频道指定时间之前指定数量的历史视频
+      List<Episode> episodes = youtubeHelper.searchYoutubeChannelVideos(channel.getId(), 
+      episodesToDownload, subscribedAt, channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
+      
+      if (episodes.isEmpty()) {
+        log.warn("频道 {} 没有获取到任何视频", channel.getName());
+        return;
+      }
+
+      // 保存视频信息
+      episodeService.saveEpisodes(episodes);
+
+      // 发布事件通知下载
+      List<String> savedEpisodeIds = episodes.stream()
+          .map(Episode::getId)
+          .collect(Collectors.toList());
+      EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
+      eventPublisher.publishEvent(event);
+      
+      log.info("频道 {} 开始重新下载历史节目，准备下载 {} 个视频", channel.getName(), episodes.size());
+      
+    } catch (Exception e) {
+      log.error("频道 {} 重新下载历史节目失败: {}", channel.getName(), e.getMessage(), e);
+    }
+  }
 
 }

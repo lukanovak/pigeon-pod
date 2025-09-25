@@ -2,6 +2,7 @@ package top.asimov.pigeon.util;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -205,34 +207,9 @@ public class YoutubeHelper {
         for (PlaylistItem item : pageItems) {
           String title = item.getSnippet().getTitle();
 
-          // 处理 containKeywords，支持空格分割的多个关键词，包含任意一个就行
-          if (StringUtils.hasLength(containKeywords)) {
-            String[] keywords = containKeywords.trim().split("\\s+");
-            boolean containsAny = false;
-            for (String keyword : keywords) {
-              if (title.toLowerCase().contains(keyword.toLowerCase())) {
-                containsAny = true;
-                break;
-              }
-            }
-            if (!containsAny) {
-              continue;
-            }
-          }
-
-          // 处理 excludeKeywords，支持空格分割的多个关键词，包含任意一个就排除
-          if (StringUtils.hasLength(excludeKeywords)) {
-            String[] keywords = excludeKeywords.trim().split("\\s+");
-            boolean shouldExclude = false;
-            for (String keyword : keywords) {
-              if (title.toLowerCase().contains(keyword.toLowerCase())) {
-                shouldExclude = true;
-                break;
-              }
-            }
-            if (shouldExclude) {
-              continue;
-            }
+          // 使用提取的关键词过滤方法
+          if (!matchesKeywordFilter(title, containKeywords, excludeKeywords)) {
+            continue;
           }
 
           // 获取视频信息并检测是否为 live
@@ -245,15 +222,9 @@ public class YoutubeHelper {
           String duration = videoInfo.getDuration();
           durationCache.put(item.getId(), duration);
 
-          if (minimalDuration != null) {
-            if (!StringUtils.hasText(duration)) {
-              continue;
-            }
-
-            long minutes = Duration.parse(duration).toMinutes();
-            if (minutes < minimalDuration) {
-              continue;
-            }
+          // 使用提取的时长过滤方法
+          if (!matchesDurationFilter(duration, minimalDuration)) {
+            continue;
           }
 
           String currentVideoId = item.getSnippet().getResourceId().getVideoId();
@@ -276,30 +247,10 @@ public class YoutubeHelper {
             }
             duration = videoInfo.getDuration();
           }
-          EpisodeBuilder episodeBuilder = Episode.builder()
-              .id(item.getSnippet().getResourceId().getVideoId())
-              .channelId(channelId)
-              .position(item.getSnippet().getPosition().intValue())
-              .title(item.getSnippet().getTitle())
-              .description(item.getSnippet().getDescription())
-              .publishedAt(LocalDateTime.ofInstant(
-                  Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
-                  ZoneId.systemDefault()))
-              .duration(duration)
-              .downloadStatus(EpisodeStatus.PENDING.name())
-              .createdAt(LocalDateTime.now());
-
-          if (item.getSnippet().getThumbnails() != null) {
-            if (item.getSnippet().getThumbnails().getDefault() != null) {
-              episodeBuilder.defaultCoverUrl(
-                  item.getSnippet().getThumbnails().getDefault().getUrl());
-            }
-            if (item.getSnippet().getThumbnails().getMaxres() != null) {
-              episodeBuilder.maxCoverUrl(item.getSnippet().getThumbnails().getMaxres().getUrl());
-            }
-          }
-
-          resultEpisodes.add(episodeBuilder.build());
+          
+          // 使用提取的Episode构建方法
+          Episode episode = buildEpisodeFromPlaylistItem(item, channelId, duration);
+          resultEpisodes.add(episode);
           if (resultEpisodes.size() >= fetchNum) {
             break;
           }
@@ -315,21 +266,340 @@ public class YoutubeHelper {
         }
       }
 
-      if (resultEpisodes.isEmpty()) {
-        return Collections.emptyList();
-      }
-
-      // 3. 截断到精确数量
-      if (resultEpisodes.size() > fetchNum) {
-        return resultEpisodes.subList(0, fetchNum);
-      }
-      return resultEpisodes;
+      // 3. 使用提取的结果处理方法
+      return processResultList(resultEpisodes, fetchNum);
 
     } catch (Exception e) {
       throw new BusinessException(
           messageSource.getMessage("youtube.fetch.videos.error", new Object[]{e.getMessage()},
               LocaleContextHolder.getLocale()));
     }
+  }
+
+  /**
+   * 使用搜索 API 抓取指定 YouTube 频道在指定日期之前的视频列表
+   *
+   * @param channelId         频道 ID
+   * @param fetchNum          本次抓取的视频数量
+   * @param publishedBefore   发布日期截止时间（格式：yyyy-MM-dd）
+   * @param containKeywords   标题必须包含的关键词，多个关键词用空格分隔，包含一个即匹配
+   * @param excludeKeywords   标题必须不包含的关键词，多个关键词用空格分隔，包含一个即排除
+   * @param minimalDuration   最小视频时长（分钟），null 表示不限制
+   * @return 视频列表，按发布时间倒序排列
+   */
+  public List<Episode> searchYoutubeChannelVideos(String channelId, int fetchNum, 
+      LocalDateTime publishedBefore, String containKeywords, String excludeKeywords, Integer minimalDuration) {
+    try {
+      YouTube youtubeService = getService();
+      String youtubeApiKey = getYoutubeApiKey();
+
+      List<Episode> resultEpisodes = new ArrayList<>();
+      String nextPageToken = "";
+      
+      while (resultEpisodes.size() < fetchNum) {
+        long pageSize = Math.min(50L, fetchNum - resultEpisodes.size()); // API 单页最大 50
+        
+        // 构建搜索请求
+        YouTube.Search.List searchRequest = youtubeService.search()
+            .list("snippet")
+            .setChannelId(channelId)
+            .setType("video")
+            .setOrder("date") // 按日期倒序排列
+            .setMaxResults(pageSize)
+            .setKey(youtubeApiKey);
+        
+        // 设置发布日期限制
+        try {
+          //将 publishedBefore 转换回 UTC Instant
+          Instant utcInstant = publishedBefore.atZone(ZoneId.systemDefault()).toInstant();
+          // 将UTC Instant格式化为API需要的字符串，格式为 "2020-11-05T10:17:45Z"
+          String isoDateTime = DateTimeFormatter.ISO_INSTANT.format(utcInstant);
+          searchRequest.setPublishedBefore(new DateTime(isoDateTime));
+        } catch (Exception e) {
+          log.warn("日期格式解析失败: {}", publishedBefore);
+          throw new BusinessException(
+              messageSource.getMessage("youtube.fetch.videos.error", new Object[]{e.getMessage()},
+                  LocaleContextHolder.getLocale()));
+        }
+        
+        // 设置分页token
+        if (StringUtils.hasText(nextPageToken)) {
+          searchRequest.setPageToken(nextPageToken);
+        }
+
+        SearchListResponse searchResponse = searchRequest.execute();
+        List<SearchResult> searchResults = searchResponse.getItems();
+        
+        if (searchResults == null || searchResults.isEmpty()) {
+          break; // 没有更多数据
+        }
+
+        // 处理搜索结果
+        List<SearchResult> candidates = new ArrayList<>();
+        for (SearchResult result : searchResults) {
+          String title = result.getSnippet().getTitle();
+
+          // 使用提取的关键词过滤方法
+          if (!matchesKeywordFilter(title, containKeywords, excludeKeywords)) {
+            continue;
+          }
+
+          candidates.add(result);
+        }
+
+        // 获取视频详细信息并应用时长过滤
+        for (SearchResult result : candidates) {
+          String videoId = result.getId().getVideoId();
+          
+          // 获取视频详细信息
+          VideoInfo videoInfo = fetchVideoInfoByVideoId(youtubeService, youtubeApiKey, videoId);
+          if (videoInfo == null) {
+            // 这是 live 节目，跳过
+            continue;
+          }
+
+          String duration = videoInfo.getDuration();
+          
+          // 使用提取的时长过滤方法
+          if (!matchesDurationFilter(duration, minimalDuration)) {
+            continue;
+          }
+
+          // 使用提取的Episode构建方法
+          Episode episode = buildEpisodeFromSearchResult(result, channelId, duration);
+          resultEpisodes.add(episode);
+          
+          if (resultEpisodes.size() >= fetchNum) {
+            break;
+          }
+        }
+
+        if (resultEpisodes.size() >= fetchNum) {
+          break;
+        }
+
+        nextPageToken = searchResponse.getNextPageToken();
+        if (nextPageToken == null) {
+          break; // 没有下一页
+        }
+      }
+
+      // 使用提取的结果处理方法
+      return processResultList(resultEpisodes, fetchNum);
+
+    } catch (Exception e) {
+      throw new BusinessException(
+          messageSource.getMessage("youtube.fetch.videos.error", new Object[]{e.getMessage()},
+              LocaleContextHolder.getLocale()));
+    }
+  }
+
+  /**
+   * 检查标题是否匹配关键词过滤条件
+   *
+   * @param title           视频标题
+   * @param containKeywords 必须包含的关键词，多个关键词用空格分隔
+   * @param excludeKeywords 必须排除的关键词，多个关键词用空格分隔
+   * @return true 如果标题匹配过滤条件，false 否则
+   */
+  private boolean matchesKeywordFilter(String title, String containKeywords, String excludeKeywords) {
+    // 处理 containKeywords，支持空格分割的多个关键词，包含任意一个就行
+    if (StringUtils.hasLength(containKeywords)) {
+      String[] keywords = containKeywords.trim().split("\\s+");
+      boolean containsAny = false;
+      for (String keyword : keywords) {
+        if (title.toLowerCase().contains(keyword.toLowerCase())) {
+          containsAny = true;
+          break;
+        }
+      }
+      if (!containsAny) {
+        return false;
+      }
+    }
+
+    // 处理 excludeKeywords，支持空格分割的多个关键词，包含任意一个就排除
+    if (StringUtils.hasLength(excludeKeywords)) {
+      String[] keywords = excludeKeywords.trim().split("\\s+");
+      for (String keyword : keywords) {
+        if (title.toLowerCase().contains(keyword.toLowerCase())) {
+          return false; // 包含排除关键词，不匹配
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * 检查视频时长是否满足最小时长要求
+   *
+   * @param duration        视频时长（ISO 8601格式）
+   * @param minimalDuration 最小时长要求（分钟），null 表示不限制
+   * @return true 如果满足时长要求，false 否则
+   */
+  private boolean matchesDurationFilter(String duration, Integer minimalDuration) {
+    if (minimalDuration == null) {
+      return true; // 没有时长限制
+    }
+    
+    if (!StringUtils.hasText(duration)) {
+      return false; // 没有时长信息
+    }
+    
+    try {
+      long minutes = Duration.parse(duration).toMinutes();
+      return minutes >= minimalDuration;
+    } catch (Exception e) {
+      log.warn("解析视频时长失败: {}", duration);
+      return false;
+    }
+  }
+
+  /**
+   * 从PlaylistItem构建Episode对象
+   *
+   * @param item      播放列表项
+   * @param channelId 频道ID
+   * @param duration  视频时长
+   * @return Episode对象
+   */
+  private Episode buildEpisodeFromPlaylistItem(PlaylistItem item, String channelId, String duration) {
+    EpisodeBuilder episodeBuilder = Episode.builder()
+        .id(item.getSnippet().getResourceId().getVideoId())
+        .channelId(channelId)
+        .position(item.getSnippet().getPosition().intValue())
+        .title(item.getSnippet().getTitle())
+        .description(item.getSnippet().getDescription())
+        .publishedAt(LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
+            ZoneId.systemDefault()))
+        .duration(duration)
+        .downloadStatus(EpisodeStatus.PENDING.name())
+        .createdAt(LocalDateTime.now());
+
+    // 设置缩略图
+    if (item.getSnippet().getThumbnails() != null) {
+      if (item.getSnippet().getThumbnails().getDefault() != null) {
+        episodeBuilder.defaultCoverUrl(
+            item.getSnippet().getThumbnails().getDefault().getUrl());
+      }
+      if (item.getSnippet().getThumbnails().getMaxres() != null) {
+        episodeBuilder.maxCoverUrl(
+            item.getSnippet().getThumbnails().getMaxres().getUrl());
+      }
+    }
+
+    return episodeBuilder.build();
+  }
+
+  /**
+   * 从SearchResult构建Episode对象
+   *
+   * @param result    搜索结果项
+   * @param channelId 频道ID
+   * @param duration  视频时长
+   * @return Episode对象
+   */
+  private Episode buildEpisodeFromSearchResult(SearchResult result, String channelId, String duration) {
+    EpisodeBuilder episodeBuilder = Episode.builder()
+        .id(result.getId().getVideoId())
+        .channelId(channelId)
+        .position(0) // 搜索结果没有position信息，设为0
+        .title(result.getSnippet().getTitle())
+        .description(result.getSnippet().getDescription())
+        .publishedAt(LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(result.getSnippet().getPublishedAt().getValue()),
+            ZoneId.systemDefault()))
+        .duration(duration)
+        .downloadStatus(EpisodeStatus.PENDING.name())
+        .createdAt(LocalDateTime.now());
+
+    // 设置缩略图
+    if (result.getSnippet().getThumbnails() != null) {
+      if (result.getSnippet().getThumbnails().getDefault() != null) {
+        episodeBuilder.defaultCoverUrl(
+            result.getSnippet().getThumbnails().getDefault().getUrl());
+      }
+      // 设置最大缩略图，由低到高设置
+      if (result.getSnippet().getThumbnails().getMedium() != null) {
+        episodeBuilder.maxCoverUrl(
+            result.getSnippet().getThumbnails().getMedium().getUrl());
+      }
+      if (result.getSnippet().getThumbnails().getHigh() != null) {
+        episodeBuilder.maxCoverUrl(
+            result.getSnippet().getThumbnails().getHigh().getUrl());
+      }
+      if (result.getSnippet().getThumbnails().getMaxres() != null) {
+        episodeBuilder.maxCoverUrl(
+            result.getSnippet().getThumbnails().getMaxres().getUrl());
+      }
+    }
+
+    return episodeBuilder.build();
+  }
+
+  /**
+   * 处理结果列表，确保不超过指定数量
+   *
+   * @param episodes 结果列表
+   * @param fetchNum 期望的数量
+   * @return 处理后的结果列表
+   */
+  private List<Episode> processResultList(List<Episode> episodes, int fetchNum) {
+    if (episodes.isEmpty()) {
+      return Collections.emptyList();
+    }
+    
+    // 截断到精确数量
+    if (episodes.size() > fetchNum) {
+      return episodes.subList(0, fetchNum);
+    }
+    
+    return episodes;
+  }
+
+  /**
+   * 根据视频ID获取视频信息并检测是否为 live 节目
+   *
+   * @param youtubeService YouTube 服务
+   * @param apiKey         API 密钥
+   * @param videoId        视频 ID
+   * @return VideoInfo 包含时长和 live 状态，如果是 live 节目返回 null
+   */
+  private VideoInfo fetchVideoInfoByVideoId(YouTube youtubeService, String apiKey,
+      String videoId) throws IOException {
+    YouTube.Videos.List videoRequest = youtubeService.videos()
+        .list("contentDetails,snippet,liveStreamingDetails")
+        .setId(videoId)
+        .setKey(apiKey);
+
+    VideoListResponse videoResponse = videoRequest.execute();
+    List<Video> videos = videoResponse.getItems();
+    if (CollectionUtils.isEmpty(videos)) {
+      return null;
+    }
+
+    Video video = videos.get(0);
+    String liveBroadcastContent = video.getSnippet().getLiveBroadcastContent();
+
+    // 检查是否为 live 内容
+    if ("live".equals(liveBroadcastContent) || "upcoming".equals(liveBroadcastContent)) {
+      log.info("跳过 live 节目: {} - {}", videoId, video.getSnippet().getTitle());
+      return null;
+    }
+
+    // 额外检查：如果有 liveStreamingDetails，说明是 live 相关内容
+    if (video.getLiveStreamingDetails() != null) {
+      if (video.getLiveStreamingDetails().getScheduledStartTime() != null &&
+          video.getLiveStreamingDetails().getActualEndTime() == null) {
+        log.info("跳过即将开始的 live 节目: {} - {}", videoId, video.getSnippet().getTitle());
+        return null;
+      }
+    }
+
+    String duration = video.getContentDetails().getDuration();
+    return new VideoInfo(duration, false);
   }
 
   /**

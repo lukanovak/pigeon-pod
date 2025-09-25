@@ -65,6 +65,7 @@
   "edit_channel_configuration": "チャンネル設定の編集",
   "maximum_episodes": "保持する最大エピソード数",
   "initial_episodes": "初期ダウンロードエピソード数",
+  "initial_episodes_channel": "ダウンロード履歴エピソード数（現在の値以上でなければなりません）",
   "unlimited": "無制限",
   "save_changes": "変更を保存",
   "youtube_api_key_not_set": "未設定",
