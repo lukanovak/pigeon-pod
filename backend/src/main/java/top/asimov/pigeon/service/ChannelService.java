@@ -29,6 +29,9 @@ import java.util.HashMap;
 @Service
 public class ChannelService {
 
+  private static final int DEFAULT_FETCH_NUM = 3;
+  private static final int MAX_FETCH_NUM = 5;
+
   @Value("${pigeon.base-url}")
   private String appBaseUrl;
 
@@ -131,7 +134,7 @@ public class ChannelService {
 
     // 获取最近3个视频确认是目标频道
     List<Episode> episodes = youtubeHelper.fetchYoutubeChannelVideos(
-        ytChannelId, null, 3, null, null, null);
+        ytChannelId, null, DEFAULT_FETCH_NUM, null, null, null);
     return ChannelPack.builder().channel(fetchedChannel).episodes(episodes).build();
   }
 
@@ -143,11 +146,11 @@ public class ChannelService {
    */
   public List<Episode> previewChannel(Channel channel) {
     String channelId = channel.getId();
-    int fetchNum = 3;
+    int fetchNum = DEFAULT_FETCH_NUM;
     String containKeywords = channel.getContainKeywords();
     String excludeKeywords = channel.getExcludeKeywords();
     if (StringUtils.hasText(containKeywords) || StringUtils.hasText(excludeKeywords)) {
-      fetchNum = 5; // 有关键词时多拉取一些，方便确认过滤规则效果
+      fetchNum = MAX_FETCH_NUM; // 有关键词时多拉取一些，方便确认过滤规则效果
     }
     return youtubeHelper.fetchYoutubeChannelVideos(channelId, null, fetchNum,
         containKeywords, excludeKeywords, channel.getMinimumDuration());
@@ -164,7 +167,7 @@ public class ChannelService {
   public java.util.Map<String, Object> saveChannel(Channel channel) {
     Integer initialEpisodes = channel.getInitialEpisodes();
     if (initialEpisodes == null || initialEpisodes <= 0) {
-      initialEpisodes = 3;
+      initialEpisodes = DEFAULT_FETCH_NUM;
       channel.setInitialEpisodes(initialEpisodes);
     }
 
@@ -424,7 +427,8 @@ public class ChannelService {
           messageSource.getMessage("channel.not.found", new Object[] { channelId }, LocaleContextHolder.getLocale()));
     }
 
-    Integer oldInitialEpisodes = existingChannel.getInitialEpisodes();
+    Integer oldInitialEpisodes = ObjectUtils.isEmpty(existingChannel.getInitialEpisodes()) ? DEFAULT_FETCH_NUM
+        : existingChannel.getInitialEpisodes();
     Integer newInitialEpisodes = configuration.getInitialEpisodes();
 
     // 只更新允许修改的字段

@@ -105,7 +105,7 @@ public class DownloadWorker {
       }
       
       // 设置详细的错误日志
-      if (errorLog.length() > 0) {
+      if (!errorLog.isEmpty()) {
         episode.setErrorLog(errorLog.toString());
       }
 
@@ -116,6 +116,8 @@ public class DownloadWorker {
         String finalPath = audioStoragePath + sanitizeFileName(channelName) + File.separator + safeTitle + ".mp3";
         episode.setAudioFilePath(finalPath);
         episode.setDownloadStatus(EpisodeStatus.COMPLETED.name());
+        // 如果之前有错误日志，下载成功后清空
+        episode.setErrorLog(null);
         log.info("下载成功: {}", episode.getTitle());
       } else {
         // 如果是格式错误，尝试使用更宽松的格式选择
@@ -188,10 +190,6 @@ public class DownloadWorker {
     command.add("-f");
     command.add("bestaudio[ext=mp4]/bestaudio[ext=webm]/bestaudio/best");
     
-    // 添加客户端参数以绕过PO Token限制
-    command.add("--extractor-args");
-    command.add("youtube:player_client=web,android");
-    
     // 添加重试和错误恢复选项
     command.add("--retries");
     command.add("3");
@@ -230,10 +228,6 @@ public class DownloadWorker {
     command.add("mp3");
     command.add("-o");
     command.add(outputTemplate);
-    
-    // 使用Android客户端作为回退，通常能绕过PO Token限制
-    command.add("--extractor-args");
-    command.add("youtube:player_client=android");
     
     // 使用最宽松的格式选择
     command.add("-f");
