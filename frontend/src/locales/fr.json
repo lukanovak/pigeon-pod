@@ -40,7 +40,7 @@
   "enter_new_username": "Veuillez saisir le nouveau nom d'utilisateur",
   "new_username": "Nouveau nom d'utilisateur",
   "username_changed_success": "Nom d'utilisateur modifié avec succès !",
-  "enter_youtube_channel_url": "Saisissez le lien du canal YouTube, l’ID du canal ou le lien de la playlist",
+  "enter_youtube_channel_url": "Saisissez l'URL de la chaîne YouTube ou l'ID de la chaîne, comme https://www.youtube.com/@xxxx ou UCUGLols3-2y_rJZZsgRzray",
   "new_channel": "Nouvelle chaîne",
   "updated": "mis à jour",
   "no_channels_available": "Aucune chaîne disponible, veuillez ajouter une nouvelle chaîne",

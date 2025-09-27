@@ -40,7 +40,7 @@
   "enter_new_username": "새 사용자명을 입력해주세요",
   "new_username": "새 사용자명",
   "username_changed_success": "사용자명이 변경되었습니다!",
-  "enter_youtube_channel_url": "YouTube 채널 링크, 채널 ID 또는 재생목록 링크를 입력하세요",
+  "enter_youtube_channel_url": "YouTube 채널 URL 또는 채널 ID를 입력하세요. 예: https://www.youtube.com/@xxxx 또는 UCUGLols3-2y_rJZZsgRzray",
   "new_channel": "새 채널",
   "updated": "업데이트됨",
   "no_channels_available": "사용 가능한 채널이 없습니다. 새 채널을 추가해주세요",
