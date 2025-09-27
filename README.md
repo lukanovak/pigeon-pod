@@ -204,6 +204,9 @@ pigeon-pod/
 3. Ensure audio storage directory has sufficient disk space
 4. Regularly clean up old audio files to save space
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=aizhimou/pigeon-pod&type=Timeline)](https://www.star-history.com/#aizhimou/pigeon-pod&Timeline)
 ---
 
 <div align="center">
