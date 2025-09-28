@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.util.SaResult;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,8 +52,9 @@ public class ChannelController {
   }
 
   @PostMapping("/fetch")
-  public SaResult fetchChannel(@RequestBody Channel channel) {
-    return SaResult.data(channelService.fetchChannel(channel));
+  public SaResult fetchChannel(@RequestBody Map<String, String> request) {
+    String channelUrl = request.get("channelUrl");
+    return SaResult.data(channelService.fetchChannel(channelUrl));
   }
 
   @PostMapping("/preview")

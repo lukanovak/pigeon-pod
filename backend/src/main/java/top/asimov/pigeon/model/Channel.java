@@ -21,16 +21,18 @@ public class Channel {
   private String name;
   private String avatarUrl;
   private String description;
-  private String channelUrl;
   private String channelSource;
+
   private String containKeywords;
   private String excludeKeywords;
   private Integer minimumDuration;
-  private Integer maximumEpisodes;
+
   private Integer initialEpisodes;
+  private Integer maximumEpisodes;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
   private LocalDateTime subscribedAt;
 
   private transient LocalDateTime lastPublishedAt;
+  private transient String channelUrl;
 }

@@ -1,0 +1,9 @@
+package top.asimov.pigeon.constant;
+
+public class Youtube {
+
+  public final static String BASE_URL = "https://www.youtube.com/";
+  public final static String VIDEO_URL = BASE_URL + "watch?v=";
+  public final static String CHANNEL_URL = BASE_URL + "channel/";
+
+}

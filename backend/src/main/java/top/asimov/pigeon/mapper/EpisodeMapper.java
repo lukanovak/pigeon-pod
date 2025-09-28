@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import top.asimov.pigeon.model.Episode;
 
-@Mapper
 public interface EpisodeMapper extends BaseMapper<Episode> {
 
   @Delete("delete from episode "

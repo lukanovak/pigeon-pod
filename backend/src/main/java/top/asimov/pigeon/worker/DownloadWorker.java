@@ -61,14 +61,6 @@ public class DownloadWorker {
       // 单用户系统，直接使用默认用户的cookies
       tempCookiesFile = cookiesService.createTempCookiesFile("0");
 
-      // 双重保险：检测是否为 live 节目（通常已在获取节目信息时过滤）
-      if (youtubeHelper.isLiveVideo(videoId)) {
-        log.warn("下载时检测到 live 节目，跳过下载: {}", episode.getTitle());
-        // 直接删除这个 episode，live 结束后变成普通视频之后，在订阅源更新时会自动重新添加
-        episodeMapper.deleteById(videoId);
-        return;
-      }
-
       String channelName = episodeMapper.getChannelNameByEpisodeId(videoId);
       String safeTitle = getSafeTitle(episode.getTitle());
 

@@ -123,6 +123,20 @@ public class AccountService {
     return user.getYoutubeApiKey();
   }
 
+  public String getYoutubeApiKey() {
+    User user = userMapper.selectById(0);
+    if (ObjectUtils.isEmpty(user)) {
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+    }
+    String youtubeApiKey = user.getYoutubeApiKey();
+    if (ObjectUtils.isEmpty(youtubeApiKey)) {
+      throw new BusinessException(messageSource.getMessage("youtube.api.key.not.set", null,
+          LocaleContextHolder.getLocale()));
+    }
+    return youtubeApiKey;
+  }
+
   /**
    * 更新用户的cookies内容
    * @param userId 用户ID

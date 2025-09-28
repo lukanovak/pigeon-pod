@@ -67,8 +67,7 @@ const Home = () => {
     }
     setFetchChannelLoading(true);
     const res = await API.post('/api/channel/fetch', {
-      channelUrl: channelUrl,
-      channelSource: 'YOUTUBE',
+      channelUrl: channelUrl.trim()
     });
     const { code, msg, data } = res.data;
     if (code !== 200) {

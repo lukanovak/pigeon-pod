@@ -30,6 +30,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
@@ -45,9 +46,6 @@ public class RssService {
   // 从 application.properties 读取应用基础 URL
   @Value("${pigeon.base-url}")
   private String appBaseUrl;
-
-  @Value("${pigeon.audio-file-path}")
-  private String audioStoragePath;
 
   public RssService(ChannelService channelService, EpisodeService episodeService, MessageSource messageSource) {
     this.channelService = channelService;
@@ -67,7 +65,6 @@ public class RssService {
   /**
    * 根据 channel handler 生成 RSS Feed XML 字符串。
    */
-  //@Cacheable(value = "rssFeeds", key = "#channelHandler")
   public String generateRssFeed(String channelHandler) throws MalformedURLException {
     // 1. 获取频道信息
     Channel channel = channelService.findChannelByIdentification(channelHandler);
@@ -79,7 +76,7 @@ public class RssService {
     SyndFeed feed = new SyndFeedImpl();
     feed.setFeedType("rss_2.0");
     feed.setTitle(channel.getName());
-    feed.setLink(channel.getChannelUrl());
+    feed.setLink(Youtube.CHANNEL_URL + channel.getId());
     feed.setDescription(channel.getDescription());
     feed.setPublishedDate(new Date()); // 设置为当前时间或最新一期节目的时间
 

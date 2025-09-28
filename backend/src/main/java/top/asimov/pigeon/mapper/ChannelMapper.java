@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import top.asimov.pigeon.model.Channel;
 
-@Mapper
 public interface ChannelMapper extends BaseMapper<Channel> {
 
   @Select("SELECT c.id, c.handler, c.name, c.avatar_url, c.description, c.channel_source, " +
