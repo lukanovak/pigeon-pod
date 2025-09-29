@@ -8,10 +8,10 @@ import top.asimov.pigeon.model.Channel;
 
 public interface ChannelMapper extends BaseMapper<Channel> {
 
-  @Select("SELECT c.id, c.handler, c.name, c.avatar_url, c.description, c.channel_source, " +
+  @Select("SELECT c.id, c.handler, c.title, c.cover_url, c.description, c.source, " +
       "max(e.published_at) as last_published_at " +
       "FROM channel c LEFT JOIN episode e ON c.id = e.channel_id " +
-      "GROUP BY c.id, c.handler, c.name, c.avatar_url, c.description, c.channel_source " +
+      "GROUP BY c.id, c.handler, c.title, c.cover_url, c.description, c.source " +
       "ORDER BY (CASE WHEN last_published_at IS NULL THEN '9999' ELSE last_published_at END) DESC")
   List<Channel> selectChannelsByLastUploadedAt();
 }

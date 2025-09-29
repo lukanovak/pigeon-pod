@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import top.asimov.pigeon.constant.PlaylistSource;
+import top.asimov.pigeon.constant.FeedSource;
 import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.event.DownloadTaskEvent;
 import top.asimov.pigeon.event.DownloadTaskEvent.DownloadAction;
@@ -86,7 +86,7 @@ public class PlaylistService {
           messageSource.getMessage("playlist.not.found", new Object[]{id},
               LocaleContextHolder.getLocale()));
     }
-    playlist.setPlaylistUrl(Youtube.PLAYLIST_URL + playlist.getId());
+    playlist.setOriginalUrl(Youtube.PLAYLIST_URL + playlist.getId());
     return playlist;
   }
 
@@ -186,7 +186,8 @@ public class PlaylistService {
         .coverUrl(ytPlaylist.getSnippet().getThumbnails().getHigh().getUrl())
         .description(ytPlaylist.getSnippet().getDescription())
         .subscribedAt(LocalDateTime.now())
-        .playlistSource(PlaylistSource.YOUTUBE.name())
+        .source(FeedSource.YOUTUBE_PLAYLIST.name())
+        .originalUrl(playlistUrl)
         .build();
 
     List<Episode> episodes = youtubeVideoHelper.fetchPlaylistVideos(ytPlaylistId,

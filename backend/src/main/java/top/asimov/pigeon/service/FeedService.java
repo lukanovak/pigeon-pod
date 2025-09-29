@@ -1,6 +1,8 @@
 package top.asimov.pigeon.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
@@ -10,23 +12,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.FeedType;
 import top.asimov.pigeon.exception.BusinessException;
-import top.asimov.pigeon.model.Channel;
-import top.asimov.pigeon.model.Playlist;
+import top.asimov.pigeon.model.Feed;
+import top.asimov.pigeon.service.feed.FeedHandler;
 
 @Log4j2
 @Service
 public class FeedService {
 
-  private final ChannelService channelService;
-  private final PlaylistService playlistService;
-  private final ObjectMapper objectMapper;
+  private final Map<FeedType, FeedHandler<? extends Feed>> handlerRegistry;
   private final MessageSource messageSource;
 
-  public FeedService(ChannelService channelService, PlaylistService playlistService,
-      ObjectMapper objectMapper, MessageSource messageSource) {
-    this.channelService = channelService;
-    this.playlistService = playlistService;
-    this.objectMapper = objectMapper;
+  public FeedService(List<FeedHandler<? extends Feed>> feedHandlers,
+      MessageSource messageSource) {
+    Map<FeedType, FeedHandler<? extends Feed>> registry = new EnumMap<>(FeedType.class);
+    feedHandlers.forEach(handler -> registry.put(handler.getType(), handler));
+    this.handlerRegistry = Collections.unmodifiableMap(registry);
     this.messageSource = messageSource;
   }
 
@@ -46,84 +46,55 @@ public class FeedService {
   }
 
   public List<?> list(FeedType type) {
-    return switch (type) {
-      case CHANNEL -> channelService.selectChannelList();
-      case PLAYLIST -> playlistService.selectPlaylistList();
-    };
+    return resolveHandler(type).list();
   }
 
   public Map<String, List<?>> listAll() {
-    return Map.of(
-        FeedType.CHANNEL.name().toLowerCase(), channelService.selectChannelList(),
-        FeedType.PLAYLIST.name().toLowerCase(), playlistService.selectPlaylistList());
+    Map<String, List<?>> result = new LinkedHashMap<>();
+    for (FeedType type : FeedType.values()) {
+      FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
+      if (handler != null) {
+        result.put(type.name().toLowerCase(), handler.list());
+      }
+    }
+    return result;
   }
 
   public Object detail(FeedType type, String id) {
-    return switch (type) {
-      case CHANNEL -> channelService.channelDetail(id);
-      case PLAYLIST -> playlistService.playlistDetail(id);
-    };
+    return resolveHandler(type).detail(id);
   }
 
   public String getSubscribeUrl(FeedType type, String id) {
-    return switch (type) {
-      case CHANNEL -> channelService.getChannelRssFeedUrl(id);
-      case PLAYLIST -> playlistService.getPlaylistRssFeedUrl(id);
-    };
+    return resolveHandler(type).getSubscribeUrl(id);
   }
 
   public Object updateConfig(FeedType type, String id, Map<String, Object> payload) {
-    return switch (type) {
-      case CHANNEL -> channelService.updateChannelConfig(id, convert(payload, Channel.class));
-      case PLAYLIST -> playlistService.updatePlaylistConfig(id,
-          convert(payload, Playlist.class));
-    };
+    return resolveHandler(type).updateConfig(id, payload);
   }
 
-  public Object fetch(FeedType type, Map<String, String> request) {
-    return switch (type) {
-      case CHANNEL -> channelService.fetchChannel(
-          resolveSourceUrl(request, "channelUrl"));
-      case PLAYLIST -> playlistService.fetchPlaylist(
-          resolveSourceUrl(request, "playlistUrl"));
-    };
+  public Object fetch(FeedType type, Map<String, ?> request) {
+    return resolveHandler(type).fetch(request);
   }
 
   public Object preview(FeedType type, Map<String, Object> payload) {
-    return switch (type) {
-      case CHANNEL -> channelService.previewChannel(convert(payload, Channel.class));
-      case PLAYLIST -> playlistService.previewPlaylist(convert(payload, Playlist.class));
-    };
+    return resolveHandler(type).preview(payload);
   }
 
   public Object add(FeedType type, Map<String, Object> payload) {
-    return switch (type) {
-      case CHANNEL -> channelService.saveChannel(convert(payload, Channel.class));
-      case PLAYLIST -> playlistService.savePlaylist(convert(payload, Playlist.class));
-    };
+    return resolveHandler(type).add(payload);
   }
 
   public void delete(FeedType type, String id) {
-    switch (type) {
-      case CHANNEL -> channelService.deleteChannel(id);
-      case PLAYLIST -> playlistService.deletePlaylist(id);
-    }
+    resolveHandler(type).delete(id);
   }
 
-  @SuppressWarnings("unchecked")
-  private <T> T convert(Map<String, Object> payload, Class<T> targetType) {
-    return objectMapper.convertValue(payload, targetType);
-  }
-
-  private String resolveSourceUrl(Map<String, String> request, String specificKey) {
-    String sourceUrl = request.get("sourceUrl");
-    if (!StringUtils.hasText(sourceUrl)) {
-      sourceUrl = request.get(specificKey);
-    }
-    if (!StringUtils.hasText(sourceUrl)) {
+  private FeedHandler<? extends Feed> resolveHandler(FeedType type) {
+    FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
+    if (handler == null) {
       throw new BusinessException(messageSource
-          .getMessage("feed.source.url.missing", null, LocaleContextHolder.getLocale()));
+          .getMessage("feed.type.invalid", new Object[]{type.name()},
+              LocaleContextHolder.getLocale()));
     }
-    return sourceUrl;
+    return handler;
   }
 }

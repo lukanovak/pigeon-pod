@@ -39,7 +39,7 @@ public class ChannelSyncer {
         // 对每个频道执行单独的同步逻辑
         channelService.refreshChannel(channel);
       } catch (Exception e) {
-        log.error("同步频道 {} (ID: {}) 时发生错误。", channel.getName(), channel.getId(), e);
+        log.error("同步频道 {} (ID: {}) 时发生错误。", channel.getTitle(), channel.getId(), e);
         // 即使一个频道失败，也不应中断整个任务
       }
     }

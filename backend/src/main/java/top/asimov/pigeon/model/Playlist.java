@@ -1,38 +1,25 @@
 package top.asimov.pigeon.model;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import top.asimov.pigeon.constant.FeedType;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @TableName("playlist")
-public class Playlist {
+public class Playlist extends Feed {
 
-  @TableId
-  private String id;
   private String ownerId;
-  private String title;
-  private String coverUrl;
-  private String description;
-  private String playlistSource;
 
-  private String containKeywords;
-  private String excludeKeywords;
-  private Integer minimumDuration;
-
-  private Integer initialEpisodes;
-  private Integer maximumEpisodes;
-  private String lastSyncVideoId;
-  private LocalDateTime lastSyncTimestamp;
-  private LocalDateTime subscribedAt;
-
-  private transient LocalDateTime lastPublishedAt;
-  private transient String playlistUrl;
+  @Override
+  public FeedType getType() {
+    return FeedType.PLAYLIST;
+  }
 }

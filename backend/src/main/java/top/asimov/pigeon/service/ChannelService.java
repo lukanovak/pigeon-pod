@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import top.asimov.pigeon.constant.ChannelSource;
+import top.asimov.pigeon.constant.FeedSource;
 import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
 import top.asimov.pigeon.event.DownloadTaskEvent;
@@ -93,7 +93,7 @@ public class ChannelService {
           messageSource.getMessage("channel.not.found", new Object[]{id},
               LocaleContextHolder.getLocale()));
     }
-    channel.setChannelUrl(Youtube.CHANNEL_URL + channel.getId());
+    channel.setOriginalUrl(Youtube.CHANNEL_URL + channel.getId());
     return channel;
   }
 
@@ -189,17 +189,17 @@ public class ChannelService {
             existingChannel.getMinimumDuration());
         eventPublisher.publishEvent(event);
 
-        log.info("已发布频道历史节目下载事件，频道: {}, 下载视频数量: {}", existingChannel.getName(),
+        log.info("已发布频道历史节目下载事件，频道: {}, 下载视频数量: {}", existingChannel.getTitle(),
             downloadNumber);
       }
 
-      log.info("频道 {} 配置更新成功", existingChannel.getName());
+      log.info("频道 {} 配置更新成功", existingChannel.getTitle());
       HashMap<String, Object> res = new HashMap<>();
       res.put("downloadHistory", downloadHistory);
       res.put("downloadNumber", downloadNumber);
       return res;
     } else {
-      log.error("频道 {} 配置更新失败", existingChannel.getName());
+      log.error("频道 {} 配置更新失败", existingChannel.getTitle());
       throw new BusinessException(
           messageSource.getMessage("channel.config.update.failed", null,
               LocaleContextHolder.getLocale()));
@@ -232,11 +232,12 @@ public class ChannelService {
     String ytChannelId = ytChannel.getId();
     Channel fetchedChannel = Channel.builder()
         .id(ytChannelId)
-        .name(ytChannel.getSnippet().getTitle())
-        .avatarUrl(ytChannel.getSnippet().getThumbnails().getHigh().getUrl())
+        .title(ytChannel.getSnippet().getTitle())
+        .coverUrl(ytChannel.getSnippet().getThumbnails().getHigh().getUrl())
         .description(ytChannel.getSnippet().getDescription())
         .subscribedAt(LocalDateTime.now())
-        .channelSource(ChannelSource.YOUTUBE.name()) // 目前只支持YouTube
+        .source(FeedSource.YOUTUBE_CHANNEL.name()) // 目前只支持YouTube
+        .originalUrl(channelUrl)
         .build();
 
     // 获取最近3个视频确认是目标频道
@@ -300,7 +301,7 @@ public class ChannelService {
     String excludeKeywords = channel.getExcludeKeywords();
     Integer minimumDuration = channel.getMinimumDuration();
 
-    log.info("频道 {} 设置的初始视频数量较多({}), 启用异步处理模式", channel.getName(), initialEpisodes);
+    log.info("频道 {} 设置的初始视频数量较多({}), 启用异步处理模式", channel.getTitle(), initialEpisodes);
 
     // 先保存频道基本信息
     channelMapper.insert(channel);
@@ -317,7 +318,7 @@ public class ChannelService {
         minimumDuration);
     eventPublisher.publishEvent(event);
 
-    log.info("已发布频道异步下载事件，频道: {}, 初始视频数量: {}", channel.getName(), initialEpisodes);
+    log.info("已发布频道异步下载事件，频道: {}, 初始视频数量: {}", channel.getTitle(), initialEpisodes);
 
     // 返回异步处理状态
     Map<String, Object> result = new HashMap<>();
@@ -341,7 +342,7 @@ public class ChannelService {
     String excludeKeywords = channel.getExcludeKeywords();
     Integer minimumDuration = channel.getMinimumDuration();
 
-    log.info("频道 {} 设置的初始视频数量较少({}), 使用同步处理模式", channel.getName(), initialEpisodes);
+    log.info("频道 {} 设置的初始视频数量较少({}), 使用同步处理模式", channel.getTitle(), initialEpisodes);
 
     List<Episode> episodes = youtubeVideoHelper.fetchYoutubeChannelVideos(channelId,
         initialEpisodes,
@@ -416,7 +417,7 @@ public class ChannelService {
 
     // 2. 查询该频道下所有的episodes
     List<Episode> episodes = episodeService.findByChannelId(channelId);
-    log.info("频道 {} 下有 {} 个episodes需要删除", channel.getName(), episodes.size());
+    log.info("频道 {} 下有 {} 个episodes需要删除", channel.getTitle(), episodes.size());
 
     // 3. 删除所有episodes对应的音频文件
     deleteAudioFiles(episodes);
@@ -427,9 +428,9 @@ public class ChannelService {
     // 5. 删除频道记录
     int result = channelMapper.deleteById(channelId);
     if (result > 0) {
-      log.info("频道 {} 删除成功", channel.getName());
+      log.info("频道 {} 删除成功", channel.getTitle());
     } else {
-      log.error("频道 {} 删除失败", channel.getName());
+      log.error("频道 {} 删除失败", channel.getTitle());
       throw new BusinessException(
           messageSource.getMessage("channel.delete.failed", null, LocaleContextHolder.getLocale()));
     }
@@ -442,7 +443,7 @@ public class ChannelService {
    */
   @Transactional
   public void refreshChannel(Channel channel) {
-    log.info("正在同步频道: {}", channel.getName());
+    log.info("正在同步频道: {}", channel.getTitle());
 
     // 1. 获取增量视频，默认一个小时检查一次，默认一个小时最多检查 5 个视频
     List<Episode> newEpisodes = youtubeVideoHelper.fetchYoutubeChannelVideos(
@@ -450,14 +451,14 @@ public class ChannelService {
         channel.getContainKeywords(), channel.getExcludeKeywords(), channel.getMinimumDuration());
 
     if (newEpisodes.isEmpty()) {
-      log.info("频道 {} 没有新内容。", channel.getName());
+      log.info("频道 {} 没有新内容。", channel.getTitle());
       // 即使没有新内容，也更新同步时间戳，避免频繁检查
       channel.setLastSyncTimestamp(LocalDateTime.now());
       channelMapper.updateById(channel);
       return;
     }
 
-    log.info("频道 {} 发现 {} 个新节目。", channel.getName(), newEpisodes.size());
+    log.info("频道 {} 发现 {} 个新节目。", channel.getTitle(), newEpisodes.size());
 
     // 2. 保存新节目的元数据
     episodeService.saveEpisodes(newEpisodes);
@@ -479,7 +480,7 @@ public class ChannelService {
     EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, newEpisodeIds);
     eventPublisher.publishEvent(event);
 
-    log.info("为频道 {} 的新节目发布了下载事件。", channel.getName());
+    log.info("为频道 {} 的新节目发布了下载事件。", channel.getTitle());
   }
 
   /**

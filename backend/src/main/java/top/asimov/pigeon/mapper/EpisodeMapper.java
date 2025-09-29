@@ -31,7 +31,7 @@ public interface EpisodeMapper extends BaseMapper<Episode> {
   @Update("update episode set download_status = #{downloadStatus} where id = #{id}")
   void updateDownloadStatus(String id, String downloadStatus);
 
-  @Select("SELECT COALESCE(c.name, p.title) FROM episode e "
+  @Select("SELECT COALESCE(c.title, p.title) FROM episode e "
       + "LEFT JOIN channel c ON c.id = e.channel_id "
       + "LEFT JOIN playlist_episode pe ON pe.episode_id = e.id "
       + "LEFT JOIN playlist p ON p.id = pe.playlist_id "

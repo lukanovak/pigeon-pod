@@ -79,16 +79,16 @@ public class RssService {
     // 2. 创建 SyndFeed (RSS 的顶层对象)
     SyndFeed feed = new SyndFeedImpl();
     feed.setFeedType("rss_2.0");
-    feed.setTitle(channel.getName());
+    feed.setTitle(channel.getTitle());
     feed.setLink(Youtube.CHANNEL_URL + channel.getId());
     feed.setDescription(channel.getDescription());
     feed.setPublishedDate(new Date()); // 设置为当前时间或最新一期节目的时间
 
     // 3. 添加 iTunes 频道级信息
     FeedInformation feedInfo = new FeedInformationImpl();
-    feedInfo.setAuthor(channel.getName());
+    feedInfo.setAuthor(channel.getTitle());
     feedInfo.setSummary(channel.getDescription());
-    feedInfo.setImage(new URL(channel.getAvatarUrl()));
+    feedInfo.setImage(new URL(channel.getCoverUrl()));
     feed.getModules().add(feedInfo);
 
     // 4. 获取已完成下载的节目列表，按position排序
