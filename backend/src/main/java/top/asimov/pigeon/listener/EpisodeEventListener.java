@@ -55,7 +55,7 @@ public class EpisodeEventListener {
   public void handleChannelHistoryDownload(HistoryDownloadEvent event) {
     log.info("监听到频道异步下载历史节目事件，频道ID: {}, 下载历史视频数量: {}", event.getChannelId(), event.getDownloadNumber());
     
-    // 异步处理频道初始化
+    // 异步处理频道历史节目下载
     channelService.processChannelDownloadHistoryAsync(
         event.getChannelId(),
         event.getDownloadNumber(),

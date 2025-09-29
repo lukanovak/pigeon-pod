@@ -29,13 +29,11 @@ public class DownloadWorker {
   private String audioStoragePath;
   private final EpisodeMapper episodeMapper;
   private final CookiesService cookiesService;
-  private final YoutubeHelper youtubeHelper;
   private final MessageSource messageSource;
 
-  public DownloadWorker(EpisodeMapper episodeMapper, CookiesService cookiesService, YoutubeHelper youtubeHelper, MessageSource messageSource) {
+  public DownloadWorker(EpisodeMapper episodeMapper, CookiesService cookiesService, MessageSource messageSource) {
     this.episodeMapper = episodeMapper;
     this.cookiesService = cookiesService;
-    this.youtubeHelper = youtubeHelper;
     this.messageSource = messageSource;
   }
 
