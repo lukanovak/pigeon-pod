@@ -60,6 +60,9 @@ public class DownloadWorker {
       tempCookiesFile = cookiesService.createTempCookiesFile("0");
 
       String channelName = episodeMapper.getChannelNameByEpisodeId(videoId);
+      if (!org.springframework.util.StringUtils.hasText(channelName)) {
+        channelName = "unknown";
+      }
       String safeTitle = getSafeTitle(episode.getTitle());
 
       // 构建输出目录：audioStoragePath/{channel name}/

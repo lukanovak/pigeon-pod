@@ -5,6 +5,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
+import com.google.api.services.youtube.model.Playlist;
+import com.google.api.services.youtube.model.PlaylistListResponse;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.service.AccountService;
 
@@ -67,6 +70,25 @@ public class YoutubeHelper {
       String resolvedChannelId = fetchYoutubeChannelIdByUrl(input);
       return fetchYoutubeChannelByYoutubeChannelId(resolvedChannelId);
     }
+  }
+
+  /**
+   * 根据输入获取 YouTube 播放列表信息 支持多种输入格式:
+   * 1. 直接的播放列表 ID: PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
+   * 2. ?list= 链接: https://www.youtube.com/playlist?list=PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
+   * 3. watch 链接: https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
+   *
+   * @param input 播放列表输入（URL 或 ID）
+   * @return YouTube 播放列表信息
+   */
+  public Playlist fetchYoutubePlaylist(String input) {
+    String playlistId = extractPlaylistId(input);
+    if (playlistId == null) {
+      throw new BusinessException(
+          messageSource.getMessage("youtube.invalid.playlist.url", null,
+              LocaleContextHolder.getLocale()));
+    }
+    return fetchYoutubePlaylistById(playlistId);
   }
 
   /**
@@ -132,6 +154,47 @@ public class YoutubeHelper {
     return null;
   }
 
+  private String extractPlaylistId(String input) {
+    if (input == null || input.trim().isEmpty()) {
+      return null;
+    }
+
+    String trimmed = input.trim();
+
+    if (trimmed.contains("list=")) {
+      int listIndex = trimmed.indexOf("list=");
+      String playlistId = trimmed.substring(listIndex + 5);
+      int ampIndex = playlistId.indexOf('&');
+      if (ampIndex > 0) {
+        playlistId = playlistId.substring(0, ampIndex);
+      }
+      int hashIndex = playlistId.indexOf('#');
+      if (hashIndex > 0) {
+        playlistId = playlistId.substring(0, hashIndex);
+      }
+      if (isYouTubePlaylistId(playlistId)) {
+        return playlistId;
+      }
+    }
+
+    if (isYouTubePlaylistId(trimmed)) {
+      return trimmed;
+    }
+
+    return null;
+  }
+
+  private boolean isYouTubePlaylistId(String playlistId) {
+    if (!StringUtils.hasText(playlistId)) {
+      return false;
+    }
+    String normalized = playlistId.trim();
+    if (normalized.length() < 13 || normalized.length() > 64) {
+      return false;
+    }
+    return normalized.matches("[A-Za-z0-9_-]+");
+  }
+
   /**
    * 使用频道 ID 获取频道详细信息
    *
@@ -160,6 +223,31 @@ public class YoutubeHelper {
     } catch (IOException e) {
       throw new BusinessException(
           messageSource.getMessage("youtube.fetch.channel.failed", new Object[]{e.getMessage()},
+              LocaleContextHolder.getLocale()));
+    }
+  }
+
+  private Playlist fetchYoutubePlaylistById(String playlistId) {
+    try {
+      String youtubeApiKey = accountService.getYoutubeApiKey();
+
+      YouTube.Playlists.List playlistRequest = youtubeService.playlists().list("snippet");
+      playlistRequest.setId(playlistId);
+      playlistRequest.setKey(youtubeApiKey);
+
+      PlaylistListResponse response = playlistRequest.execute();
+      List<Playlist> playlists = response.getItems();
+
+      if (ObjectUtils.isEmpty(playlists)) {
+        throw new BusinessException(
+            messageSource.getMessage("youtube.playlist.not.found", null,
+                LocaleContextHolder.getLocale()));
+      }
+
+      return playlists.get(0);
+    } catch (IOException e) {
+      throw new BusinessException(
+          messageSource.getMessage("youtube.fetch.playlist.failed", new Object[]{e.getMessage()},
               LocaleContextHolder.getLocale()));
     }
   }

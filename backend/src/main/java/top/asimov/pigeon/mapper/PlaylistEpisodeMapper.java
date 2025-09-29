@@ -1,0 +1,38 @@
+package top.asimov.pigeon.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+import top.asimov.pigeon.model.PlaylistEpisode;
+
+public interface PlaylistEpisodeMapper extends BaseMapper<PlaylistEpisode> {
+
+  @Select("SELECT * FROM playlist_episode WHERE playlist_id = #{playlistId} ORDER BY published_at DESC")
+  List<PlaylistEpisode> selectByPlaylistId(String playlistId);
+
+  @Delete("DELETE FROM playlist_episode WHERE playlist_id = #{playlistId}")
+  int deleteByPlaylistId(String playlistId);
+
+  @Select(
+      "SELECT * FROM playlist_episode WHERE playlist_id = #{playlistId} ORDER BY published_at ASC LIMIT 1")
+  PlaylistEpisode selectEarliestByPlaylistId(String playlistId);
+
+  @Select("SELECT COUNT(1) FROM playlist_episode WHERE playlist_id = #{playlistId} AND episode_id = #{episodeId}")
+  int countByPlaylistAndEpisode(@Param("playlistId") String playlistId,
+      @Param("episodeId") String episodeId);
+
+  @Insert("INSERT INTO playlist_episode (playlist_id, episode_id, published_at) "
+      + "VALUES (#{playlistId}, #{episodeId}, #{publishedAt})")
+  int insertMapping(@Param("playlistId") String playlistId, @Param("episodeId") String episodeId,
+      @Param("publishedAt") LocalDateTime publishedAt);
+
+  @Update("UPDATE playlist_episode SET published_at = #{publishedAt} "
+      + "WHERE playlist_id = #{playlistId} AND episode_id = #{episodeId}")
+  int updateMapping(@Param("playlistId") String playlistId, @Param("episodeId") String episodeId,
+      @Param("publishedAt") LocalDateTime publishedAt);
+}

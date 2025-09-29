@@ -52,6 +52,10 @@ public class EpisodeService {
     return episodeMapper.selectList(queryWrapper);
   }
 
+  public List<Episode> getEpisodesByPlaylistId(String playlistId) {
+    return episodeMapper.selectEpisodesByPlaylistId(playlistId);
+  }
+
   @Transactional
   public void saveEpisodes(List<Episode> episodes) {
     QueryWrapper<Episode> queryWrapper = new QueryWrapper<>();

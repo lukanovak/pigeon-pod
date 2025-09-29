@@ -21,5 +21,4 @@ public class PlaylistEpisode {
   private String episodeId;
   private String coverUrl;
   private LocalDateTime publishedAt;
-  private Integer position;
 }

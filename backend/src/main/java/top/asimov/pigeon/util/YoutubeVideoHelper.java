@@ -449,9 +449,7 @@ public class YoutubeVideoHelper {
         .publishedAt(publishedAt)
         .duration(duration)
         .downloadStatus(EpisodeStatus.PENDING.name())
-        .createdAt(LocalDateTime.now())
-        .position(item.getSnippet().getPosition() != null ?
-            item.getSnippet().getPosition().intValue() : 0);
+        .createdAt(LocalDateTime.now());
 
     applyThumbnails(builder, item.getSnippet().getThumbnails());
     return builder.build();
@@ -689,4 +687,3 @@ public class YoutubeVideoHelper {
 
   }
 }
-

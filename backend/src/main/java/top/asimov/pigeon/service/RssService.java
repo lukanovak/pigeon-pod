@@ -34,6 +34,7 @@ import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
+import top.asimov.pigeon.model.Playlist;
 
 @Log4j2
 @Service
@@ -41,15 +42,18 @@ public class RssService {
 
   private final ChannelService channelService;
   private final EpisodeService episodeService;
+  private final PlaylistService playlistService;
   private final MessageSource messageSource;
 
   // 从 application.properties 读取应用基础 URL
   @Value("${pigeon.base-url}")
   private String appBaseUrl;
 
-  public RssService(ChannelService channelService, EpisodeService episodeService, MessageSource messageSource) {
+  public RssService(ChannelService channelService, EpisodeService episodeService,
+      PlaylistService playlistService, MessageSource messageSource) {
     this.channelService = channelService;
     this.episodeService = episodeService;
+    this.playlistService = playlistService;
     this.messageSource = messageSource;
   }
 
@@ -144,6 +148,87 @@ public class RssService {
       return writer.toString();
     } catch (Exception e) {
       throw new RuntimeException(messageSource.getMessage("system.generate.rss.failed", 
+          null, LocaleContextHolder.getLocale()), e);
+    }
+  }
+
+  public String generatePlaylistRssFeed(String playlistId) throws MalformedURLException {
+    Playlist playlist = playlistService.playlistDetail(playlistId);
+    if (ObjectUtils.isEmpty(playlist)) {
+      throw new BusinessException(
+          messageSource.getMessage("playlist.not.found", new Object[]{playlistId},
+              LocaleContextHolder.getLocale()));
+    }
+
+    SyndFeed feed = new SyndFeedImpl();
+    feed.setFeedType("rss_2.0");
+    feed.setTitle(playlist.getTitle());
+    feed.setLink(Youtube.PLAYLIST_URL + playlist.getId());
+    feed.setDescription(playlist.getDescription());
+    feed.setPublishedDate(new Date());
+
+    FeedInformation feedInfo = new FeedInformationImpl();
+    feedInfo.setAuthor(playlist.getTitle());
+    feedInfo.setSummary(playlist.getDescription());
+    if (playlist.getCoverUrl() != null) {
+      feedInfo.setImage(new URL(playlist.getCoverUrl()));
+    }
+    feed.getModules().add(feedInfo);
+
+    List<Episode> episodes = episodeService.getEpisodesByPlaylistId(playlistId);
+
+    List<SyndEntry> entries = new ArrayList<>();
+    for (Episode episode : episodes) {
+      if (episode.getPublishedAt() == null) {
+        continue;
+      }
+      SyndEntry entry = new SyndEntryImpl();
+      entry.setTitle(episode.getTitle());
+      entry.setLink("https://www.youtube.com/watch?v=" + episode.getId());
+      entry.setPublishedDate(Date.from(episode.getPublishedAt().toInstant(java.time.ZoneOffset.UTC)));
+
+      SyndContent description = new SyndContentImpl();
+      description.setType("text/html");
+      String episodeDescription = episode.getDescription();
+      description.setValue(episodeDescription == null ? ""
+          : episodeDescription.replaceAll("\n", "<br/>"));
+      entry.setDescription(description);
+
+      try {
+        if (episode.getAudioFilePath() == null) {
+          continue;
+        }
+        SyndEnclosure enclosure = new SyndEnclosureImpl();
+        String audioUrl = appBaseUrl + "/media/" + episode.getId() + ".mp3";
+        enclosure.setUrl(audioUrl);
+        enclosure.setType("audio/mpeg");
+        long fileSize = Files.size(Paths.get(episode.getAudioFilePath()));
+        enclosure.setLength(fileSize);
+        entry.setEnclosures(Collections.singletonList(enclosure));
+      } catch (Exception e) {
+        log.error("无法为 episode {} 创建 enclosure: {}", episode.getId(), e.getMessage());
+        continue;
+      }
+
+      EntryInformation entryInfo = new EntryInformationImpl();
+      entryInfo.setSummary(episode.getDescription());
+      entryInfo.setDuration(convertToRomeDuration(episode.getDuration()));
+      if (episode.getMaxCoverUrl() != null) {
+        entryInfo.setImage(new java.net.URL(episode.getMaxCoverUrl()));
+      }
+      entry.getModules().add(entryInfo);
+
+      entries.add(entry);
+    }
+
+    feed.setEntries(entries);
+
+    try (StringWriter writer = new StringWriter()) {
+      SyndFeedOutput output = new SyndFeedOutput();
+      output.output(feed, writer);
+      return writer.toString();
+    } catch (Exception e) {
+      throw new RuntimeException(messageSource.getMessage("system.generate.rss.failed",
           null, LocaleContextHolder.getLocale()), e);
     }
   }

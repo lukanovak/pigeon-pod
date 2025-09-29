@@ -30,4 +30,14 @@ public class RssController {
     }
   }
 
+  @GetMapping(value = "/playlist/{playlistId}.xml", produces = MediaType.APPLICATION_XML_VALUE)
+  public ResponseEntity<String> getPlaylistRssFeed(@PathVariable String playlistId) {
+    try {
+      String rssXml = rssService.generatePlaylistRssFeed(playlistId);
+      return ResponseEntity.ok(rssXml);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().body("无法生成 RSS feed。");
+    }
+  }
+
 }

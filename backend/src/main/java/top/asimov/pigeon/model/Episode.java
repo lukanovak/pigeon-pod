@@ -28,4 +28,5 @@ public class Episode {
     private String audioFilePath;
     private String errorLog;
     private LocalDateTime createdAt;
+
 }

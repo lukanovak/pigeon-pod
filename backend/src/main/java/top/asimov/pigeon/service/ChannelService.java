@@ -18,8 +18,9 @@ import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.ChannelSource;
 import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
-import top.asimov.pigeon.event.HistoryDownloadEvent;
-import top.asimov.pigeon.event.InitDownloadEvent;
+import top.asimov.pigeon.event.DownloadTaskEvent;
+import top.asimov.pigeon.event.DownloadTaskEvent.DownloadAction;
+import top.asimov.pigeon.event.DownloadTaskEvent.DownloadTargetType;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.model.Channel;
@@ -177,8 +178,12 @@ public class ChannelService {
         downloadHistory = true; // 下载历史视频
         downloadNumber = newInitialEpisodes - oldInitialEpisodes; // 下载视频数量
         // 发布异步下载历史视频事件
-        HistoryDownloadEvent event = new HistoryDownloadEvent(
-            this, channelId, downloadNumber,
+        DownloadTaskEvent event = new DownloadTaskEvent(
+            this,
+            DownloadTargetType.CHANNEL,
+            DownloadAction.HISTORY,
+            channelId,
+            downloadNumber,
             existingChannel.getContainKeywords(),
             existingChannel.getExcludeKeywords(),
             existingChannel.getMinimumDuration());
@@ -301,8 +306,12 @@ public class ChannelService {
     channelMapper.insert(channel);
 
     // 发布异步下载事件
-    InitDownloadEvent event = new InitDownloadEvent(
-        this, channelId, initialEpisodes,
+    DownloadTaskEvent event = new DownloadTaskEvent(
+        this,
+        DownloadTargetType.CHANNEL,
+        DownloadAction.INIT,
+        channelId,
+        initialEpisodes,
         containKeywords,
         excludeKeywords,
         minimumDuration);

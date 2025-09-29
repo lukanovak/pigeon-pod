@@ -31,6 +31,17 @@ public interface EpisodeMapper extends BaseMapper<Episode> {
   @Update("update episode set download_status = #{downloadStatus} where id = #{id}")
   void updateDownloadStatus(String id, String downloadStatus);
 
-  @Select("select c.name from episode e join channel c  on c.id = e.channel_id where e.id = #{episodeId}")
+  @Select("SELECT COALESCE(c.name, p.title) FROM episode e "
+      + "LEFT JOIN channel c ON c.id = e.channel_id "
+      + "LEFT JOIN playlist_episode pe ON pe.episode_id = e.id "
+      + "LEFT JOIN playlist p ON p.id = pe.playlist_id "
+      + "WHERE e.id = #{episodeId} "
+      + "LIMIT 1")
   String getChannelNameByEpisodeId(String episodeId);
+
+  @Select("SELECT e.* FROM playlist_episode pe "
+      + "JOIN episode e ON pe.episode_id = e.id "
+      + "WHERE pe.playlist_id = #{playlistId} "
+      + "ORDER BY pe.published_at DESC")
+  java.util.List<Episode> selectEpisodesByPlaylistId(String playlistId);
 }
