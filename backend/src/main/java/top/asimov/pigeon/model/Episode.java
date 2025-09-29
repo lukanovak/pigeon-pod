@@ -18,7 +18,6 @@ public class Episode {
     @TableId
     private String id;
     private String channelId;
-    private Integer position;
     private String title;
     private String description;
     private LocalDateTime publishedAt;

@@ -273,84 +273,105 @@ public class ChannelService {
       channel.setInitialEpisodes(initialEpisodes);
     }
 
-    String channelId = channel.getId();
     boolean isAsyncMode = initialEpisodes > ASYNC_FETCH_NUM; // 超过10个视频时使用异步模式
 
+    if (isAsyncMode) {
+      return saveChannelAsync(channel);
+    } else {
+      return saveChannelSync(channel);
+    }
+  }
+
+  /**
+   * 异步模式保存频道：先保存频道基本信息，然后异步处理视频获取
+   *
+   * @param channel 要保存的频道信息
+   * @return 包含频道信息和异步处理状态的Map对象
+   */
+  private Map<String, Object> saveChannelAsync(Channel channel) {
+    String channelId = channel.getId();
+    Integer initialEpisodes = channel.getInitialEpisodes();
     String containKeywords = channel.getContainKeywords();
     String excludeKeywords = channel.getExcludeKeywords();
     Integer minimumDuration = channel.getMinimumDuration();
 
-    if (isAsyncMode) {
-      // 异步模式：先保存频道基本信息，然后异步处理视频获取
-      log.info("频道 {} 设置的初始视频数量较多({}), 启用异步处理模式", channel.getName(),
-          initialEpisodes);
+    log.info("频道 {} 设置的初始视频数量较多({}), 启用异步处理模式", channel.getName(), initialEpisodes);
 
-      // 先保存频道基本信息
-      channelMapper.insert(channel);
+    // 先保存频道基本信息
+    channelMapper.insert(channel);
 
-      // 发布异步下载事件
-      InitDownloadEvent event = new InitDownloadEvent(
-          this, channelId, initialEpisodes,
-          containKeywords,
-          excludeKeywords,
-          minimumDuration);
-      eventPublisher.publishEvent(event);
+    // 发布异步下载事件
+    InitDownloadEvent event = new InitDownloadEvent(
+        this, channelId, initialEpisodes,
+        containKeywords,
+        excludeKeywords,
+        minimumDuration);
+    eventPublisher.publishEvent(event);
 
-      log.info("已发布频道异步下载事件，频道: {}, 初始视频数量: {}", channel.getName(),
-          initialEpisodes);
+    log.info("已发布频道异步下载事件，频道: {}, 初始视频数量: {}", channel.getName(), initialEpisodes);
 
-      // 返回异步处理状态
-      java.util.Map<String, Object> result = new java.util.HashMap<>();
-      result.put("channel", channel);
-      result.put("isAsync", true);
-      result.put("message", messageSource.getMessage("channel.async.processing",
-          new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
-      return result;
+    // 返回异步处理状态
+    Map<String, Object> result = new HashMap<>();
+    result.put("channel", channel);
+    result.put("isAsync", true);
+    result.put("message", messageSource.getMessage("channel.async.processing",
+        new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
+    return result;
+  }
 
-    } else {
-      // 同步模式：直接处理少量视频
-      log.info("频道 {} 设置的初始视频数量较少({}), 使用同步处理模式", channel.getName(),
-          initialEpisodes);
+  /**
+   * 同步模式保存频道：直接处理少量视频
+   *
+   * @param channel 要保存的频道信息
+   * @return 包含频道信息和同步处理状态的Map对象
+   */
+  private Map<String, Object> saveChannelSync(Channel channel) {
+    String channelId = channel.getId();
+    Integer initialEpisodes = channel.getInitialEpisodes();
+    String containKeywords = channel.getContainKeywords();
+    String excludeKeywords = channel.getExcludeKeywords();
+    Integer minimumDuration = channel.getMinimumDuration();
 
-      List<Episode> episodes = youtubeVideoHelper.fetchYoutubeChannelVideos(channelId,
-          initialEpisodes,
-          containKeywords, excludeKeywords, minimumDuration);
+    log.info("频道 {} 设置的初始视频数量较少({}), 使用同步处理模式", channel.getName(), initialEpisodes);
 
-      if (!episodes.isEmpty()) {
-        Episode latestEpisode = episodes.get(0);
-        for (Episode episode : episodes) {
-          // 找到publishDate最新的那个视频
-          if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
-            latestEpisode = episode;
-          }
+    List<Episode> episodes = youtubeVideoHelper.fetchYoutubeChannelVideos(channelId,
+        initialEpisodes,
+        containKeywords, excludeKeywords, minimumDuration);
+
+    if (!episodes.isEmpty()) {
+      Episode latestEpisode = episodes.get(0);
+      for (Episode episode : episodes) {
+        // 找到publishDate最新的那个视频
+        if (latestEpisode.getPublishedAt().isBefore(episode.getPublishedAt())) {
+          latestEpisode = episode;
         }
-
-        // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
-        channel.setLastSyncVideoId(latestEpisode.getId());
-        channel.setLastSyncTimestamp(LocalDateTime.now());
-        channelMapper.insert(channel);
-        episodeService.saveEpisodes(episodes);
-
-        // 发布事件通知有新视频下载
-        List<String> savedEpisodeIds = episodes.stream()
-            .map(Episode::getId)
-            .collect(Collectors.toList());
-        EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
-        eventPublisher.publishEvent(event);
-        log.info("发布 EpisodesCreatedEvent 事件，包含 {} 个 episode ID。", savedEpisodeIds.size());
-      } else {
-        // 没有找到视频，只保存频道信息
-        channelMapper.insert(channel);
       }
 
-      // 返回同步处理结果
-      java.util.Map<String, Object> result = new java.util.HashMap<>();
-      result.put("channel", channel);
-      result.put("isAsync", false);
-      result.put("message", messageSource.getMessage("channel.sync.completed",
-          new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
-      return result;
+      // 更新频道的 lastSyncVideoId 和 lastSyncTimestamp
+      channel.setLastSyncVideoId(latestEpisode.getId());
+      channel.setLastSyncTimestamp(LocalDateTime.now());
+      channelMapper.insert(channel);
+      episodeService.saveEpisodes(episodes);
+
+      // 发布事件通知有新视频下载
+      List<String> savedEpisodeIds = episodes.stream()
+          .map(Episode::getId)
+          .collect(Collectors.toList());
+      EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
+      eventPublisher.publishEvent(event);
+      log.info("发布 EpisodesCreatedEvent 事件，包含 {} 个 episode ID。", savedEpisodeIds.size());
+    } else {
+      // 没有找到视频，只保存频道信息
+      channelMapper.insert(channel);
     }
+
+    // 返回同步处理结果
+    Map<String, Object> result = new HashMap<>();
+    result.put("channel", channel);
+    result.put("isAsync", false);
+    result.put("message", messageSource.getMessage("channel.sync.completed",
+        new Object[]{initialEpisodes}, LocaleContextHolder.getLocale()));
+    return result;
   }
 
   /**
@@ -472,7 +493,7 @@ public class ChannelService {
           channelId, initialEpisodes, containKeywords, excludeKeywords, minimumDuration);
 
       if (episodes.isEmpty()) {
-        log.warn("频道 {} 没有获取到任何视频", channelId);
+        log.info("频道 {} 没有找到任何视频。", channelId);
         return;
       }
 
@@ -512,14 +533,9 @@ public class ChannelService {
   @Transactional
   public void processChannelDownloadHistoryAsync(String channelId, Integer episodesToDownload,
       String containKeywords, String excludeKeywords, Integer minimumDuration) {
-    Channel channel = channelMapper.selectById(channelId);
-    if (channel == null) {
-      throw new BusinessException(
-          messageSource.getMessage("channel.not.found", new Object[]{channelId},
-              LocaleContextHolder.getLocale()));
-    }
-    Episode earliestEpisode = episodeService.findEarliestEpisode(channel.getId());
+    Episode earliestEpisode = episodeService.findEarliestEpisode(channelId);
     LocalDateTime earliestTime = earliestEpisode.getPublishedAt().minusSeconds(1);
+    log.info("频道 {} 开始重新下载历史节目，准备下载 {} 个视频", channelId, episodesToDownload);
     try {
       // 获取频道指定时间之前指定数量的历史视频
       List<Episode> episodes = youtubeVideoHelper.fetchYoutubeChannelVideosBeforeDate(channelId,
@@ -527,7 +543,7 @@ public class ChannelService {
           containKeywords, excludeKeywords, minimumDuration);
 
       if (episodes.isEmpty()) {
-        log.warn("频道 {} 没有获取到任何视频", channel.getName());
+        log.info("频道 {} 没有找到任何历史视频。", channelId);
         return;
       }
 
@@ -541,10 +557,9 @@ public class ChannelService {
       EpisodesCreatedEvent event = new EpisodesCreatedEvent(this, savedEpisodeIds);
       eventPublisher.publishEvent(event);
 
-      log.info("频道 {} 开始重新下载历史节目，准备下载 {} 个视频", channel.getName(),
-          episodes.size());
+      log.info("频道 {} 开始重新下载历史节目，准备下载 {} 个视频", channelId, episodes.size());
     } catch (Exception e) {
-      log.error("频道 {} 重新下载历史节目失败: {}", channel.getName(), e.getMessage(), e);
+      log.error("频道 {} 重新下载历史节目失败: {}", channelId, e.getMessage(), e);
     }
   }
 
