@@ -1,12 +1,14 @@
 package top.asimov.pigeon.service.feed;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import top.asimov.pigeon.constant.FeedType;
 import top.asimov.pigeon.model.Channel;
+import top.asimov.pigeon.model.FeedConfigUpdateResult;
+import top.asimov.pigeon.model.FeedPack;
+import top.asimov.pigeon.model.FeedSaveResult;
 import top.asimov.pigeon.service.ChannelService;
 
 @Component
@@ -14,9 +16,9 @@ public class ChannelFeedHandler extends AbstractFeedHandler<Channel> {
 
   private final ChannelService channelService;
 
-  public ChannelFeedHandler(ChannelService channelService, ObjectMapper objectMapper,
+  public ChannelFeedHandler(ChannelService channelService, FeedFactory feedFactory,
       MessageSource messageSource) {
-    super(objectMapper, messageSource);
+    super(feedFactory, messageSource);
     this.channelService = channelService;
   }
 
@@ -41,27 +43,32 @@ public class ChannelFeedHandler extends AbstractFeedHandler<Channel> {
   }
 
   @Override
-  public Object updateConfig(String id, Map<String, Object> payload) {
-    return channelService.updateChannelConfig(id, convert(payload, Channel.class));
+  public FeedConfigUpdateResult updateConfig(String id, Map<String, Object> payload) {
+    return channelService.updateChannelConfig(id, buildFeed(payload));
   }
 
   @Override
-  public Object fetch(Map<String, ?> payload) {
+  public FeedPack<Channel> fetch(Map<String, ?> payload) {
     return channelService.fetchChannel(resolveSourceUrl(payload, "channelUrl"));
   }
 
   @Override
-  public Object preview(Map<String, Object> payload) {
-    return channelService.previewChannel(convert(payload, Channel.class));
+  public FeedPack<Channel> preview(Map<String, Object> payload) {
+    return channelService.previewChannel(buildFeed(payload));
   }
 
   @Override
-  public Object add(Map<String, Object> payload) {
-    return channelService.saveChannel(convert(payload, Channel.class));
+  public FeedSaveResult<Channel> add(Map<String, Object> payload) {
+    return channelService.saveChannel(buildFeed(payload));
   }
 
   @Override
   public void delete(String id) {
     channelService.deleteChannel(id);
+  }
+
+  @Override
+  protected Class<Channel> getFeedClass() {
+    return Channel.class;
   }
 }

@@ -1,5 +1,6 @@
 package top.asimov.pigeon.service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -13,6 +14,9 @@ import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.FeedType;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Feed;
+import top.asimov.pigeon.model.FeedConfigUpdateResult;
+import top.asimov.pigeon.model.FeedPack;
+import top.asimov.pigeon.model.FeedSaveResult;
 import top.asimov.pigeon.service.feed.FeedHandler;
 
 @Log4j2
@@ -45,22 +49,18 @@ public class FeedService {
     }
   }
 
-  public List<?> list(FeedType type) {
-    return resolveHandler(type).list();
-  }
-
-  public Map<String, List<?>> listAll() {
-    Map<String, List<?>> result = new LinkedHashMap<>();
+  public List<Feed> listAll() {
+    List<Feed> result = new ArrayList<>();
     for (FeedType type : FeedType.values()) {
       FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
       if (handler != null) {
-        result.put(type.name().toLowerCase(), handler.list());
+        result.addAll(handler.list());
       }
     }
     return result;
   }
 
-  public Object detail(FeedType type, String id) {
+  public Feed detail(FeedType type, String id) {
     return resolveHandler(type).detail(id);
   }
 
@@ -68,19 +68,19 @@ public class FeedService {
     return resolveHandler(type).getSubscribeUrl(id);
   }
 
-  public Object updateConfig(FeedType type, String id, Map<String, Object> payload) {
+  public FeedConfigUpdateResult updateConfig(FeedType type, String id, Map<String, Object> payload) {
     return resolveHandler(type).updateConfig(id, payload);
   }
 
-  public Object fetch(FeedType type, Map<String, ?> request) {
+  public FeedPack<? extends Feed> fetch(FeedType type, Map<String, ?> request) {
     return resolveHandler(type).fetch(request);
   }
 
-  public Object preview(FeedType type, Map<String, Object> payload) {
+  public FeedPack<? extends Feed> preview(FeedType type, Map<String, Object> payload) {
     return resolveHandler(type).preview(payload);
   }
 
-  public Object add(FeedType type, Map<String, Object> payload) {
+  public FeedSaveResult<? extends Feed> add(FeedType type, Map<String, Object> payload) {
     return resolveHandler(type).add(payload);
   }
 
@@ -88,13 +88,15 @@ public class FeedService {
     resolveHandler(type).delete(id);
   }
 
-  private FeedHandler<? extends Feed> resolveHandler(FeedType type) {
+  private <T extends Feed> FeedHandler<T> resolveHandler(FeedType type) {
     FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
     if (handler == null) {
       throw new BusinessException(messageSource
           .getMessage("feed.type.invalid", new Object[]{type.name()},
               LocaleContextHolder.getLocale()));
     }
-    return handler;
+    @SuppressWarnings("unchecked")
+    FeedHandler<T> typedHandler = (FeedHandler<T>) handler;
+    return typedHandler;
   }
 }

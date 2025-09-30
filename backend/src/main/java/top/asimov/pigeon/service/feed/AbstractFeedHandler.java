@@ -1,6 +1,5 @@
 package top.asimov.pigeon.service.feed;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -10,20 +9,21 @@ import top.asimov.pigeon.model.Feed;
 
 public abstract class AbstractFeedHandler<T extends Feed> implements FeedHandler<T> {
 
-  private final ObjectMapper objectMapper;
   private final MessageSource messageSource;
+  private final FeedFactory feedFactory;
 
-  protected AbstractFeedHandler(ObjectMapper objectMapper, MessageSource messageSource) {
-    this.objectMapper = objectMapper;
+  protected AbstractFeedHandler(FeedFactory feedFactory, MessageSource messageSource) {
+    this.feedFactory = feedFactory;
     this.messageSource = messageSource;
+    this.feedFactory.register(getType(), getFeedClass());
   }
 
   protected MessageSource getMessageSource() {
     return messageSource;
   }
 
-  protected <R> R convert(Map<String, Object> payload, Class<R> targetType) {
-    return objectMapper.convertValue(payload, targetType);
+  protected T buildFeed(Map<String, Object> payload) {
+    return feedFactory.create(getType(), payload);
   }
 
   protected String resolveSourceUrl(Map<String, ?> request, String fallbackKey) {
@@ -44,4 +44,6 @@ public abstract class AbstractFeedHandler<T extends Feed> implements FeedHandler
   private String asText(Object value) {
     return value instanceof String ? (String) value : null;
   }
+
+  protected abstract Class<T> getFeedClass();
 }

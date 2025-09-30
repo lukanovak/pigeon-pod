@@ -50,7 +50,7 @@ const ACTIVE_STATUSES = ['PENDING', 'QUEUED', 'DOWNLOADING'];
 const ChannelDetail = () => {
   const { t } = useTranslation();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
-  const { channelId } = useParams();
+  const { type, feedId } = useParams();
   const navigate = useNavigate();
   const [channel, setChannel] = useState(null);
   const [originalInitialEpisodes, setOriginalInitialEpisodes] = useState(0);
@@ -88,7 +88,7 @@ const ChannelDetail = () => {
   );
 
   const fetchChannelDetail = useCallback(async () => {
-    const res = await API.get(`/api/channel/detail/${channelId}`);
+    const res = await API.get(`/api/feed/${type}/detail/${feedId}`);
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
@@ -96,7 +96,7 @@ const ChannelDetail = () => {
       setChannel(data);
       setOriginalInitialEpisodes(data.initialEpisodes);
     }
-  }, [channelId]);
+  }, [feedId]);
 
   const fetchEpisodes = useCallback(
     async (page = 1, isInitialLoad = false) => {
@@ -107,7 +107,7 @@ const ChannelDetail = () => {
       setLoadingEpisodes(true);
 
       try {
-        const res = await API.get(`/api/episode/list/${channelId}?page=${page}&size=10`);
+        const res = await API.get(`/api/episode/list/${feedId}?page=${page}&size=10`);
         const { code, msg, data } = res.data;
 
         if (code !== 200) {
@@ -136,7 +136,7 @@ const ChannelDetail = () => {
         setLoadingEpisodes(false);
       }
     },
-    [channelId], // Remove loadingEpisodes dependency
+    [feedId], // Remove loadingEpisodes dependency
   );
 
   useEffect(() => {
@@ -161,7 +161,7 @@ const ChannelDetail = () => {
 
   // Update channel config
   const updateChannelConfig = async () => {
-    const res = await API.put(`/api/channel/config/${channelId}`, channel);
+    const res = await API.put(`/api/feed/${type}/config/${feedId}`, channel);
     const { code, msg, data } = res.data;
 
     if (code !== 200) {
@@ -178,7 +178,7 @@ const ChannelDetail = () => {
   };
 
   const deleteChannel = async () => {
-    const response = await API.delete(`/api/channel/delete/${channelId}`);
+    const response = await API.delete(`/api/feed/${type}/delete/${feedId}`);
     const { code, msg } = response.data;
 
     if (code !== 200) {
@@ -194,7 +194,7 @@ const ChannelDetail = () => {
 
   const handleSubscribe = async () => {
     try {
-      const response = await API.get(`/api/channel/subscribe/${channel.id}`);
+      const response = await API.get(`/api/feed/${type}/subscribe/${channel.id}`);
       const { code, msg, data } = response.data;
 
       if (code !== 200) {
@@ -360,12 +360,12 @@ const ChannelDetail = () => {
           <Grid.Col span={{ base: 4, sm: 3 }}>
             <Center>
               <Avatar
-                src={channel.avatarUrl}
-                alt={channel.name}
+                src={channel.coverUrl}
+                alt={channel.title}
                 size={isSmallScreen ? 100 : 180}
                 radius="md"
                 component="a"
-                href={channel.channelUrl}
+                href={channel.originalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ cursor: 'pointer' }}
@@ -379,12 +379,12 @@ const ChannelDetail = () => {
               <Title
                 order={isSmallScreen ? 3 : 2}
                 component="a"
-                href={channel.channelUrl}
+                href={channel.originalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
               >
-                {channel.name}
+                {channel.title}
               </Title>
             </Group>
 

@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaylistPack {
+public class FeedPack<T extends Feed> {
 
-  private Playlist playlist;
+  private T feed;
   private List<Episode> episodes;
 }
-

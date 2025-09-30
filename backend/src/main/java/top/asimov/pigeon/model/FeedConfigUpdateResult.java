@@ -1,6 +1,5 @@
 package top.asimov.pigeon.model;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,9 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChannelPack {
+public class FeedConfigUpdateResult {
 
-  Channel channel;
-  List<Episode> episodes;
-
+  private boolean downloadHistory;
+  private int downloadNumber;
 }

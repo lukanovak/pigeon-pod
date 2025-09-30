@@ -1,5 +1,5 @@
 -- Step 1: Disable foreign key enforcement to allow dropping the original table.
-PRAGMA foreign_keys=off;
+-- PRAGMA foreign_keys=off;
 
 -- Step 2: Create the new table with the desired schema.
 CREATE TABLE episode_new
@@ -30,4 +30,4 @@ DROP TABLE episode;
 ALTER TABLE episode_new RENAME TO episode;
 
 -- Step 6: Re-enable foreign key enforcement for subsequent operations.
-PRAGMA foreign_keys=on;
+-- PRAGMA foreign_keys=on;

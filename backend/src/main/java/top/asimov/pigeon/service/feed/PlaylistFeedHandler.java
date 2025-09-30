@@ -1,11 +1,13 @@
 package top.asimov.pigeon.service.feed;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import top.asimov.pigeon.constant.FeedType;
+import top.asimov.pigeon.model.FeedConfigUpdateResult;
+import top.asimov.pigeon.model.FeedPack;
+import top.asimov.pigeon.model.FeedSaveResult;
 import top.asimov.pigeon.model.Playlist;
 import top.asimov.pigeon.service.PlaylistService;
 
@@ -14,9 +16,9 @@ public class PlaylistFeedHandler extends AbstractFeedHandler<Playlist> {
 
   private final PlaylistService playlistService;
 
-  public PlaylistFeedHandler(PlaylistService playlistService, ObjectMapper objectMapper,
+  public PlaylistFeedHandler(PlaylistService playlistService, FeedFactory feedFactory,
       MessageSource messageSource) {
-    super(objectMapper, messageSource);
+    super(feedFactory, messageSource);
     this.playlistService = playlistService;
   }
 
@@ -41,27 +43,32 @@ public class PlaylistFeedHandler extends AbstractFeedHandler<Playlist> {
   }
 
   @Override
-  public Object updateConfig(String id, Map<String, Object> payload) {
-    return playlistService.updatePlaylistConfig(id, convert(payload, Playlist.class));
+  public FeedConfigUpdateResult updateConfig(String id, Map<String, Object> payload) {
+    return playlistService.updatePlaylistConfig(id, buildFeed(payload));
   }
 
   @Override
-  public Object fetch(Map<String, ?> payload) {
+  public FeedPack<Playlist> fetch(Map<String, ?> payload) {
     return playlistService.fetchPlaylist(resolveSourceUrl(payload, "playlistUrl"));
   }
 
   @Override
-  public Object preview(Map<String, Object> payload) {
-    return playlistService.previewPlaylist(convert(payload, Playlist.class));
+  public FeedPack<Playlist> preview(Map<String, Object> payload) {
+    return playlistService.previewPlaylist(buildFeed(payload));
   }
 
   @Override
-  public Object add(Map<String, Object> payload) {
-    return playlistService.savePlaylist(convert(payload, Playlist.class));
+  public FeedSaveResult<Playlist> add(Map<String, Object> payload) {
+    return playlistService.savePlaylist(buildFeed(payload));
   }
 
   @Override
   public void delete(String id) {
     playlistService.deletePlaylist(id);
+  }
+
+  @Override
+  protected Class<Playlist> getFeedClass() {
+    return Playlist.class;
   }
 }

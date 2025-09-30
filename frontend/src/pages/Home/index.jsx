@@ -41,23 +41,23 @@ const Home = () => {
   const [addChannelLoading, setAddChannelLoading] = useState(false);
   const [channel, setChannel] = useState([]);
   const [episodes, setEpisodes] = useState([]);
-  const [channels, setChannels] = useState([]);
+  const [feeds, setFeeds] = useState([]);
   const [preview, setPreview] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
 
-  const fetchChannels = async () => {
-    const res = await API.get('/api/channel/list');
+  const fetchFeeds = async () => {
+    const res = await API.get('/api/feed/list');
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
       return;
     }
-    setChannels(data);
+    setFeeds(data);
   };
 
-  const goToChannelDetail = (channelId) => {
-    navigate(`/channel/${channelId}`);
+  const goToChannelDetail = (type, channelId) => {
+    navigate(`/${type}/${channelId}`);
   };
 
   const fetchChannel = async () => {
@@ -97,8 +97,8 @@ const Home = () => {
 
     showSuccess(data.message);
 
-    // Add the new channel at the beginning of the channels list
-    setChannels((prevChannels) => [data.channel, ...prevChannels]);
+    // Add the new channel at the beginning of the feeds list
+    setFeeds((prevChannels) => [data.channel, ...prevChannels]);
 
     setAddChannelLoading(false);
     close();
@@ -123,7 +123,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchChannels().then();
+    fetchFeeds().then();
   }, []);
 
   return (
@@ -132,7 +132,7 @@ const Home = () => {
       <Group pos="relative" wrap="wrap" gap="sm">
         <Input
           leftSection={<IconSearch size={16} />}
-          placeholder={t('enter_youtube_channel_url')}
+          placeholder={t('enter_feed_source_url')}
           name="channelUrl"
           value={channelUrl}
           onChange={(e) => setChannelUrl(decodeURIComponent(e.target.value))}
@@ -150,20 +150,20 @@ const Home = () => {
       </Group>
 
       <Grid mt={isSmallScreen ? 'md' : 'lg'}>
-        {channels.length > 0 ? (
-          channels.map((channel) => (
-            <Grid.Col key={channel.id} span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}>
+        {feeds.length > 0 ? (
+          feeds.map((feed) => (
+            <Grid.Col key={feed.id} span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}>
               <Card
                 shadow="sm"
                 padding="sm"
                 radius="sm"
-                onClick={() => goToChannelDetail(channel.id)}
+                onClick={() => goToChannelDetail(feed.type, feed.id)}
                 style={{ cursor: 'pointer' }}
               >
                 <Card.Section>
                   <Image
-                    src={channel.avatarUrl}
-                    alt={channel.name}
+                    src={feed.coverUrl}
+                    alt={feed.name}
                     height={isSmallScreen ? 140 : 160}
                     w="100%"
                     fit="cover"
@@ -180,10 +180,10 @@ const Home = () => {
                     display: 'block',
                   }}
                 >
-                  {channel.name}
+                  {feed.title}
                 </Text>
                 <Text c="dimmed" size="xs">
-                  {new Date(channel.lastPublishedAt).toLocaleDateString()} {t('updated')}
+                  {new Date(feed.lastPublishedAt).toLocaleDateString()} {t('updated')}
                 </Text>
               </Card>
             </Grid.Col>
@@ -191,7 +191,7 @@ const Home = () => {
         ) : (
           <Grid.Col span={12}>
             <Text align="center" c="dimmed" size="lg">
-              {t('no_channels_available')}
+              {t('no_feeds_available')}
             </Text>
           </Grid.Col>
         )}
