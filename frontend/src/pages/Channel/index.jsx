@@ -47,12 +47,12 @@ import './episode-image.css';
 // 需要跟踪状态变化的节目状态常量（移到组件外部避免重复创建）
 const ACTIVE_STATUSES = ['PENDING', 'QUEUED', 'DOWNLOADING'];
 
-const ChannelDetail = () => {
+const FeedDetail = () => {
   const { t } = useTranslation();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
   const { type, feedId } = useParams();
   const navigate = useNavigate();
-  const [channel, setChannel] = useState(null);
+  const [feed, setFeed] = useState(null);
   const [originalInitialEpisodes, setOriginalInitialEpisodes] = useState(0);
   const [episodes, setEpisodes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,8 +61,8 @@ const ChannelDetail = () => {
   const observerRef = useRef();
   const loadingRef = useRef(false); // Use ref to track loading state without causing re-renders
   const [
-    confirmDeleteChannelOpened,
-    { open: openConfirmDeleteChannel, close: closeConfirmDeleteChannel },
+    confirmDeleteFeedOpened,
+    { open: openConfirmDeleteFeed, close: closeConfirmDeleteFeed },
   ] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
@@ -87,16 +87,16 @@ const ChannelDetail = () => {
     [hasMoreEpisodes],
   );
 
-  const fetchChannelDetail = useCallback(async () => {
+  const fetchFeedDetail = useCallback(async () => {
     const res = await API.get(`/api/feed/${type}/detail/${feedId}`);
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
     } else {
-      setChannel(data);
+      setFeed(data);
       setOriginalInitialEpisodes(data.initialEpisodes);
     }
-  }, [feedId]);
+  }, [feedId, type]);
 
   const fetchEpisodes = useCallback(
     async (page = 1, isInitialLoad = false) => {
@@ -140,9 +140,9 @@ const ChannelDetail = () => {
   );
 
   useEffect(() => {
-    fetchChannelDetail();
+    fetchFeedDetail();
     fetchEpisodes(1, true); // Initial load
-  }, [fetchChannelDetail, fetchEpisodes]);
+  }, [fetchFeedDetail, fetchEpisodes]);
 
   useEffect(() => {
     if (currentPage > 1) {
@@ -159,9 +159,9 @@ const ChannelDetail = () => {
     };
   }, [refreshTimer]);
 
-  // Update channel config
-  const updateChannelConfig = async () => {
-    const res = await API.put(`/api/feed/${type}/config/${feedId}`, channel);
+  // Update feed config
+  const updateFeedConfig = async () => {
+    const res = await API.put(`/api/feed/${type}/config/${feedId}`, feed);
     const { code, msg, data } = res.data;
 
     if (code !== 200) {
@@ -177,7 +177,7 @@ const ChannelDetail = () => {
     closeEditConfig();
   };
 
-  const deleteChannel = async () => {
+  const deleteFeed = async () => {
     const response = await API.delete(`/api/feed/${type}/delete/${feedId}`);
     const { code, msg } = response.data;
 
@@ -188,13 +188,16 @@ const ChannelDetail = () => {
 
     showSuccess(t('channel_deleted_success'));
 
-    // Navigate back to the channels list page
+    // Navigate back to the feeds list page
     navigate('/');
   };
 
   const handleSubscribe = async () => {
+    if (!feed) {
+      return;
+    }
     try {
-      const response = await API.get(`/api/feed/${type}/subscribe/${channel.id}`);
+      const response = await API.get(`/api/feed/${type}/subscribe/${feed.id}`);
       const { code, msg, data } = response.data;
 
       if (code !== 200) {
@@ -341,7 +344,7 @@ const ChannelDetail = () => {
     setCurrentPage(1); // 重置分页
   };
 
-  if (!channel) {
+  if (!feed) {
     return (
       <Container>
         <Center h={400}>
@@ -353,19 +356,19 @@ const ChannelDetail = () => {
 
   return (
     <Container size="xl" py={isSmallScreen ? 'md' : 'xl'}>
-      {/* Channel Header Section */}
+      {/* Feed Header Section */}
       <Paper withBorder radius="md" mb="lg" p={{ base: 'xs', md: 'md', lg: 'lg' }}>
         <Grid>
           {/* Left column with avatar */}
           <Grid.Col span={{ base: 4, sm: 3 }}>
             <Center>
               <Avatar
-                src={channel.coverUrl}
-                alt={channel.title}
+                src={feed.coverUrl}
+                alt={feed.title}
                 size={isSmallScreen ? 100 : 180}
                 radius="md"
                 component="a"
-                href={channel.originalUrl}
+                href={feed.originalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ cursor: 'pointer' }}
@@ -373,18 +376,18 @@ const ChannelDetail = () => {
             </Center>
           </Grid.Col>
 
-          {/* Right column with channel details */}
+          {/* Right column with feed details */}
           <Grid.Col span={{ base: 8, sm: 9 }}>
             <Group mb={isSmallScreen ? '0' : 'sm'}>
               <Title
                 order={isSmallScreen ? 3 : 2}
                 component="a"
-                href={channel.originalUrl}
+                href={feed.originalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
               >
-                {channel.title}
+                {feed.title}
               </Title>
             </Group>
 
@@ -393,7 +396,7 @@ const ChannelDetail = () => {
               lineClamp={isSmallScreen ? 2 : 4}
               style={{ minHeight: isSmallScreen ? '2rem' : '4rem' }}
             >
-              {channel.description ? channel.description : t('no_description_available')}
+              {feed.description ? feed.description : t('no_description_available')}
             </Text>
 
             <Flex visibleFrom={'xs'} gap="md" align="flex-center" mt="lg">
@@ -416,7 +419,7 @@ const ChannelDetail = () => {
                 size="xs"
                 color="pink"
                 leftSection={<IconBackspace size={16} />}
-                onClick={openConfirmDeleteChannel}
+                onClick={openConfirmDeleteFeed}
               >
                 {t('delete')}
               </Button>
@@ -444,7 +447,7 @@ const ChannelDetail = () => {
             size="xs"
             color="pink"
             leftSection={<IconBackspace size={14} />}
-            onClick={openConfirmDeleteChannel}
+            onClick={openConfirmDeleteFeed}
           >
             {t('delete')}
           </Button>
@@ -640,8 +643,8 @@ const ChannelDetail = () => {
 
       {/* Delete Channel Confirmation Modal */}
       <Modal
-        opened={confirmDeleteChannelOpened}
-        onClose={closeConfirmDeleteChannel}
+        opened={confirmDeleteFeedOpened}
+        onClose={closeConfirmDeleteFeed}
         title={t('confirm_delete_channel')}
       >
         <Text fw={500}>{t('confirm_delete_channel_tip')}</Text>
@@ -649,7 +652,7 @@ const ChannelDetail = () => {
           <Button
             color="red"
             onClick={() => {
-              deleteChannel().then(closeConfirmDeleteChannel);
+              deleteFeed().then(closeConfirmDeleteFeed);
             }}
           >
             {t('confirm')}
@@ -669,41 +672,41 @@ const ChannelDetail = () => {
             label={t('title_contain_keywords')}
             name="containKeywords"
             placeholder={t('multiple_keywords_space_separated')}
-            value={channel.containKeywords}
-            onChange={(event) => setChannel({ ...channel, containKeywords: event.target.value })}
+            value={feed?.containKeywords}
+            onChange={(event) => setFeed({ ...feed, containKeywords: event.target.value })}
           />
           <TextInput
             label={t('title_exclude_keywords')}
             name="excludeKeywords"
             placeholder={t('multiple_keywords_space_separated')}
-            value={channel.excludeKeywords}
-            onChange={(event) => setChannel({ ...channel, excludeKeywords: event.target.value })}
+            value={feed?.excludeKeywords}
+            onChange={(event) => setFeed({ ...feed, excludeKeywords: event.target.value })}
           />
           <NumberInput
             label={t('minimum_duration_minutes')}
             name="minimumDuration"
             placeholder="0"
-            value={channel.minimumDuration}
-            onChange={(value) => setChannel({ ...channel, minimumDuration: value })}
+            value={feed?.minimumDuration}
+            onChange={(value) => setFeed({ ...feed, minimumDuration: value })}
           />
           <NumberInput
             label={t('initial_episodes_channel')}
             name="initialEpisodes"
             placeholder={t('3')}
-            value={channel.initialEpisodes}
+            value={feed?.initialEpisodes}
             min={originalInitialEpisodes}
             clampBehavior="strict"
-            onChange={(value) => setChannel({ ...channel, initialEpisodes: value })}
+            onChange={(value) => setFeed({ ...feed, initialEpisodes: value })}
           />
           <NumberInput
             label={t('maximum_episodes')}
             name="maximumEpisodes"
             placeholder={t('unlimited')}
-            value={channel.maximumEpisodes}
-            onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
+            value={feed?.maximumEpisodes}
+            onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
           />
           <Group mt="md" justify="flex-end">
-            <Button variant="filled" onClick={updateChannelConfig}>
+            <Button variant="filled" onClick={updateFeedConfig}>
               {t('save_changes')}
             </Button>
           </Group>
@@ -721,4 +724,4 @@ const ChannelDetail = () => {
   );
 };
 
-export default ChannelDetail;
+export default FeedDetail;

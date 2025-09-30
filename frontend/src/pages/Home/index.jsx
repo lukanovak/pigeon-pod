@@ -24,6 +24,7 @@ import {
   Paper,
   TextInput,
   NumberInput,
+  Badge,
 } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { IconCheck, IconClock, IconSearch, IconSettings } from '@tabler/icons-react';
@@ -35,11 +36,11 @@ const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
-  const [channelUrl, setChannelUrl] = useState('');
-  const [fetchChannelLoading, setFetchChannelLoading] = useState(false);
-  const [filerLoading, setFilterLoading] = useState(false);
-  const [addChannelLoading, setAddChannelLoading] = useState(false);
-  const [channel, setChannel] = useState([]);
+  const [feedSource, setFeedSource] = useState('');
+  const [fetchFeedLoading, setFetchFeedLoading] = useState(false);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [addFeedLoading, setAddFeedLoading] = useState(false);
+  const [feed, setFeed] = useState({});
   const [episodes, setEpisodes] = useState([]);
   const [feeds, setFeeds] = useState([]);
   const [preview, setPreview] = useState(false);
@@ -56,68 +57,73 @@ const Home = () => {
     setFeeds(data);
   };
 
-  const goToChannelDetail = (type, channelId) => {
-    navigate(`/${type}/${channelId}`);
+  const goToFeedDetail = (type, feedId) => {
+    const normalizedType = String(type || 'CHANNEL').toLowerCase();
+    navigate(`/${normalizedType}/${feedId}`);
   };
 
-  const fetchChannel = async () => {
-    if (!channelUrl) {
-      showError(t('please_enter_valid_youtube_url'));
+  const fetchFeed = async () => {
+    if (!feedSource) {
+      showError(t('please_enter_valid_feed_url'));
       return;
     }
-    setFetchChannelLoading(true);
-    const res = await API.post('/api/channel/fetch', {
-      channelUrl: channelUrl.trim()
+    setFetchFeedLoading(true);
+    const res = await API.post('/api/feed/fetch', {
+      source: feedSource.trim(),
     });
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
-      setFetchChannelLoading(false);
+      setFetchFeedLoading(false);
       return;
     }
 
     open();
 
-    setChannel(data.channel);
-    setEpisodes(data.episodes);
+    setFeed(data.feed);
+    setEpisodes(data.episodes || []);
 
-    setFetchChannelLoading(false);
-    setChannelUrl(''); // Clear the input field after successful addition
+    setFetchFeedLoading(false);
+    setFeedSource(''); // Clear the input field after successful addition
   };
 
-  const addChannel = async () => {
-    setAddChannelLoading(true);
-    const res = await API.post('/api/channel/add', channel);
+  const addFeed = async () => {
+    const currentType = String(feed?.type || 'CHANNEL').toLowerCase();
+    setAddFeedLoading(true);
+    const res = await API.post(`/api/feed/${currentType}/add`, feed);
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
-      setAddChannelLoading(false);
+      setAddFeedLoading(false);
       return;
     }
 
     showSuccess(data.message);
 
-    // Add the new channel at the beginning of the feeds list
-    setFeeds((prevChannels) => [data.channel, ...prevChannels]);
+    // Add the new feed at the beginning of the feeds list
+    setFeeds((prevFeeds) => [data.feed, ...prevFeeds]);
+    setFeed(data.feed);
 
-    setAddChannelLoading(false);
+    setAddFeedLoading(false);
     close();
   };
 
-  const filterChannel = async () => {
+  const previewFeed = async () => {
     if (!preview) {
       closeEditConfig();
       return;
     }
     setFilterLoading(true);
-    const res = await API.post('/api/channel/preview', channel);
+    const currentType = String(feed?.type || 'CHANNEL').toLowerCase();
+    const res = await API.post(`/api/feed/${currentType}/preview`, feed);
     const { code, msg, data } = res.data;
     if (code !== 200) {
       showError(msg);
       setFilterLoading(false);
       return;
     }
-    setEpisodes(data);
+    setFeed(data.feed || feed);
+    setEpisodes(data.episodes || []);
     setFilterLoading(false);
     closeEditConfig();
   };
@@ -133,42 +139,63 @@ const Home = () => {
         <Input
           leftSection={<IconSearch size={16} />}
           placeholder={t('enter_feed_source_url')}
-          name="channelUrl"
-          value={channelUrl}
-          onChange={(e) => setChannelUrl(decodeURIComponent(e.target.value))}
+          name="feedSource"
+          value={feedSource}
+          onChange={(e) => setFeedSource(decodeURIComponent(e.target.value))}
           style={{ flex: 1, minWidth: isSmallScreen ? '100%' : 0 }}
         />
         <Button
-          onClick={fetchChannel}
-          loading={fetchChannelLoading}
+          onClick={fetchFeed}
+          loading={fetchFeedLoading}
           variant="gradient"
           gradient={{ from: '#ae2140', to: '#f28b96', deg: 10 }}
           fullWidth={isSmallScreen}
         >
-          {t('new_channel')}
+          {t('new_feed')}
         </Button>
       </Group>
 
       <Grid mt={isSmallScreen ? 'md' : 'lg'}>
         {feeds.length > 0 ? (
-          feeds.map((feed) => (
-            <Grid.Col key={feed.id} span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}>
-              <Card
-                shadow="sm"
-                padding="sm"
-                radius="sm"
-                onClick={() => goToChannelDetail(feed.type, feed.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Card.Section>
-                  <Image
-                    src={feed.coverUrl}
-                    alt={feed.name}
-                    height={isSmallScreen ? 140 : 160}
-                    w="100%"
-                    fit="cover"
-                  />
-                </Card.Section>
+          feeds.map((feed) => {
+            const feedTypeKey = feed?.type
+              ? `feed_type_${String(feed.type).toLowerCase()}`
+              : 'feed_type_channel';
+            const feedTypeLabel = t(feedTypeKey);
+            const isPlaylist = feed?.type && String(feed.type).toLowerCase() === 'playlist';
+            const badgeGradient = isPlaylist
+              ? { from: '#2563eb', to: '#0ea5e9', deg: 90 }
+              : { from: '#f97316', to: '#f43f5e', deg: 90 };
+
+            return (
+              <Grid.Col key={feed.id} span={{ base: 6, xs: 4, sm: 3, md: 2, lg: 2, xl: 2 }}>
+                <Card
+                  shadow="sm"
+                  padding="sm"
+                  radius="sm"
+                  onClick={() => goToFeedDetail(feed.type, feed.id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Card.Section>
+                    <Box pos="relative">
+                      <Image
+                        src={feed.coverUrl}
+                        alt={feed.name}
+                        height={isSmallScreen ? 140 : 160}
+                        w="100%"
+                        fit="cover"
+                      />
+                      <Badge
+                        variant="gradient"
+                        gradient={badgeGradient}
+                        size="sm"
+                        radius="sm"
+                        style={{ position: 'absolute', bottom: 5, right: 5, opacity: 0.9 }}
+                      >
+                        {feedTypeLabel}
+                      </Badge>
+                    </Box>
+                  </Card.Section>
                 <Text
                   fw={500}
                   mt="sm"
@@ -186,8 +213,9 @@ const Home = () => {
                   {new Date(feed.lastPublishedAt).toLocaleDateString()} {t('updated')}
                 </Text>
               </Card>
-            </Grid.Col>
-          ))
+              </Grid.Col>
+            );
+          })
         ) : (
           <Grid.Col span={12}>
             <Text align="center" c="dimmed" size="lg">
@@ -210,37 +238,41 @@ const Home = () => {
             <Grid>
               <Grid.Col span={{ base: 12, sm: 3 }}>
                 <Center>
-                  <Avatar src={channel.avatarUrl} alt={channel.name} size={125} radius="md" />
+                  <Avatar src={feed.coverUrl} alt={feed.title} size={125} radius="md" />
                 </Center>
               </Grid.Col>
               <Grid.Col span={{ base: 12, sm: 9 }}>
-                <Stack>
-                  <Box>
-                    <Group wrap="wrap" gap="xs">
-                      <Title order={isSmallScreen ? 3 : 2}>
-                        {channel.name ? channel.name : t('no_channel_name_available')}
+                <Stack gap="xs">
+                    <Group wrap="no-wrap">
+                      <Title order={isSmallScreen ? 3 : 2} style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}>
+                        {feed.title ? feed.title : t('no_feed_title_available')}
                       </Title>
-                      <Button
-                        size={isSmallScreen ? 'compact-xs' : 'xs'}
-                        color="orange"
-                        leftSection={<IconSettings size={16} />}
-                        onClick={openEditConfig}
-                      >
-                        {t('config')}
-                      </Button>
-                      <Button
-                        size={isSmallScreen ? 'compact-xs' : 'xs'}
-                        loading={addChannelLoading}
-                        onClick={addChannel}
-                        leftSection={<IconCheck size={16} />}
-                      >
-                        {t('confirm')}
-                      </Button>
                     </Group>
-                    <Text mt="xs" size="sm" lineClamp={isSmallScreen ? 3 : 4}>
-                      {channel.description ? channel.description : t('no_description_available')}
+                  <Group>
+                    <Button
+                      size={isSmallScreen ? 'compact-xs' : 'xs'}
+                      color="orange"
+                      leftSection={<IconSettings size={16} />}
+                      onClick={openEditConfig}
+                    >
+                      {t('config')}
+                    </Button>
+                    <Button
+                      size={isSmallScreen ? 'compact-xs' : 'xs'}
+                      loading={addFeedLoading}
+                      onClick={addFeed}
+                      leftSection={<IconCheck size={16} />}
+                    >
+                      {t('confirm')}
+                    </Button>
+                  </Group>
+                    <Text size="sm" lineClamp={2}>
+                      {feed.description ? feed.description : t('no_description_available')}
                     </Text>
-                  </Box>
                 </Stack>
               </Grid.Col>
             </Grid>
@@ -315,11 +347,11 @@ const Home = () => {
           </Box>
         </Stack>
       </Modal>
-      {/* Edit Channel Configuration Modal */}
+      {/* Edit Feed Configuration Modal */}
       <Modal
         opened={editConfigOpened}
         onClose={closeEditConfig}
-        title={t('edit_channel_configuration')}
+        title={t('edit_feed_configuration')}
         size={isSmallScreen ? '100%' : 'md'}
         fullScreen={isSmallScreen}
       >
@@ -328,9 +360,9 @@ const Home = () => {
             label={t('title_contain_keywords')}
             name="containKeywords"
             placeholder={t('multiple_keywords_space_separated')}
-            value={channel.containKeywords}
+            value={feed.containKeywords}
             onChange={(event) => {
-              setChannel({ ...channel, containKeywords: event.target.value });
+              setFeed({ ...feed, containKeywords: event.target.value });
               setPreview(true);
             }}
           />
@@ -338,9 +370,9 @@ const Home = () => {
             label={t('title_exclude_keywords')}
             name="excludeKeywords"
             placeholder={t('multiple_keywords_space_separated')}
-            value={channel.excludeKeywords}
+            value={feed.excludeKeywords}
             onChange={(event) => {
-              setChannel({ ...channel, excludeKeywords: event.target.value });
+              setFeed({ ...feed, excludeKeywords: event.target.value });
               setPreview(true);
             }}
           />
@@ -348,9 +380,9 @@ const Home = () => {
             label={t('minimum_duration_minutes')}
             name="minimumDuration"
             placeholder="0"
-            value={channel.minimumDuration}
+            value={feed.minimumDuration}
             onChange={(value) => {
-              setChannel({ ...channel, minimumDuration: value });
+              setFeed({ ...feed, minimumDuration: value });
               setPreview(true);
             }}
           />
@@ -358,21 +390,21 @@ const Home = () => {
             label={t('initial_episodes')}
             name="initialEpisodes"
             placeholder={t('3')}
-            value={channel.initialEpisodes}
-            onChange={(value) => setChannel({ ...channel, initialEpisodes: value })}
+            value={feed.initialEpisodes}
+            onChange={(value) => setFeed({ ...feed, initialEpisodes: value })}
           />
           <NumberInput
             label={t('maximum_episodes')}
             name="maximumEpisodes"
             placeholder={t('unlimited')}
-            value={channel.maximumEpisodes}
-            onChange={(value) => setChannel({ ...channel, maximumEpisodes: value })}
+            value={feed.maximumEpisodes}
+            onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
           />
           <Group mt="md" justify={isSmallScreen ? 'stretch' : 'flex-end'}>
             <Button
               variant="filled"
-              loading={filerLoading}
-              onClick={filterChannel}
+              loading={filterLoading}
+              onClick={previewFeed}
               fullWidth={isSmallScreen}
             >
               {t('confirm')}

@@ -41,7 +41,7 @@
   "new_username": "새 사용자명",
   "username_changed_success": "사용자명이 변경되었습니다!",
   "enter_youtube_channel_url": "YouTube 채널 URL 또는 채널 ID를 입력하세요. 예: https://www.youtube.com/@xxxx 또는 UCUGLols3-2y_rJZZsgRzray",
-  "enter_feed_source_url": "피드 URL 또는 ID를 입력하세요(채널 또는 재생목록)",
+  "enter_feed_source_url": "피드 URL 또는 ID를 입력하세요(Youtube 채널 또는 재생목록)",
   "new_channel": "새 채널",
   "new_feed": "새 피드",
   "updated": "업데이트됨",

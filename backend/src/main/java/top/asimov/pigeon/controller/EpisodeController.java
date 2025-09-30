@@ -26,11 +26,11 @@ public class EpisodeController {
     this.episodeService = episodeService;
   }
 
-  @GetMapping("/list/{channelId}")
-  public SaResult programsOfChannel(@PathVariable(name = "channelId") String channelId,
+  @GetMapping("/list/{feedId}")
+  public SaResult programsOfChannel(@PathVariable(name = "feedId") String feedId,
       @RequestParam(defaultValue = "1") Integer page,
       @RequestParam(defaultValue = "10") Integer size) {
-    Page<Episode> episodeList = episodeService.episodePage(channelId, new Page<>(page, size));
+    Page<Episode> episodeList = episodeService.episodePage(feedId, new Page<>(page, size));
     return SaResult.data(episodeList);
   }
 

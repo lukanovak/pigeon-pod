@@ -3,9 +3,9 @@ package top.asimov.pigeon.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -72,12 +72,68 @@ public class FeedService {
     return resolveHandler(type).updateConfig(id, payload);
   }
 
-  public FeedPack<? extends Feed> fetch(FeedType type, Map<String, ?> request) {
-    return resolveHandler(type).fetch(request);
+  public FeedPack<? extends Feed> fetch(Map<String, String> payload) {
+    String source = payload == null ? null : payload.getOrDefault("source", null);
+    List<FeedType> detectionOrder = buildDetectionOrder(source);
+    BusinessException lastError = null;
+    for (FeedType type : detectionOrder) {
+      FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
+      if (handler == null) {
+        continue;
+      }
+      Map<String, Object> handlerPayload = buildFetchPayload(type, source);
+      try {
+        return handler.fetch(handlerPayload);
+      } catch (BusinessException ex) {
+        lastError = ex;
+      }
+    }
+
+    if (lastError != null) {
+      throw lastError;
+    }
+
+    throw new BusinessException(messageSource
+        .getMessage("feed.type.invalid", new Object[]{source},
+            LocaleContextHolder.getLocale()));
   }
 
   public FeedPack<? extends Feed> preview(FeedType type, Map<String, Object> payload) {
     return resolveHandler(type).preview(payload);
+  }
+
+  private List<FeedType> buildDetectionOrder(String source) {
+    List<FeedType> order = new ArrayList<>();
+    FeedType primary = guessFeedType(source);
+    order.add(primary);
+    for (FeedType candidate : FeedType.values()) {
+      if (!order.contains(candidate)) {
+        order.add(candidate);
+      }
+    }
+    return order;
+  }
+
+  private FeedType guessFeedType(String source) {
+    String normalized = source == null ? "" : source.trim().toLowerCase();
+    if (normalized.contains("list=") || normalized.contains("playlist")
+        || normalized.startsWith("pl") || normalized.startsWith("uu")
+        || normalized.startsWith("ol") || normalized.startsWith("ll")) {
+      return FeedType.PLAYLIST;
+    }
+    return FeedType.CHANNEL;
+  }
+
+  private Map<String, Object> buildFetchPayload(FeedType type, String source) {
+    Map<String, Object> handlerPayload = new HashMap<>();
+    if (type == FeedType.PLAYLIST) {
+      handlerPayload.put("playlistUrl", source);
+    } else if (type == FeedType.CHANNEL) {
+      handlerPayload.put("channelUrl", source);
+    } else {
+      handlerPayload.put("source", source);
+    }
+    return handlerPayload;
   }
 
   public FeedSaveResult<? extends Feed> add(FeedType type, Map<String, Object> payload) {

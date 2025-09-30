@@ -66,90 +66,18 @@ public class RssService {
     }
   }
 
-  /**
-   * 根据 channel handler 生成 RSS Feed XML 字符串。
-   */
-  public String generateRssFeed(String channelHandler) throws MalformedURLException {
+  public String generateRssFeed(String channelIdentification) throws MalformedURLException {
     // 1. 获取频道信息
-    Channel channel = channelService.findChannelByIdentification(channelHandler);
+    Channel channel = channelService.findChannelByIdentification(channelIdentification);
     if (ObjectUtils.isEmpty(channel)) {
-      throw new BusinessException(messageSource.getMessage("channel.not.found.handler", new Object[]{channelHandler}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(messageSource.getMessage("channel.not.found.handler", new Object[]{channelIdentification}, LocaleContextHolder.getLocale()));
     }
 
-    // 2. 创建 SyndFeed (RSS 的顶层对象)
-    SyndFeed feed = new SyndFeedImpl();
-    feed.setFeedType("rss_2.0");
-    feed.setTitle(channel.getTitle());
-    feed.setLink(Youtube.CHANNEL_URL + channel.getId());
-    feed.setDescription(channel.getDescription());
-    feed.setPublishedDate(new Date()); // 设置为当前时间或最新一期节目的时间
-
-    // 3. 添加 iTunes 频道级信息
-    FeedInformation feedInfo = new FeedInformationImpl();
-    feedInfo.setAuthor(channel.getTitle());
-    feedInfo.setSummary(channel.getDescription());
-    feedInfo.setImage(new URL(channel.getCoverUrl()));
-    feed.getModules().add(feedInfo);
-
-    // 4. 获取已完成下载的节目列表，按position排序
     List<Episode> episodes = episodeService.getEpisodeOrderByPublishDateDesc(channel.getId());
-
-    // 5. 为每个 Episode 创建一个 SyndEntry (RSS item)
-    List<SyndEntry> entries = new ArrayList<>();
-    for (Episode episode : episodes) {
-      SyndEntry entry = new SyndEntryImpl();
-      entry.setTitle(episode.getTitle());
-      entry.setLink("https://www.youtube.com/watch?v=" + episode.getId()); // 链接指向 YouTube 视频页
-      entry.setPublishedDate(Date.from(episode.getPublishedAt().toInstant(java.time.ZoneOffset.UTC)));
-
-      // 描述信息
-      SyndContent description = new SyndContentImpl();
-      description.setType("text/html");
-      description.setValue(episode.getDescription().replaceAll("\n", "<br/>"));
-      entry.setDescription(description);
-
-      // **关键：添加附件 (Enclosure)，即音频文件**
-      try {
-        SyndEnclosure enclosure = new SyndEnclosureImpl();
-        
-        // 使用episode ID生成URL
-        String audioUrl = appBaseUrl + "/media/" + episode.getId() + ".mp3";
-        
-        enclosure.setUrl(audioUrl);
-        enclosure.setType("audio/mpeg");
-        // 获取文件大小
-        long fileSize = Files.size(Paths.get(episode.getAudioFilePath()));
-        enclosure.setLength(fileSize);
-        entry.setEnclosures(Collections.singletonList(enclosure));
-      } catch (Exception e) {
-        // 如果文件不存在或无法读取大小，跳过这个 enclosure
-        log.error("无法为 episode {} 创建 enclosure: {}", episode.getId(), e.getMessage());
-        continue; 
-      }
-
-      // 添加 iTunes 节目级信息
-      EntryInformation entryInfo = new EntryInformationImpl();
-      entryInfo.setSummary(episode.getDescription());
-      entryInfo.setDuration(convertToRomeDuration(episode.getDuration())); // 格式化时长
-      if (episode.getMaxCoverUrl() != null) {
-        entryInfo.setImage(new java.net.URL(episode.getMaxCoverUrl()));
-      }
-      entry.getModules().add(entryInfo);
-
-      entries.add(entry);
-    }
-
-    feed.setEntries(entries);
-
-    // 6. 将 SyndFeed 对象转换为 XML 字符串
-    try (StringWriter writer = new StringWriter()) {
-      SyndFeedOutput output = new SyndFeedOutput();
-      output.output(feed, writer);
-      return writer.toString();
-    } catch (Exception e) {
-      throw new RuntimeException(messageSource.getMessage("system.generate.rss.failed", 
-          null, LocaleContextHolder.getLocale()), e);
-    }
+    SyndFeed feed = createFeed(channel.getTitle(), Youtube.CHANNEL_URL + channel.getId(),
+        channel.getDescription(), channel.getCoverUrl());
+    feed.setEntries(buildEntries(episodes));
+    return writeFeed(feed);
   }
 
   public String generatePlaylistRssFeed(String playlistId) throws MalformedURLException {
@@ -160,28 +88,39 @@ public class RssService {
               LocaleContextHolder.getLocale()));
     }
 
+    List<Episode> episodes = episodeService.getEpisodesByPlaylistId(playlistId);
+    SyndFeed feed = createFeed(playlist.getTitle(), Youtube.PLAYLIST_URL + playlist.getId(),
+        playlist.getDescription(), playlist.getCoverUrl());
+    feed.setEntries(buildEntries(episodes));
+    return writeFeed(feed);
+  }
+
+  private SyndFeed createFeed(String title, String link, String description, String coverUrl)
+      throws MalformedURLException {
     SyndFeed feed = new SyndFeedImpl();
     feed.setFeedType("rss_2.0");
-    feed.setTitle(playlist.getTitle());
-    feed.setLink(Youtube.PLAYLIST_URL + playlist.getId());
-    feed.setDescription(playlist.getDescription());
+    feed.setTitle(title);
+    feed.setLink(link);
+    feed.setDescription(description);
     feed.setPublishedDate(new Date());
 
     FeedInformation feedInfo = new FeedInformationImpl();
-    feedInfo.setAuthor(playlist.getTitle());
-    feedInfo.setSummary(playlist.getDescription());
-    if (playlist.getCoverUrl() != null) {
-      feedInfo.setImage(new URL(playlist.getCoverUrl()));
+    feedInfo.setAuthor(title);
+    feedInfo.setSummary(description);
+    if (coverUrl != null) {
+      feedInfo.setImage(new URL(coverUrl));
     }
     feed.getModules().add(feedInfo);
+    return feed;
+  }
 
-    List<Episode> episodes = episodeService.getEpisodesByPlaylistId(playlistId);
-
+  private List<SyndEntry> buildEntries(List<Episode> episodes) {
     List<SyndEntry> entries = new ArrayList<>();
     for (Episode episode : episodes) {
-      if (episode.getPublishedAt() == null) {
+      if (episode == null || episode.getPublishedAt() == null) {
         continue;
       }
+
       SyndEntry entry = new SyndEntryImpl();
       entry.setTitle(episode.getTitle());
       entry.setLink("https://www.youtube.com/watch?v=" + episode.getId());
@@ -214,15 +153,20 @@ public class RssService {
       entryInfo.setSummary(episode.getDescription());
       entryInfo.setDuration(convertToRomeDuration(episode.getDuration()));
       if (episode.getMaxCoverUrl() != null) {
-        entryInfo.setImage(new java.net.URL(episode.getMaxCoverUrl()));
+        try {
+          entryInfo.setImage(new URL(episode.getMaxCoverUrl()));
+        } catch (MalformedURLException e) {
+          log.warn("Episode {} cover url is invalid: {}", episode.getId(), e.getMessage());
+        }
       }
       entry.getModules().add(entryInfo);
 
       entries.add(entry);
     }
+    return entries;
+  }
 
-    feed.setEntries(entries);
-
+  private String writeFeed(SyndFeed feed) {
     try (StringWriter writer = new StringWriter()) {
       SyndFeedOutput output = new SyndFeedOutput();
       output.output(feed, writer);

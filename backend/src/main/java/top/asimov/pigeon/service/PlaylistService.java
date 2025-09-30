@@ -2,11 +2,16 @@ package top.asimov.pigeon.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.PostConstruct;
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashSet;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -175,11 +180,20 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
               LocaleContextHolder.getLocale()));
     }
 
+    List<Episode> playlistEpisodes = episodeService().getEpisodesByPlaylistId(playlistId);
+    LinkedHashMap<String, Episode> uniqueEpisodes = new LinkedHashMap<>();
+    for (Episode episode : playlistEpisodes) {
+      if (episode != null && StringUtils.hasText(episode.getId())) {
+        uniqueEpisodes.putIfAbsent(episode.getId(), episode);
+      }
+    }
+
     playlistEpisodeMapper.deleteByPlaylistId(playlistId);
 
     int result = playlistMapper.deleteById(playlistId);
     if (result > 0) {
       log.info("播放列表 {} 删除成功", playlist.getTitle());
+      removeOrphanEpisodes(uniqueEpisodes.values());
     } else {
       log.error("播放列表 {} 删除失败", playlist.getTitle());
       throw new BusinessException(
@@ -280,6 +294,63 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
       }
       if (affected <= 0) {
         log.warn("更新播放列表 {} 与节目 {} 的关联失败", playlistId, episode.getId());
+      }
+    }
+  }
+
+  private void removeOrphanEpisodes(Collection<Episode> episodes) {
+    if (episodes == null || episodes.isEmpty()) {
+      return;
+    }
+
+    Set<String> candidateDirectories = new HashSet<>();
+    for (Episode episode : episodes) {
+      long orhanEpisode = playlistEpisodeMapper.isOrhanEpisode(episode.getId());
+      if (orhanEpisode == 0) {
+        continue;
+      }
+
+      String audioFilePath = episode.getAudioFilePath();
+      try {
+        int deleteResult = episodeService().deleteEpisodeById(episode.getId());
+        if (deleteResult > 0 && StringUtils.hasText(audioFilePath)) {
+          File audioFile = new File(audioFilePath);
+          File parentDir = audioFile.getParentFile();
+          if (parentDir != null) {
+            candidateDirectories.add(parentDir.getAbsolutePath());
+          }
+        }
+      } catch (BusinessException ex) {
+        log.error("删除播放列表孤立节目 {} 失败: {}", episode.getId(), ex.getMessage(), ex);
+      }
+    }
+
+    cleanupEmptyDirectories(candidateDirectories);
+  }
+
+  private void cleanupEmptyDirectories(Set<String> directories) {
+    if (directories == null || directories.isEmpty()) {
+      return;
+    }
+    for (String directoryPath : directories) {
+      if (!StringUtils.hasText(directoryPath)) {
+        continue;
+      }
+      try {
+        File directory = new File(directoryPath);
+        if (directory.exists() && directory.isDirectory()) {
+          File[] files = directory.listFiles();
+          if (files != null && files.length == 0) {
+            boolean deleted = directory.delete();
+            if (deleted) {
+              log.info("空的播放列表音频文件夹删除成功: {}", directoryPath);
+            } else {
+              log.warn("空的播放列表音频文件夹删除失败: {}", directoryPath);
+            }
+          }
+        }
+      } catch (Exception ex) {
+        log.error("检查或删除播放列表音频文件夹时出错: {}", directoryPath, ex);
       }
     }
   }

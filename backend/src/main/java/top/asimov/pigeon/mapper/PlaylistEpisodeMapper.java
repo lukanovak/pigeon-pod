@@ -9,11 +9,27 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import top.asimov.pigeon.model.PlaylistEpisode;
+import top.asimov.pigeon.model.Episode;
 
 public interface PlaylistEpisodeMapper extends BaseMapper<PlaylistEpisode> {
 
-  @Select("SELECT * FROM playlist_episode WHERE playlist_id = #{playlistId} ORDER BY published_at DESC")
-  List<PlaylistEpisode> selectByPlaylistId(String playlistId);
+  @Select("SELECT COUNT(1) FROM playlist_episode WHERE playlist_id = #{playlistId}")
+  long countByPlaylistId(String playlistId);
+
+  @Select("SELECT e.* FROM playlist_episode pe "
+      + "JOIN episode e ON pe.episode_id = e.id "
+      + "WHERE pe.playlist_id = #{playlistId} "
+      + "ORDER BY pe.published_at DESC "
+      + "LIMIT #{offset}, #{pageSize}")
+  List<Episode> selectEpisodePageByPlaylistId(@Param("playlistId") String playlistId,
+      @Param("offset") long offset, @Param("pageSize") long pageSize);
+
+  @Select("select count(1) "
+      + "from episode "
+      + "where id = #{episodeId} "
+      + "and channel_id not in (select id from channel) "
+      + "and id not in (select episode_id from playlist_episode)")
+  long isOrhanEpisode(@Param("episodeId") String episodeId);
 
   @Delete("DELETE FROM playlist_episode WHERE playlist_id = #{playlistId}")
   int deleteByPlaylistId(String playlistId);

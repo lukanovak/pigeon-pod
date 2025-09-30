@@ -41,7 +41,7 @@
   "new_username": "Nouveau nom d'utilisateur",
   "username_changed_success": "Nom d'utilisateur modifié avec succès !",
   "enter_youtube_channel_url": "Saisissez l'URL de la chaîne YouTube ou l'ID de la chaîne, comme https://www.youtube.com/@xxxx ou UCUGLols3-2y_rJZZsgRzray",
-  "enter_feed_source_url": "Saisissez l'URL ou l'identifiant du flux (chaîne ou playlist)",
+  "enter_feed_source_url": "Saisissez l'URL ou l'identifiant du flux (Youtube chaîne ou playlist)",
   "new_channel": "Nouvelle chaîne",
   "new_feed": "Nouveau flux",
   "updated": "mis à jour",

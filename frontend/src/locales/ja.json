@@ -41,7 +41,7 @@
   "new_username": "新しいユーザー名",
   "username_changed_success": "ユーザー名を変更しました！",
   "enter_youtube_channel_url": "YouTubeチャンネルのURLまたはチャンネルIDを入力してください（例：https://www.youtube.com/@xxxx または UCUGLols3-2y_rJZZsgRzray）",
-  "enter_feed_source_url": "フィードのURLまたはIDを入力してください（チャンネルまたはプレイリスト）",
+  "enter_feed_source_url": "フィードのURLまたはIDを入力してください（Youtube チャンネルまたはプレイリスト）",
   "new_channel": "新しいチャンネル",
   "new_feed": "新しいフィード",
   "updated": "更新済み",

@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import top.asimov.pigeon.event.EpisodesCreatedEvent;
 import top.asimov.pigeon.exception.BusinessException;
+import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.EpisodeMapper;
+import top.asimov.pigeon.mapper.PlaylistEpisodeMapper;
+import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
 
 @Log4j2
@@ -26,18 +29,42 @@ public class EpisodeService {
   private final EpisodeMapper episodeMapper;
   private final ApplicationEventPublisher eventPublisher;
   private final MessageSource messageSource;
+  private final ChannelMapper channelMapper;
+  private final PlaylistEpisodeMapper playlistEpisodeMapper;
 
-  public EpisodeService(EpisodeMapper episodeMapper, ApplicationEventPublisher eventPublisher, MessageSource messageSource) {
+  public EpisodeService(EpisodeMapper episodeMapper, ApplicationEventPublisher eventPublisher,
+      MessageSource messageSource, ChannelMapper channelMapper,
+      PlaylistEpisodeMapper playlistEpisodeMapper) {
     this.episodeMapper = episodeMapper;
     this.eventPublisher = eventPublisher;
     this.messageSource = messageSource;
+    this.channelMapper = channelMapper;
+    this.playlistEpisodeMapper = playlistEpisodeMapper;
   }
 
-  public Page<Episode> episodePage(String channelId, Page<Episode> page) {
-    LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
-    queryWrapper.eq(Episode::getChannelId, channelId);
-    queryWrapper.orderByDesc(Episode::getPublishedAt);
-    return episodeMapper.selectPage(page, queryWrapper);
+  public Page<Episode> episodePage(String feedId, Page<Episode> page) {
+    Channel channel = channelMapper.selectById(feedId);
+    if (channel != null) {
+      LambdaQueryWrapper<Episode> queryWrapper = new LambdaQueryWrapper<>();
+      queryWrapper.eq(Episode::getChannelId, feedId);
+      queryWrapper.orderByDesc(Episode::getPublishedAt);
+      return episodeMapper.selectPage(page, queryWrapper);
+    }
+
+    long total = playlistEpisodeMapper.countByPlaylistId(feedId);
+    page.setTotal(total);
+    if (total == 0) {
+      page.setRecords(Collections.emptyList());
+      return page;
+    }
+
+    long current = page.getCurrent() > 0 ? page.getCurrent() : 1;
+    long size = page.getSize() > 0 ? page.getSize() : 10;
+    long offset = (current - 1) * size;
+
+    List<Episode> episodes = playlistEpisodeMapper.selectEpisodePageByPlaylistId(feedId, offset, size);
+    page.setRecords(episodes);
+    return page;
   }
 
   public List<Episode> findByChannelId(String channelId) {

@@ -49,10 +49,9 @@ public class FeedController {
     return SaResult.data(feedService.updateConfig(feedType, id, payload));
   }
 
-  @PostMapping("/{type}/fetch")
-  public SaResult fetch(@PathVariable String type, @RequestBody Map<String, String> request) {
-    FeedType feedType = feedService.resolveType(type);
-    return SaResult.data(feedService.fetch(feedType, request));
+  @PostMapping("/fetch")
+  public SaResult fetch(@RequestBody Map<String, String> request) {
+    return SaResult.data(feedService.fetch(request));
   }
 
   @PostMapping("/{type}/preview")
