@@ -48,7 +48,7 @@ version: '3.9'
 services:
   pigeon-pod:
     # Encontre a versão mais recente em https://github.com/aizhimou/pigeon-pod/pkgs/container/pigeon-pod
-    image: 'ghcr.io/aizhimou/pigeon-pod:release-1.7.0' 
+    image: 'ghcr.io/aizhimou/pigeon-pod:release-1.7.1' 
     restart: unless-stopped
     container_name: pigeon-pod
     ports:
