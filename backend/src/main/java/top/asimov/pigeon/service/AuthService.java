@@ -36,13 +36,15 @@ public class AuthService {
     query.eq("username", username);
     User existUser = query.one();
     if (ObjectUtils.isEmpty(existUser)) {
-      throw new BusinessException(messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("user.not.found", null, LocaleContextHolder.getLocale()));
     }
 
     boolean verified = PasswordUtil.verifyPassword(password, existUser.getSalt(),
         existUser.getPassword());
     if (!verified) {
-      throw new BusinessException(messageSource.getMessage("user.invalid.password", null, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("user.invalid.password", null, LocaleContextHolder.getLocale()));
     }
     return existUser;
   }

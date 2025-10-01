@@ -6,12 +6,12 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.HashSet;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -211,7 +211,8 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
   @Transactional
   public void processPlaylistInitializationAsync(String playlistId, Integer initialEpisodes,
       String containKeywords, String excludeKeywords, Integer minimumDuration) {
-    log.info("开始异步处理播放列表初始化，播放列表ID: {}, 初始视频数量: {}", playlistId, initialEpisodes);
+    log.info("开始异步处理播放列表初始化，播放列表ID: {}, 初始视频数量: {}", playlistId,
+        initialEpisodes);
 
     try {
       List<Episode> episodes = youtubeVideoHelper.fetchPlaylistVideos(

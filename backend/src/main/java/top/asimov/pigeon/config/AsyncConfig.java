@@ -21,15 +21,16 @@ public class AsyncConfig {
     // 设置为 3 个核心线程，平衡并发性能和资源使用
     executor.setCorePoolSize(3);
     executor.setMaxPoolSize(3);  // 最大 3 个线程
-    executor.setQueueCapacity(10); // 设置队列容量
+    // 无队列直交付模式：提交成功即执行，避免“排队”中间状态
+    executor.setQueueCapacity(0);
     executor.setThreadNamePrefix("PP-Downloader-");
     executor.setKeepAliveSeconds(60); // 空闲线程保持时间
     executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy()); // 拒绝策略
     executor.initialize();
-    
-    log.info("下载线程池已配置: 核心线程数={}, 最大线程数={}, 队列容量={}", 
+
+    log.info("下载线程池已配置: 核心线程数={}, 最大线程数={}, 队列容量={}",
         executor.getCorePoolSize(), executor.getMaxPoolSize(), executor.getQueueCapacity());
-    
+
     return executor;
   }
 
@@ -39,14 +40,14 @@ public class AsyncConfig {
     executor.setCorePoolSize(2);
     executor.setMaxPoolSize(2);
     executor.setQueueCapacity(3);
-    executor.setThreadNamePrefix("PP-ChannelAsync-");
+    executor.setThreadNamePrefix("PP-FeedAsync-");
     executor.setKeepAliveSeconds(60);
     executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     executor.initialize();
-    
+
     log.info("频道同步线程池已配置: 核心线程数={}, 最大线程数={}, 队列容量={}",
         executor.getCorePoolSize(), executor.getMaxPoolSize(), executor.getQueueCapacity());
-    
+
     return executor;
   }
 }

@@ -97,7 +97,7 @@
       <artifactId>rome</artifactId>
       <version>2.1.0</version>
     </dependency>
-    
+
     <!-- Spring Retry for database operation retry mechanism -->
     <dependency>
       <groupId>org.springframework.retry</groupId>

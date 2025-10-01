@@ -1,6 +1,7 @@
 package top.asimov.pigeon.scheduler;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,29 +31,39 @@ public class DownloadScheduler {
 
   // 每30秒检查一次待下载任务
   @Scheduled(fixedDelay = 30000)
-  public void processQueuedDownloads() {
-    // 获取线程池状态
+  public void processPendingDownloads() {
+    // 获取线程池状态（无队列模式下仅按空闲线程数补位）
     int activeCount = downloadTaskExecutor.getActiveCount();
-    int queueSize = downloadTaskExecutor.getThreadPoolExecutor().getQueue().size();
     int maxPoolSize = downloadTaskExecutor.getMaxPoolSize();
-    int queueCapacity = downloadTaskExecutor.getQueueCapacity();
 
-    // 计算还能接受多少任务
-    int availableSlots = (maxPoolSize + queueCapacity) - (activeCount + queueSize);
+    // 可用槽位 = 最大线程数 - 活跃线程数
+    int availableSlots = maxPoolSize - activeCount;
 
-    log.debug("线程池状态检查: 活跃={}, 队列={}, 可用空位={}", activeCount, queueSize,
-        availableSlots);
+    log.debug("线程池状态检查: 活跃={}, 可用空位={}", activeCount, availableSlots);
 
     if (availableSlots > 0) {
-      // 查找PENDING状态的任务
+
       List<Episode> pendingEpisodes = episodeMapper.selectList(
           new QueryWrapper<Episode>()
               .eq("download_status", EpisodeStatus.PENDING.name())
               .orderByAsc("created_at")
               .last("LIMIT " + availableSlots)
       );
+      List<Episode> episodesToProcess = new ArrayList<>(pendingEpisodes);
 
-      for (Episode episode : pendingEpisodes) {
+      int remainingSlots = availableSlots - episodesToProcess.size();
+      if (remainingSlots > 0) {
+        List<Episode> retryEpisodes = episodeMapper.selectList(
+            new QueryWrapper<Episode>()
+                .eq("download_status", EpisodeStatus.FAILED.name())
+                .lt("retry_number", 3)
+                .orderByAsc("created_at")
+                .last("LIMIT " + remainingSlots)
+        );
+        episodesToProcess.addAll(retryEpisodes);
+      }
+
+      for (Episode episode : episodesToProcess) {
         boolean success = downloadTaskSubmitter.submitDownloadTask(episode.getId());
         if (!success) {
           break; // 提交失败，可能是队列满了，停止继续处理

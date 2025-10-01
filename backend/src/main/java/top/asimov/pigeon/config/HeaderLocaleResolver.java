@@ -10,7 +10,8 @@ public class HeaderLocaleResolver implements LocaleResolver {
   @Override
   public Locale resolveLocale(HttpServletRequest request) {
     String language = request.getHeader("Accept-Language");
-    return (language == null || language.isEmpty()) ? Locale.getDefault() : Locale.forLanguageTag(language);
+    return (language == null || language.isEmpty()) ? Locale.getDefault()
+        : Locale.forLanguageTag(language);
   }
 
   @Override

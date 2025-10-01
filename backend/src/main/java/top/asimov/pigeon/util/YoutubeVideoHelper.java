@@ -61,6 +61,7 @@ public class YoutubeVideoHelper {
   }
 
   /* ------------------------ Public API ----------------------- */
+
   /**
    * 抓取指定 YouTube 频道的视频列表，默认不使用任何过滤条件
    *
@@ -239,7 +240,8 @@ public class YoutubeVideoHelper {
       return videoPublishedAt.isAfter(publishedBefore); // 跳过太新的视频
     };
 
-    log.info("开始获取播放列表 {} 在 {} 之前的视频，目标数量: {}", playlistId, publishedBefore, fetchNum);
+    log.info("开始获取播放列表 {} 在 {} 之前的视频，目标数量: {}", playlistId, publishedBefore,
+        fetchNum);
     List<Episode> result = fetchVideosWithConditions(config, stopCondition, skipCondition);
     log.info("最终获取到 {} 个符合条件的视频", result.size());
     return result;
@@ -248,6 +250,7 @@ public class YoutubeVideoHelper {
 
 
   /* ------------------------ Fetch Router ----------------------- */
+
   /**
    * 统一的视频抓取方法，根据配置自动选择抓取源（频道或播放列表）
    *
@@ -285,11 +288,12 @@ public class YoutubeVideoHelper {
 
 
   /* ------------------------ Core Fetch Function ----------------------- */
+
   /**
    * 从指定播放列表抓取视频的核心实现方法
    *
-   * @param playlistId 播放列表 ID
-   * @param config 抓取配置
+   * @param playlistId    播放列表 ID
+   * @param config        抓取配置
    * @param stopCondition 停止条件，返回true时停止抓取
    * @param skipCondition 跳过条件，返回true时跳过当前视频
    * @return 抓取到的视频列表
@@ -365,6 +369,7 @@ public class YoutubeVideoHelper {
   /* ------------------------ Core Fetch Function ----------------------- */
 
   /* ------------------------ Util Functions ----------------------- */
+
   /**
    * 获取频道的上传播放列表ID
    */
@@ -664,14 +669,14 @@ public class YoutubeVideoHelper {
   /**
    * 视频抓取配置类
    *
-   * @param channelId       频道 ID，用于抓取频道视频时使用
-   * @param playlistId      播放列表 ID，用于直接抓取播放列表视频时使用
-   * @param fetchNum        本次抓取的视频数量
-   * @param containKeywords 标题必须包含的关键词
-   * @param excludeKeywords 标题必须排除的关键词
-   * @param minimalDuration 最小视频时长
+   * @param channelId          频道 ID，用于抓取频道视频时使用
+   * @param playlistId         播放列表 ID，用于直接抓取播放列表视频时使用
+   * @param fetchNum           本次抓取的视频数量
+   * @param containKeywords    标题必须包含的关键词
+   * @param excludeKeywords    标题必须排除的关键词
+   * @param minimalDuration    最小视频时长
    * @param pageSizeCalculator 页面大小计算器
-   * @param maxPagesToCheck 最大检查页数
+   * @param maxPagesToCheck    最大检查页数
    */
   private record VideoFetchConfig(String channelId, String playlistId, int fetchNum,
                                   String containKeywords, String excludeKeywords,

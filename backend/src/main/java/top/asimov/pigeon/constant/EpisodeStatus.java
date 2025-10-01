@@ -2,7 +2,6 @@ package top.asimov.pigeon.constant;
 
 public enum EpisodeStatus {
   PENDING, // 初始状态，等待下载
-  QUEUED, // 已排队，等待线程池处理
   DOWNLOADING, // 正在下载
   COMPLETED, // 下载完成
   FAILED // 下载失败

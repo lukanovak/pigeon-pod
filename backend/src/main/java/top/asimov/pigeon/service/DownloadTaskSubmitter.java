@@ -6,22 +6,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import top.asimov.pigeon.worker.DownloadWorker;
 
 @Log4j2
 @Service
 public class DownloadTaskSubmitter {
 
   private final ThreadPoolTaskExecutor downloadTaskExecutor;
-  private final DownloadService downloadService;
   private final TaskStatusService taskStatusService;
+  private final DownloadWorker downloadWorker;
 
   @Autowired
   public DownloadTaskSubmitter(ThreadPoolTaskExecutor downloadTaskExecutor,
-      DownloadService downloadService,
-      @Lazy TaskStatusService taskStatusService) {
+      @Lazy TaskStatusService taskStatusService, DownloadWorker downloadWorker) {
     this.downloadTaskExecutor = downloadTaskExecutor;
-    this.downloadService = downloadService;
     this.taskStatusService = taskStatusService;
+    this.downloadWorker = downloadWorker;
   }
 
   /**
@@ -32,24 +32,22 @@ public class DownloadTaskSubmitter {
    */
   public boolean submitDownloadTask(String episodeId) {
     try {
-      // 先尝试更新状态为QUEUED（通过代理Bean调用，确保新事务生效）
-      boolean updated = taskStatusService.updateStatusToQueued(episodeId);
+      // 提交前将状态标记为 DOWNLOADING（通过代理Bean调用，确保新事务生效）
+      boolean updated = taskStatusService.tryMarkDownloading(episodeId);
       if (updated) {
         // 状态更新成功后，提交到线程池
         downloadTaskExecutor.execute(() -> {
-          downloadService.downloadAudioSync(episodeId);
+          downloadWorker.download(episodeId);
         });
-        log.debug("任务已提交到队列: {}", episodeId);
+        log.debug("任务已提交执行: {}", episodeId);
         return true;
       }
       return false;
     } catch (RejectedExecutionException e) {
       // 提交失败，回滚状态到PENDING（通过代理Bean调用）
-      taskStatusService.rollbackStatusToPending(episodeId);
-      log.warn("线程池队列已满，任务被拒绝，状态回滚为 PENDING: {}", episodeId);
+      taskStatusService.rollbackFromDownloadingToPending(episodeId);
+      log.warn("线程池不可用，任务被拒绝，状态回滚为 PENDING: {}", episodeId);
       return false;
     }
   }
 }
-
-

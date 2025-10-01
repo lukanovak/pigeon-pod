@@ -3,9 +3,9 @@ package top.asimov.pigeon.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -68,7 +68,8 @@ public class FeedService {
     return resolveHandler(type).getSubscribeUrl(id);
   }
 
-  public FeedConfigUpdateResult updateConfig(FeedType type, String id, Map<String, Object> payload) {
+  public FeedConfigUpdateResult updateConfig(FeedType type, String id,
+      Map<String, Object> payload) {
     return resolveHandler(type).updateConfig(id, payload);
   }
 

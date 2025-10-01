@@ -2,7 +2,6 @@ package top.asimov.pigeon.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import top.asimov.pigeon.model.Episode;
@@ -37,7 +36,7 @@ public interface EpisodeMapper extends BaseMapper<Episode> {
       + "LEFT JOIN playlist p ON p.id = pe.playlist_id "
       + "WHERE e.id = #{episodeId} "
       + "LIMIT 1")
-  String getChannelNameByEpisodeId(String episodeId);
+  String getFeedNameByEpisodeId(String episodeId);
 
   @Select("SELECT e.* FROM playlist_episode pe "
       + "JOIN episode e ON pe.episode_id = e.id "

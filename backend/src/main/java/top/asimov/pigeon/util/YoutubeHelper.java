@@ -50,10 +50,9 @@ public class YoutubeHelper {
   }
 
   /**
-   * 根据输入获取 YouTube 频道信息 支持多种输入格式:
-   * 1. 直接的频道 ID: UCSJ4gkVC6NrvII8umztf0Ow
-   * 2. @handle 链接: https://www.youtube.com/@LofiGirl
-   * 3. /channel/ 链接: https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow
+   * 根据输入获取 YouTube 频道信息 支持多种输入格式: 1. 直接的频道 ID: UCSJ4gkVC6NrvII8umztf0Ow 2. @handle 链接:
+   * https://www.youtube.com/@LofiGirl 3. /channel/ 链接:
+   * https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow
    *
    * @param input 频道输入（URL 或 ID）
    * @return YouTube 频道信息
@@ -73,10 +72,9 @@ public class YoutubeHelper {
   }
 
   /**
-   * 根据输入获取 YouTube 播放列表信息 支持多种输入格式:
-   * 1. 直接的播放列表 ID: PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
-   * 2. ?list= 链接: https://www.youtube.com/playlist?list=PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
-   * 3. watch 链接: https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
+   * 根据输入获取 YouTube 播放列表信息 支持多种输入格式: 1. 直接的播放列表 ID: PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp 2. ?list= 链接:
+   * https://www.youtube.com/playlist?list=PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp 3. watch 链接:
+   * https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp
    *
    * @param input 播放列表输入（URL 或 ID）
    * @return YouTube 播放列表信息
@@ -110,10 +108,9 @@ public class YoutubeHelper {
   }
 
   /**
-   * 从输入中提取频道 ID 支持多种输入格式:
-   * 1. 直接的频道 ID: UCSJ4gkVC6NrvII8umztf0Ow
-   * 2. @handle 链接: https://www.youtube.com/@LofiGirl
-   * 3. /channel/ 链接: https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow
+   * 从输入中提取频道 ID 支持多种输入格式: 1. 直接的频道 ID: UCSJ4gkVC6NrvII8umztf0Ow 2. @handle 链接:
+   * https://www.youtube.com/@LofiGirl 3. /channel/ 链接:
+   * https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow
    *
    * @param input 输入字符串
    * @return 频道 ID，如果无法解析则返回 null

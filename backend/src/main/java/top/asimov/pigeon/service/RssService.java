@@ -14,6 +14,7 @@ import com.rometools.rome.feed.synd.SyndEntryImpl;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.feed.synd.SyndFeedImpl;
 import com.rometools.rome.io.SyndFeedOutput;
+import jakarta.annotation.PostConstruct;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -70,7 +70,9 @@ public class RssService {
     // 1. 获取频道信息
     Channel channel = channelService.findChannelByIdentification(channelIdentification);
     if (ObjectUtils.isEmpty(channel)) {
-      throw new BusinessException(messageSource.getMessage("channel.not.found.handler", new Object[]{channelIdentification}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("channel.not.found.handler", new Object[]{channelIdentification},
+              LocaleContextHolder.getLocale()));
     }
 
     List<Episode> episodes = episodeService.getEpisodeOrderByPublishDateDesc(channel.getId());
@@ -124,7 +126,8 @@ public class RssService {
       SyndEntry entry = new SyndEntryImpl();
       entry.setTitle(episode.getTitle());
       entry.setLink("https://www.youtube.com/watch?v=" + episode.getId());
-      entry.setPublishedDate(Date.from(episode.getPublishedAt().toInstant(java.time.ZoneOffset.UTC)));
+      entry.setPublishedDate(
+          Date.from(episode.getPublishedAt().toInstant(java.time.ZoneOffset.UTC)));
 
       SyndContent description = new SyndContentImpl();
       description.setType("text/html");

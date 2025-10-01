@@ -3,9 +3,8 @@ package top.asimov.pigeon.exception;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.util.SaResult;
-import lombok.extern.log4j.Log4j2;
-
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -22,77 +21,79 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Handle custom business exceptions
-     */
-    @ExceptionHandler(BusinessException.class)
-    public SaResult handleBusinessException(BusinessException e) {
-        log.error("BusinessException: {}", e.getMessage());
-        return SaResult.code(e.getCode()).setMsg(e.getMessage());
-    }
+  /**
+   * Handle custom business exceptions
+   */
+  @ExceptionHandler(BusinessException.class)
+  public SaResult handleBusinessException(BusinessException e) {
+    log.error("BusinessException: {}", e.getMessage());
+    return SaResult.code(e.getCode()).setMsg(e.getMessage());
+  }
 
-    /**
-     * Handle parameter validation exceptions
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public SaResult handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        BindingResult bindingResult = e.getBindingResult();
-        String message = bindingResult.getFieldErrors()
-                .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
-        log.error("MethodArgumentNotValidException: {}", message);
-        return SaResult.code(400).setMsg(message);
-    }
+  /**
+   * Handle parameter validation exceptions
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public SaResult handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    BindingResult bindingResult = e.getBindingResult();
+    String message = bindingResult.getFieldErrors()
+        .stream()
+        .map(FieldError::getDefaultMessage)
+        .collect(Collectors.joining(", "));
+    log.error("MethodArgumentNotValidException: {}", message);
+    return SaResult.code(400).setMsg(message);
+  }
 
-    /**
-     * Handle binding exceptions
-     */
-    @ExceptionHandler(BindException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public SaResult handleBindException(BindException e) {
-        BindingResult bindingResult = e.getBindingResult();
-        String message = bindingResult.getFieldErrors()
-                .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
-        log.error("BindException: {}", message);
-        return SaResult.code(400).setMsg(message);
-    }
+  /**
+   * Handle binding exceptions
+   */
+  @ExceptionHandler(BindException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public SaResult handleBindException(BindException e) {
+    BindingResult bindingResult = e.getBindingResult();
+    String message = bindingResult.getFieldErrors()
+        .stream()
+        .map(FieldError::getDefaultMessage)
+        .collect(Collectors.joining(", "));
+    log.error("BindException: {}", message);
+    return SaResult.code(400).setMsg(message);
+  }
 
-    /**
-     * Handle all other runtime exceptions
-     */
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public SaResult handleRuntimeException(RuntimeException e) {
-        log.error("RuntimeException: {}", e.getMessage());
-        return SaResult.error(e.getMessage());
-    }
+  /**
+   * Handle all other runtime exceptions
+   */
+  @ExceptionHandler(RuntimeException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public SaResult handleRuntimeException(RuntimeException e) {
+    log.error("RuntimeException: {}", e.getMessage());
+    return SaResult.error(e.getMessage());
+  }
 
-    /**
-     * Handle not logged in exceptions
-     * @param e Not logged in exception
-     * @return Not logged in error response
-     */
-    @ExceptionHandler(NotLoginException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public SaResult handleNotLoginException(NotLoginException e) {
-        log.error("NotLoginException: {}", e.getMessage());
-        return SaResult.error(e.getMessage());
-    }
+  /**
+   * Handle not logged in exceptions
+   *
+   * @param e Not logged in exception
+   * @return Not logged in error response
+   */
+  @ExceptionHandler(NotLoginException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public SaResult handleNotLoginException(NotLoginException e) {
+    log.error("NotLoginException: {}", e.getMessage());
+    return SaResult.error(e.getMessage());
+  }
 
-    /**
-     * Handle not permission exceptions
-     * @param e Not permission exception
-     * @return Not permission error response
-     */
-    @ExceptionHandler(NotPermissionException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public SaResult handleNotPermissionException(NotPermissionException e) {
-        log.error("NotPermissionException: {}", e.getMessage());
-        return SaResult.error(e.getMessage());
-    }
+  /**
+   * Handle not permission exceptions
+   *
+   * @param e Not permission exception
+   * @return Not permission error response
+   */
+  @ExceptionHandler(NotPermissionException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public SaResult handleNotPermissionException(NotPermissionException e) {
+    log.error("NotPermissionException: {}", e.getMessage());
+    return SaResult.error(e.getMessage());
+  }
 
 }

@@ -14,7 +14,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.FeedSource;
 import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.event.DownloadTaskEvent.DownloadTargetType;
@@ -193,8 +192,7 @@ public class ChannelService extends AbstractFeedService<Channel> {
   }
 
   /**
-   * 保存频道并初始化下载最新的视频
-   * 当initialEpisodes较大时（> ASYNC_FETCH_NUM），使用异步处理模式
+   * 保存频道并初始化下载最新的视频 当initialEpisodes较大时（> ASYNC_FETCH_NUM），使用异步处理模式
    *
    * @param channel 要保存的频道信息
    * @return 包含频道信息和处理状态的FeedSaveResult对象

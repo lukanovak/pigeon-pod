@@ -29,7 +29,7 @@ public class TaskStatusService {
       retryFor = {Exception.class},
       maxAttempts = 5,
       backoff = @Backoff(delay = 200, multiplier = 2, maxDelay = 2000))
-  public boolean updateStatusToQueued(String episodeId) {
+  public boolean tryMarkDownloading(String episodeId) {
     try {
       Episode episode = episodeMapper.selectById(episodeId);
       if (episode == null) {
@@ -39,24 +39,24 @@ public class TaskStatusService {
           .contains(episode.getDownloadStatus())) {
         return false;
       }
-      episodeMapper.updateDownloadStatus(episodeId, EpisodeStatus.QUEUED.name());
+      episodeMapper.updateDownloadStatus(episodeId, EpisodeStatus.DOWNLOADING.name());
       return true;
     } catch (Exception e) {
-      log.warn("更新状态到QUEUED失败: {}", episodeId, e);
+      log.warn("标记为DOWNLOADING失败: {}", episodeId, e);
       throw e;
     }
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void rollbackStatusToPending(String episodeId) {
+  public void rollbackFromDownloadingToPending(String episodeId) {
     try {
       Episode episode = episodeMapper.selectById(episodeId);
-      if (episode != null && EpisodeStatus.QUEUED.name()
+      if (episode != null && EpisodeStatus.DOWNLOADING.name()
           .equals(episode.getDownloadStatus())) {
         episodeMapper.updateDownloadStatus(episodeId, EpisodeStatus.PENDING.name());
       }
     } catch (Exception e) {
-      log.error("回滚状态到PENDING失败: {}", episodeId, e);
+      log.error("从DOWNLOADING回滚到PENDING失败: {}", episodeId, e);
     }
   }
 }

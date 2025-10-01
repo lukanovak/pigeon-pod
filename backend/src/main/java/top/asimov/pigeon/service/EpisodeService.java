@@ -62,7 +62,8 @@ public class EpisodeService {
     long size = page.getSize() > 0 ? page.getSize() : 10;
     long offset = (current - 1) * size;
 
-    List<Episode> episodes = playlistEpisodeMapper.selectEpisodePageByPlaylistId(feedId, offset, size);
+    List<Episode> episodes = playlistEpisodeMapper.selectEpisodePageByPlaylistId(feedId, offset,
+        size);
     page.setRecords(episodes);
     return page;
   }
@@ -104,7 +105,9 @@ public class EpisodeService {
         Files.deleteIfExists(Paths.get(audioFilePath));
       } catch (Exception e) {
         log.error("Failed to delete audio file: " + audioFilePath, e);
-        throw new BusinessException(messageSource.getMessage("episode.delete.audio.failed", new Object[]{audioFilePath}, LocaleContextHolder.getLocale()));
+        throw new BusinessException(
+            messageSource.getMessage("episode.delete.audio.failed", new Object[]{audioFilePath},
+                LocaleContextHolder.getLocale()));
       }
     }
     return episodeMapper.deleteById(id);
@@ -118,6 +121,7 @@ public class EpisodeService {
 
   /**
    * 根据节目ID列表获取节目状态
+   *
    * @param episodeIds 节目ID列表
    * @return 节目状态列表（只包含状态相关字段）
    */
@@ -134,6 +138,7 @@ public class EpisodeService {
 
   /**
    * 重试下载episode音频文件
+   *
    * @param episodeId episode id
    */
   @Transactional
@@ -144,7 +149,9 @@ public class EpisodeService {
     Episode episode = episodeMapper.selectById(episodeId);
     if (episode == null) {
       log.error("Episode not found with id: {}", episodeId);
-      throw new BusinessException(messageSource.getMessage("episode.not.found", new Object[]{episodeId}, LocaleContextHolder.getLocale()));
+      throw new BusinessException(
+          messageSource.getMessage("episode.not.found", new Object[]{episodeId},
+              LocaleContextHolder.getLocale()));
     }
 
     // 2. 删除当前episode的audio file，可能有，也可能没有，需要做好错误处理
@@ -170,7 +177,8 @@ public class EpisodeService {
 
     // 3. 调用事件发布机制，触发异步下载
     log.info("Publishing retry event for episode: {}", episodeId);
-    eventPublisher.publishEvent(new EpisodesCreatedEvent(this, Collections.singletonList(episodeId)));
+    eventPublisher.publishEvent(
+        new EpisodesCreatedEvent(this, Collections.singletonList(episodeId)));
   }
 
   /**

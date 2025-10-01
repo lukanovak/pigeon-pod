@@ -36,7 +36,8 @@ public class PasswordUtil {
   }
 
   // 验证密码
-  public static boolean verifyPassword(String plainPassword, String salt, String storedEncryptedPassword) {
+  public static boolean verifyPassword(String plainPassword, String salt,
+      String storedEncryptedPassword) {
     String encryptedPassword = generateEncryptedPassword(plainPassword, salt);
     return encryptedPassword.equals(storedEncryptedPassword);
   }

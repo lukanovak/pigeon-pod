@@ -176,12 +176,14 @@ public abstract class AbstractFeedService<F extends Feed> {
         feed.getExcludeKeywords(),
         feed.getMinimumDuration());
     eventPublisher().publishEvent(event);
-    logger().info("已发布{} {} 下载事件，目标: {}, 数量: {}", action, downloadTargetType(), feedId, number);
+    logger().info("已发布{} {} 下载事件，目标: {}, 数量: {}", action, downloadTargetType(), feedId,
+        number);
   }
 
   public FeedPack<F> previewFeed(F feed) {
     int fetchNum = DEFAULT_FETCH_NUM;
-    if (StringUtils.hasText(feed.getContainKeywords()) || StringUtils.hasText(feed.getExcludeKeywords())) {
+    if (StringUtils.hasText(feed.getContainKeywords()) || StringUtils.hasText(
+        feed.getExcludeKeywords())) {
       fetchNum = MAX_FETCH_NUM;
     }
     List<Episode> episodes = fetchEpisodes(feed, fetchNum);

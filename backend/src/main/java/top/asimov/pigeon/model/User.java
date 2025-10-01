@@ -14,29 +14,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class User {
 
-    @TableId
-    private String id;
-    private String username;
+  @TableId
+  private String id;
+  private String username;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String password;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String salt;
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String salt;
 
-    private String apiKey;
-    private String youtubeApiKey;
+  private String apiKey;
+  private String youtubeApiKey;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String cookiesContent;
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String cookiesContent;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private transient String newPassword; // For password update
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private transient String newPassword; // For password update
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private transient String token; // For token management
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private transient String token; // For token management
 
 }

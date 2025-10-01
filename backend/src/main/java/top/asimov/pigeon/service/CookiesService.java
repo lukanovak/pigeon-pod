@@ -31,12 +31,14 @@ public class CookiesService {
 
   /**
    * 创建临时cookies文件
+   *
    * @param userId 用户ID
    * @return 临时cookies文件路径，如果用户没有cookies配置则返回null
    */
   public String createTempCookiesFile(String userId) {
     User user = userMapper.selectById(userId);
-    if (user == null || user.getCookiesContent() == null || user.getCookiesContent().trim().isEmpty()) {
+    if (user == null || user.getCookiesContent() == null || user.getCookiesContent().trim()
+        .isEmpty()) {
       log.debug("没有存储 cookie 文件，不使用 cookie 下载。");
       return null;
     }
@@ -46,7 +48,7 @@ public class CookiesService {
       String tempDir = audioStoragePath + "temp/";
       File dir = new File(tempDir);
       if (!dir.exists() && !dir.mkdirs()) {
-        throw new RuntimeException(messageSource.getMessage("system.create.temp.directory.failed", 
+        throw new RuntimeException(messageSource.getMessage("system.create.temp.directory.failed",
             new Object[]{tempDir}, LocaleContextHolder.getLocale()));
       }
 
@@ -63,13 +65,14 @@ public class CookiesService {
 
     } catch (IOException e) {
       log.error("创建临时cookies文件失败", e);
-      throw new RuntimeException(messageSource.getMessage("system.create.temp.cookies.failed", 
+      throw new RuntimeException(messageSource.getMessage("system.create.temp.cookies.failed",
           null, LocaleContextHolder.getLocale()), e);
     }
   }
 
   /**
    * 删除临时cookies文件
+   *
    * @param filePath 临时文件路径
    */
   public void deleteTempCookiesFile(String filePath) {

@@ -139,7 +139,8 @@ public class AccountService {
 
   /**
    * 更新用户的cookies内容
-   * @param userId 用户ID
+   *
+   * @param userId         用户ID
    * @param cookiesContent cookies内容
    */
   public void updateUserCookies(String userId, String cookiesContent) {

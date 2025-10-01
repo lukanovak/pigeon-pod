@@ -11,7 +11,7 @@ spring:
   lifecycle:
     timeout-per-shutdown-phase: 10s
   datasource:
-    url: jdbc:sqlite:data/pigeon-pod.db?journal_mode=WAL&synchronous=NORMAL&cache_size=10000&temp_store=memory
+    url: jdbc:sqlite:data/pigeon-pod.db?journal_mode=WAL&synchronous=NORMAL&cache_size=10000&temp_store=memory&busy_timeout=3000
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 5  # 增加连接池大小，支持并发
@@ -47,7 +47,7 @@ sa-token:
   is-log: true
 
 logging:
-    level:
-      org.springframework: warn
-      top.asimov.pigeon: debug
-      cn.dev33.satoken: info
+  level:
+    org.springframework: warn
+    top.asimov.pigeon: debug
+    cn.dev33.satoken: info

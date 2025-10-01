@@ -74,7 +74,8 @@ public class EpisodeEventListener {
   }
 
   private void handlePlaylistTask(DownloadTaskEvent event) {
-    log.info("监听到播放列表下载任务事件，播放列表ID: {}, 类型: {}", event.getTargetId(), event.getAction());
+    log.info("监听到播放列表下载任务事件，播放列表ID: {}, 类型: {}", event.getTargetId(),
+        event.getAction());
     if (event.getAction() == DownloadAction.INIT) {
       playlistService.processPlaylistInitializationAsync(
           event.getTargetId(),
