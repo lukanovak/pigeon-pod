@@ -26,6 +26,7 @@ import {
   NumberInput,
   Badge,
 } from '@mantine/core';
+import { AspectRatio } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { IconCheck, IconClock, IconSearch, IconSettings } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
@@ -178,13 +179,15 @@ const Home = () => {
                 >
                   <Card.Section>
                     <Box pos="relative">
-                      <Image
-                        src={feed.coverUrl}
-                        alt={feed.name}
-                        height={isSmallScreen ? 140 : 160}
-                        w="100%"
-                        fit="cover"
-                      />
+                      <AspectRatio ratio={1}>
+                        <Image
+                          src={feed.coverUrl}
+                          alt={feed.name}
+                          w="100%"
+                          h="100%"
+                          fit="cover"
+                        />
+                      </AspectRatio>
                       <Badge
                         variant="gradient"
                         gradient={badgeGradient}

@@ -128,19 +128,34 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
     }
 
     String ytPlaylistId = ytPlaylist.getId();
+    // 先抓取预览视频，用于挑选无黑边的封面
+    List<Episode> episodes = youtubeVideoHelper.fetchPlaylistVideos(ytPlaylistId,
+        DEFAULT_FETCH_NUM);
+
+    String playlistFallbackCover = ytPlaylist.getSnippet() != null
+        && ytPlaylist.getSnippet().getThumbnails() != null
+        && ytPlaylist.getSnippet().getThumbnails().getHigh() != null
+        ? ytPlaylist.getSnippet().getThumbnails().getHigh().getUrl()
+        : null;
+
+    String episodeCover = episodes != null && !episodes.isEmpty()
+        ? (episodes.get(0).getMaxCoverUrl() != null
+        ? episodes.get(0).getMaxCoverUrl()
+        : episodes.get(0).getDefaultCoverUrl())
+        : null;
+
     Playlist fetchedPlaylist = Playlist.builder()
         .id(ytPlaylistId)
         .title(ytPlaylist.getSnippet().getTitle())
         .ownerId(ytPlaylist.getSnippet().getChannelId())
-        .coverUrl(ytPlaylist.getSnippet().getThumbnails().getHigh().getUrl())
+        // 使用首个视频的大图作为封面，避免 Playlist 默认缩略图的黑边；否则回退到 playlist 自带缩略图
+        .coverUrl(episodeCover != null ? episodeCover : playlistFallbackCover)
         .description(ytPlaylist.getSnippet().getDescription())
         .subscribedAt(LocalDateTime.now())
         .source(FeedSource.YOUTUBE.name())
         .originalUrl(playlistUrl)
         .build();
 
-    List<Episode> episodes = youtubeVideoHelper.fetchPlaylistVideos(ytPlaylistId,
-        DEFAULT_FETCH_NUM);
     return FeedPack.<Playlist>builder().feed(fetchedPlaylist).episodes(episodes).build();
   }
 
@@ -398,6 +413,17 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
   protected void afterEpisodesPersisted(Playlist feed, List<Episode> episodes) {
     if (feed != null) {
       upsertPlaylistEpisodes(feed.getId(), episodes);
+      // 使用最新一期节目的大图更新播放列表封面，避免播放列表默认缩略图的黑边
+      if (!ObjectUtils.isEmpty(episodes)) {
+        Episode latest = episodes.get(0);
+        String candidateCover = latest.getMaxCoverUrl() != null
+            ? latest.getMaxCoverUrl()
+            : latest.getDefaultCoverUrl();
+        if (StringUtils.hasText(candidateCover) && !candidateCover.equals(feed.getCoverUrl())) {
+          feed.setCoverUrl(candidateCover);
+          updateFeed(feed);
+        }
+      }
     }
   }
 

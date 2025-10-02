@@ -6,7 +6,6 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
-import com.google.api.services.youtube.model.PlaylistItemSnippet;
 import com.google.api.services.youtube.model.ThumbnailDetails;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
@@ -401,33 +400,47 @@ public class YoutubeVideoHelper {
       String youtubeApiKey, List<Episode> resultEpisodes) throws IOException {
     String title = item.getSnippet().getTitle();
 
-    // 关键词过滤
+    // 关键词过滤（使用 PlaylistItem 的标题，避免为明显不匹配的项额外请求 API）
     if (!matchesKeywordFilter(title, config.containKeywords(), config.excludeKeywords())) {
       return new VideoProcessResult(false, false);
     }
 
-    // 获取视频信息并检测是否为 live
-    String duration = fetchVideoDuration(youtubeService, youtubeApiKey, item);
-    if (duration == null) {
+    // 仅调用一次视频详情查询，并基于 Video 构建 Episode
+    String videoId = item.getSnippet().getResourceId().getVideoId();
+    Video video = fetchVideoDetails(youtubeService, youtubeApiKey, videoId);
+    if (video == null || video.getSnippet() == null) {
       return new VideoProcessResult(false, false);
     }
 
-    // 时长过滤
+    // 跳过直播或即将直播的视频
+    if (shouldSkipLiveContent(video)) {
+      return new VideoProcessResult(false, false);
+    }
+
+    // 从 Video 获取时长并做过滤
+    String duration = (video.getContentDetails() != null)
+        ? video.getContentDetails().getDuration()
+        : null;
+    if (!StringUtils.hasText(duration)) {
+      log.warn("无法读取视频时长: {} - {}", videoId, video.getSnippet().getTitle());
+      return new VideoProcessResult(false, false);
+    }
+
     if (!matchesDurationFilter(duration, config.minimalDuration())) {
       return new VideoProcessResult(false, false);
     }
 
-    // 构建Episode - 优先使用config中的channelId，如果为null则从PlaylistItem中提取
-    String channelId =
-        config.channelId() != null ? config.channelId() : item.getSnippet().getChannelId();
-    Episode episode = buildEpisodeFromItem(item, channelId, duration);
+    // 构建 Episode：优先使用传入的 channelId，否则使用 Video.snippet.channelId（而非 PlaylistItem）
+    String channelId = config.channelId() != null ? config.channelId() : video.getSnippet()
+        .getChannelId();
+    Episode episode = buildEpisodeFromVideo(video, channelId, duration);
     resultEpisodes.add(episode);
 
     if (config.maxPagesToCheck() < Integer.MAX_VALUE) {
       LocalDateTime publishedAt = LocalDateTime.ofInstant(
-          Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
+          Instant.ofEpochMilli(video.getSnippet().getPublishedAt().getValue()),
           ZoneId.systemDefault());
-      log.info("添加符合条件的视频: {} (发布于: {})", title, publishedAt);
+      log.info("添加符合条件的视频: {} (发布于: {})", video.getSnippet().getTitle(), publishedAt);
     }
 
     // 检查是否已达到目标数量
@@ -439,24 +452,24 @@ public class YoutubeVideoHelper {
   }
 
   /**
-   * 从PlaylistItem构建Episode对象
+   * 基于 Video 详情构建 Episode（优先于 PlaylistItem 数据）
    */
-  private Episode buildEpisodeFromItem(PlaylistItem item, String channelId, String duration) {
+  private Episode buildEpisodeFromVideo(Video video, String channelId, String duration) {
     LocalDateTime publishedAt = LocalDateTime.ofInstant(
-        Instant.ofEpochMilli(item.getSnippet().getPublishedAt().getValue()),
+        Instant.ofEpochMilli(video.getSnippet().getPublishedAt().getValue()),
         ZoneId.systemDefault());
 
     EpisodeBuilder builder = Episode.builder()
-        .id(item.getSnippet().getResourceId().getVideoId())
+        .id(video.getId())
         .channelId(channelId)
-        .title(item.getSnippet().getTitle())
-        .description(item.getSnippet().getDescription())
+        .title(video.getSnippet().getTitle())
+        .description(video.getSnippet().getDescription())
         .publishedAt(publishedAt)
         .duration(duration)
         .downloadStatus(EpisodeStatus.PENDING.name())
         .createdAt(LocalDateTime.now());
 
-    applyThumbnails(builder, item.getSnippet().getThumbnails());
+    applyThumbnails(builder, video.getSnippet().getThumbnails());
     return builder.build();
   }
 
@@ -543,44 +556,9 @@ public class YoutubeVideoHelper {
     return episodes;
   }
 
-  /**
-   * 获取播放列表项的视频时长
-   */
-  private String fetchVideoDuration(YouTube youtubeService, String apiKey, PlaylistItem item)
-      throws IOException {
-    PlaylistItemSnippet snippet = item.getSnippet();
-    if (snippet == null || snippet.getResourceId() == null) {
-      log.warn("播放列表项缺少必要的元数据，跳过: {}", item.getId());
-      return null;
-    }
+  // 移除基于 PlaylistItem 再次查询详情获取时长的方法，避免重复 API 调用
 
-    String videoId = snippet.getResourceId().getVideoId();
-    return fetchVideoDuration(youtubeService, apiKey, videoId);
-  }
-
-  /**
-   * 获取视频时长
-   */
-  private String fetchVideoDuration(YouTube youtubeService, String apiKey, String videoId)
-      throws IOException {
-    Video video = fetchVideoDetails(youtubeService, apiKey, videoId);
-    if (video == null) {
-      return null;
-    }
-
-    String title = video.getSnippet().getTitle();
-    if (shouldSkipLiveContent(video)) {
-      return null;
-    }
-
-    if (video.getContentDetails() == null ||
-        !StringUtils.hasText(video.getContentDetails().getDuration())) {
-      log.warn("无法读取视频时长: {} - {}", videoId, title);
-      return null;
-    }
-
-    return video.getContentDetails().getDuration();
-  }
+  // 保留最小外部 API 调用：不再提供基于 videoId 的时长查询入口
 
   /**
    * 获取视频详细信息
