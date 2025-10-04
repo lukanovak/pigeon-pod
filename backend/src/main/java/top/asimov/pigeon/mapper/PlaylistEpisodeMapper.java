@@ -24,6 +24,10 @@ public interface PlaylistEpisodeMapper extends BaseMapper<PlaylistEpisode> {
   List<Episode> selectEpisodePageByPlaylistId(@Param("playlistId") String playlistId,
       @Param("offset") long offset, @Param("pageSize") long pageSize);
 
+  @Select("SELECT * FROM playlist_episode WHERE episode_id = #{episodeId} "
+      + "ORDER BY published_at DESC LIMIT 1")
+  PlaylistEpisode selectLatestByEpisodeId(String episodeId);
+
   @Select("select count(1) "
       + "from episode "
       + "where id = #{episodeId} "

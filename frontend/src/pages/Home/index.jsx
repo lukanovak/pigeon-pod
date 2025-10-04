@@ -25,10 +25,12 @@ import {
   TextInput,
   NumberInput,
   Badge,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
 import { AspectRatio } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { IconCheck, IconClock, IconSearch, IconSettings } from '@tabler/icons-react';
+import { IconCheck, IconClock, IconHelpCircle, IconSearch, IconSettings } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import VersionUpdateAlert from '../../components/VersionUpdateAlert';
@@ -37,6 +39,7 @@ const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
+  const audioQualityDocUrl = '';
   const [feedSource, setFeedSource] = useState('');
   const [fetchFeedLoading, setFetchFeedLoading] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
@@ -47,6 +50,30 @@ const Home = () => {
   const [preview, setPreview] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
+
+  const renderAudioQualityLabel = () => (
+    <Group gap={4} align="center">
+      <Text>{t('audio_quality')}</Text>
+      <Tooltip label={t('audio_quality_help_tooltip')} withArrow>
+        <ActionIcon
+          component="a"
+          href={audioQualityDocUrl || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="subtle"
+          size="sm"
+          onClick={(event) => {
+            if (!audioQualityDocUrl) {
+              event.preventDefault();
+            }
+          }}
+          aria-label={t('audio_quality_help_tooltip')}
+        >
+          <IconHelpCircle size={16} />
+        </ActionIcon>
+      </Tooltip>
+    </Group>
+  );
 
   const fetchFeeds = async () => {
     const res = await API.get('/api/feed/list');
@@ -402,6 +429,20 @@ const Home = () => {
             placeholder={t('unlimited')}
             value={feed.maximumEpisodes}
             onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
+          />
+          <NumberInput
+            label={renderAudioQualityLabel()}
+            description={t('audio_quality_description')}
+            name="audioQuality"
+            placeholder=""
+            min={0}
+            max={10}
+            clampBehavior="strict"
+            value={feed.audioQuality}
+            onChange={(value) => {
+              setFeed({ ...feed, audioQuality: value === '' ? null : value });
+              setPreview(true);
+            }}
           />
           <Group mt="md" justify={isSmallScreen ? 'stretch' : 'flex-end'}>
             <Button

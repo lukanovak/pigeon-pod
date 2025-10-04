@@ -15,9 +15,14 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.EpisodeStatus;
+import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.EpisodeMapper;
+import top.asimov.pigeon.mapper.PlaylistEpisodeMapper;
+import top.asimov.pigeon.mapper.PlaylistMapper;
 import top.asimov.pigeon.model.Episode;
+import top.asimov.pigeon.model.PlaylistEpisode;
 import top.asimov.pigeon.service.CookiesService;
 
 @Log4j2
@@ -28,12 +33,19 @@ public class DownloadWorker {
   private String audioStoragePath;
   private final EpisodeMapper episodeMapper;
   private final CookiesService cookiesService;
+  private final ChannelMapper channelMapper;
+  private final PlaylistMapper playlistMapper;
+  private final PlaylistEpisodeMapper playlistEpisodeMapper;
   private final MessageSource messageSource;
 
   public DownloadWorker(EpisodeMapper episodeMapper, CookiesService cookiesService,
-      MessageSource messageSource) {
+      ChannelMapper channelMapper, PlaylistMapper playlistMapper,
+      PlaylistEpisodeMapper playlistEpisodeMapper, MessageSource messageSource) {
     this.episodeMapper = episodeMapper;
     this.cookiesService = cookiesService;
+    this.channelMapper = channelMapper;
+    this.playlistMapper = playlistMapper;
+    this.playlistEpisodeMapper = playlistEpisodeMapper;
     this.messageSource = messageSource;
   }
 
@@ -65,17 +77,16 @@ public class DownloadWorker {
       // 单用户系统，直接使用默认用户的cookies
       tempCookiesFile = cookiesService.createTempCookiesFile("0");
 
-      String feedName = episodeMapper.getFeedNameByEpisodeId(episodeId);
-      if (!org.springframework.util.StringUtils.hasText(feedName)) {
-        feedName = "unknown";
-      }
+      FeedContext feedContext = resolveFeedContext(episode);
+      String feedName = feedContext.title();
       String safeTitle = getSafeTitle(episode.getTitle());
 
       // 构建输出目录：audioStoragePath/{feed name}/
       String outputDirPath = audioStoragePath + sanitizeFileName(feedName) + File.separator;
 
       // 获取下载进程
-      Process process = getProcess(episodeId, tempCookiesFile, outputDirPath, safeTitle);
+      Process process = getProcess(episodeId, tempCookiesFile, outputDirPath, safeTitle,
+          feedContext.audioQuality());
 
       // 读取命令输出和错误，非常重要，否则可能导致进程阻塞
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -130,7 +141,7 @@ public class DownloadWorker {
   }
 
   private Process getProcess(String videoId, String cookiesFilePath, String outputDirPath,
-      String safeTitle) throws IOException {
+      String safeTitle, Integer audioQuality) throws IOException {
     File outputDir = new File(outputDirPath);
     // 确保目录存在，如果不存在则创建，支持并发安全
     if (!outputDir.exists()) {
@@ -159,6 +170,13 @@ public class DownloadWorker {
     command.add("-f");
     command.add("bestaudio[ext=mp4]/bestaudio[ext=webm]/bestaudio/best/best[height<=480]/worst");
 
+    Integer normalizedQuality = normalizeAudioQuality(audioQuality);
+    if (normalizedQuality != null) {
+      command.add("--audio-quality");
+      command.add(String.valueOf(normalizedQuality));
+      log.debug("使用音频质量参数: {}", normalizedQuality);
+    }
+
     // 忽略一些非致命错误
     command.add("--ignore-errors");
 
@@ -171,9 +189,52 @@ public class DownloadWorker {
 
     command.add(videoUrl);
 
+    log.info("执行 yt-dlp 命令: {}", String.join(" ", command));
+
     ProcessBuilder processBuilder = new ProcessBuilder(command);
     processBuilder.directory(outputDir); // 设置工作目录
     return processBuilder.start();
+  }
+
+  private FeedContext resolveFeedContext(Episode episode) {
+    PlaylistEpisode playlistEpisode =
+        playlistEpisodeMapper.selectLatestByEpisodeId(episode.getId());
+    if (playlistEpisode != null) {
+      var playlist = playlistMapper.selectById(playlistEpisode.getPlaylistId());
+      if (playlist != null) {
+        String title = safeFeedTitle(playlist.getTitle());
+        return new FeedContext(title, playlist.getAudioQuality());
+      }
+    }
+
+    var channel = channelMapper.selectById(episode.getChannelId());
+    if (channel != null) {
+      String title = safeFeedTitle(channel.getTitle());
+      return new FeedContext(title, channel.getAudioQuality());
+    }
+
+    return new FeedContext("unknown", null);
+  }
+
+  private String safeFeedTitle(String rawTitle) {
+    if (!StringUtils.hasText(rawTitle)) {
+      return "unknown";
+    }
+    return rawTitle;
+  }
+
+  private Integer normalizeAudioQuality(Integer rawQuality) {
+    if (rawQuality == null) {
+      return null;
+    }
+    int normalized = Math.max(0, Math.min(rawQuality, 10));
+    if (normalized != rawQuality) {
+      log.warn("音频质量值 {} 超出范围，已调整为 {}", rawQuality, normalized);
+    }
+    return normalized;
+  }
+
+  private record FeedContext(String title, Integer audioQuality) {
   }
 
   // 处理title，按UTF-8字节长度截断，最多200字节，结尾加...，并去除非法字符

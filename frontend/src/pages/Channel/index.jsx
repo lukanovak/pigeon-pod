@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
+  ActionIcon,
   Container,
   Grid,
   Title,
@@ -31,6 +32,7 @@ import {
   IconSettings,
   IconBackspace,
   IconRotate,
+  IconHelpCircle,
 } from '@tabler/icons-react';
 import {
   API,
@@ -68,6 +70,7 @@ const FeedDetail = () => {
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
   const [refreshTimer, setRefreshTimer] = useState(null);
+  const audioQualityDocUrl = '';
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -85,6 +88,30 @@ const FeedDetail = () => {
       if (node) observerRef.current.observe(node);
     },
     [hasMoreEpisodes],
+  );
+
+  const renderAudioQualityLabel = () => (
+    <Group gap={4} align="center">
+      <Text>{t('audio_quality')}</Text>
+      <Tooltip label={t('audio_quality_help_tooltip')} withArrow>
+        <ActionIcon
+          component="a"
+          href={audioQualityDocUrl || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="subtle"
+          size="sm"
+          onClick={(event) => {
+            if (!audioQualityDocUrl) {
+              event.preventDefault();
+            }
+          }}
+          aria-label={t('audio_quality_help_tooltip')}
+        >
+          <IconHelpCircle size={16} />
+        </ActionIcon>
+      </Tooltip>
+    </Group>
   );
 
   const fetchFeedDetail = useCallback(async () => {
@@ -704,6 +731,19 @@ const FeedDetail = () => {
             placeholder={t('unlimited')}
             value={feed?.maximumEpisodes}
             onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
+          />
+          <NumberInput
+            label={renderAudioQualityLabel()}
+            description={t('audio_quality_description')}
+            name="audioQuality"
+            placeholder=""
+            value={feed?.audioQuality}
+            min={0}
+            max={10}
+            clampBehavior="strict"
+            onChange={(value) =>
+              setFeed({ ...feed, audioQuality: value === '' ? null : value })
+            }
           />
           <Group mt="md" justify="flex-end">
             <Button variant="filled" onClick={updateFeedConfig}>
