@@ -26,11 +26,12 @@
 
 ## Funcionalidades Principais
 
-- **🎯 Inscrição Inteligente em Canais**: Adicione canais rapidamente através de URLs do YouTube.
+- **🎯 Inscrição inteligente**: Adicione e sincronize canais ou playlists do YouTube com um clique.
 - **🤖 Sincronização Automática**: Verifica e sincroniza automaticamente o conteúdo mais recente com atualizações incrementais.
 - **📻 Inscrição RSS para Podcasts**: Gera links de inscrição RSS padrão, compatíveis com qualquer cliente de podcast.
 - **🔍 Filtragem de Conteúdo**: Suporte para filtragem por palavras-chave (incluir/excluir) e duração dos episódios.
 - **📊 Gerenciamento de Episódios**: Visualize, delete e tente novamente downloads de episódios que falharam.
+- **🎚 Controle de qualidade de áudio**: Escolha entre níveis 0–10 ou mantenha a faixa original para equilibrar fidelidade e tamanho.
 - **✨ Escuta Sem Anúncios**: Remove automaticamente anúncios de introdução e meio dos episódios.
 - **🍪 Cookies Personalizados**: Suporte para inscrição em conteúdo com restrição de idade e conteúdo de membros através do upload de cookies.
 - **🌐 Suporte Multi-idioma**: Suporte completo para interfaces em inglês, chinês, espanhol, português, japonês, francês, alemão e coreano.
@@ -48,7 +49,7 @@ version: '3.9'
 services:
   pigeon-pod:
     # Encontre a versão mais recente em https://github.com/aizhimou/pigeon-pod/pkgs/container/pigeon-pod
-    image: 'ghcr.io/aizhimou/pigeon-pod:release-1.7.2' 
+    image: 'ghcr.io/aizhimou/pigeon-pod:release-1.8.0' 
     restart: unless-stopped
     container_name: pigeon-pod
     ports:

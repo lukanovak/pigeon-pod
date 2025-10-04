@@ -70,7 +70,7 @@ const FeedDetail = () => {
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
   const [refreshTimer, setRefreshTimer] = useState(null);
-  const audioQualityDocUrl = '';
+  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/cd50eca95a2fadd12805da072e5372373093331b/documents/audio-quality-guide-en.md';
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
