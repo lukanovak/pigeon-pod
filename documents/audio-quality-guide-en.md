@@ -1,5 +1,7 @@
 # Understanding the Audio Quality Setting
 
+[![音频质量设置说明 中文](https://img.shields.io/badge/%E9%9F%B3%E9%A2%91%E8%B4%A8%E9%87%8F%E8%AE%BE%E7%BD%AE%E8%AF%B4%E6%98%8E-%E4%B8%AD%E6%96%87-blue)](audio-quality-guide-zh.md)
+
 This guide explains what the `Audio quality` option in PigeonPod does, why it might not always change the size of downloaded files, and how to choose a value when you want smaller downloads.
 
 ## What the Setting Actually Controls

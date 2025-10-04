@@ -39,7 +39,7 @@ const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
-  const audioQualityDocUrl = '';
+  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/cd50eca95a2fadd12805da072e5372373093331b/documents/audio-quality-guide-en.md';
   const [feedSource, setFeedSource] = useState('');
   const [fetchFeedLoading, setFetchFeedLoading] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
