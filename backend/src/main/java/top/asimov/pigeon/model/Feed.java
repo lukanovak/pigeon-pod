@@ -27,6 +27,7 @@ public abstract class Feed {
   private Integer minimumDuration;
   private Integer initialEpisodes;
   private Integer maximumEpisodes;
+  private Integer audioQuality;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
   private LocalDateTime subscribedAt;

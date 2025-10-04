@@ -96,6 +96,7 @@ public abstract class AbstractFeedService<F extends Feed> {
     existingFeed.setMinimumDuration(configuration.getMinimumDuration());
     existingFeed.setMaximumEpisodes(configuration.getMaximumEpisodes());
     existingFeed.setInitialEpisodes(configuration.getInitialEpisodes());
+    existingFeed.setAudioQuality(configuration.getAudioQuality());
   }
 
   @Transactional
