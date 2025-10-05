@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>简单优雅的将你喜爱的 YouTube 频道转换为播客频道。</h2>
   <h3>如果自托管不是你的菜，欢迎看看我们即将上线的在线服务：
@@ -9,17 +9,17 @@
 
 <div align="center">
   
-[![English README](https://img.shields.io/badge/README-English-blue)](../README.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+[![English README](https://img.shields.io/badge/README-English-blue)](../../README.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
 </div>
 
 ## Screenshots
 
-![index-dark&light](screenshots/index-dark&light.png)
+![index-dark&light](../screenshots/index-dark&light.png)
 <div align="center">
   <p style="color: gray">订阅列表</p>
 </div>
 
-![detail-dark&light](screenshots/detail-dark&light.png)
+![detail-dark&light](../screenshots/detail-dark&light.png)
 <div align="center">
   <p style="color: gray">节目详情</p>
 </div>
@@ -94,9 +94,9 @@ java -jar -DPIGEON_BASE_URL=http://localhost:8080 \  # 替换为你的域名
 
 ## 文档
 
-- [如何获取 YouTube Data API 密钥](how-to-get-youtube-api-key-zh.md)
-- [如何配置 YouTube Cookies](youtube-cookie-setup-zh.md)
-- [如何获取 YouTube 频道 ID](how-to-get-youtube-channel-id-en.md)
+- [如何获取 YouTube Data API 密钥](../how-to-get-youtube-api-key/how-to-get-youtube-api-key-zh.md)
+- [如何配置 YouTube Cookies](../youtube-cookie-setup/youtube-cookie-setup-zh.md)
+- [如何获取 YouTube 频道 ID](../how-to-get-youtube-channel-id/how-to-get-youtube-channel-id-en.md)
 
 
 ## 技术栈

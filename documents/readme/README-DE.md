@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>Verwandeln Sie Ihre liebsten YouTube-Kanäle auf die einfachste und eleganteste Weise in Podcast-Kanäle.</h2>
   <h3>Falls Self-Hosting nicht Ihr Ding ist, schauen Sie sich unsere kommenden Online-Services an:
@@ -9,18 +9,18 @@
 
 <div align="center">
   
-  [![English README](https://img.shields.io/badge/README-English-blue)](../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+  [![English README](https://img.shields.io/badge/README-English-blue)](../../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
 </div>
 
 
 ## Screenshots
 
-![index-dark&light](screenshots/index-dark&light.png)
+![index-dark&light](../screenshots/index-dark&light.png)
 <div align="center">
   <p style="color: gray">Kanalliste</p>
 </div>
 
-![detail-dark&light](screenshots/detail-dark&light.png)
+![detail-dark&light](../screenshots/detail-dark&light.png)
 <div align="center">
   <p style="color: gray">Kanaldetails</p>
 </div>
@@ -98,9 +98,9 @@ java -jar -DPIGEON_BASE_URL=http://localhost:8080 \  # auf Ihre Domain setzen
 
 ## Dokumentation
 
-- [So erhalten Sie einen YouTube-API-Schlüssel](how-to-get-youtube-api-key-en.md)
-- [So richten Sie YouTube-Cookies ein](youtube-cookie-setup-en.md)
-- [So erhalten Sie eine YouTube-Kanal-ID](how-to-get-youtube-channel-id-en.md)
+- [So erhalten Sie einen YouTube-API-Schlüssel](../how-to-get-youtube-api-key/how-to-get-youtube-api-key-en.md)
+- [So richten Sie YouTube-Cookies ein](../youtube-cookie-setup/youtube-cookie-setup-en.md)
+- [So erhalten Sie eine YouTube-Kanal-ID](../how-to-get-youtube-channel-id/how-to-get-youtube-channel-id-en.md)
 
 ## Technologie-Stack
 

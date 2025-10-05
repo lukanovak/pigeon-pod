@@ -70,7 +70,7 @@ const FeedDetail = () => {
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
   const [refreshTimer, setRefreshTimer] = useState(null);
-  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/cd50eca95a2fadd12805da072e5372373093331b/documents/audio-quality-guide-en.md';
+  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/cd50eca95a2fadd12805da072e5372373093331b/documents/audio-quality-guide/audio-quality-guide-en.md';
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -381,6 +381,15 @@ const FeedDetail = () => {
     );
   }
 
+  const feedTypeKey = feed?.type
+    ? `feed_type_${String(feed.type).toLowerCase()}`
+    : 'feed_type_channel';
+  const feedTypeLabel = t(feedTypeKey);
+  const isPlaylist = feed?.type && String(feed.type).toLowerCase() === 'playlist';
+  const badgeGradient = isPlaylist
+    ? { from: '#2563eb', to: '#0ea5e9', deg: 90 }
+    : { from: '#f97316', to: '#f43f5e', deg: 90 };
+
   return (
     <Container size="xl" py={isSmallScreen ? 'md' : 'xl'}>
       {/* Feed Header Section */}
@@ -389,17 +398,28 @@ const FeedDetail = () => {
           {/* Left column with avatar */}
           <Grid.Col span={{ base: 4, sm: 3 }}>
             <Center>
-              <Avatar
-                src={feed.coverUrl}
-                alt={feed.title}
-                size={isSmallScreen ? 100 : 180}
-                radius="md"
-                component="a"
-                href={feed.originalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ cursor: 'pointer' }}
-              />
+              <Box pos="relative" style={{ display: 'inline-block' }}>
+                <Avatar
+                  src={feed.coverUrl}
+                  alt={feed.title}
+                  size={isSmallScreen ? 100 : 180}
+                  radius="md"
+                  component="a"
+                  href={feed.originalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ cursor: 'pointer' }}
+                />
+                <Badge
+                  variant="gradient"
+                  gradient={badgeGradient}
+                  size="sm"
+                  radius="sm"
+                  style={{ position: 'absolute', bottom: 6, right: 6, opacity: 0.9, pointerEvents: 'none' }}
+                >
+                  {feedTypeLabel}
+                </Badge>
+              </Box>
             </Center>
           </Grid.Col>
 

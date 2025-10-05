@@ -7,7 +7,7 @@ import NotFound from './pages/NotFound/index.jsx';
 import UserSetting from './pages/UserSetting/index.jsx';
 import Layout from './components/Layout.jsx';
 import Forbidden from './pages/Forbidden/index.jsx';
-import ChannelDetail from './pages/Channel/index.jsx';
+import ChannelDetail from './pages/Feed/index.jsx';
 
 function App() {
   const [, dispatch] = useContext(UserContext);

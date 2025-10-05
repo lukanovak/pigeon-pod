@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>Transforme seus canais favoritos do YouTube em canais de podcast da forma mais simples e elegante.</h2>
   <h3>Se auto-hospedagem não é sua praia, dê uma olhada em nossos próximos serviços online:
@@ -9,17 +9,17 @@
 
 <div align="center">
   
-[![English README](https://img.shields.io/badge/README-English-blue)](../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
+[![English README](https://img.shields.io/badge/README-English-blue)](../../README.md) [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](README-ES.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](README-KO.md)
 </div>
 
 ## Screenshots
 
-![index-dark&light](screenshots/index-dark&light.png)
+![index-dark&light](../screenshots/index-dark&light.png)
 <div align="center">
   <p style="color: gray">Lista de canais</p>
 </div>
 
-![detail-dark&light](screenshots/detail-dark&light.png)
+![detail-dark&light](../screenshots/detail-dark&light.png)
 <div align="center">
   <p style="color: gray">Detalhes do canal</p>
 </div>
@@ -97,9 +97,9 @@ Abra seu navegador e visite `http://localhost:8080` com **usuário padrão: `roo
 
 ## Documentação
 
-- [Como obter a chave da API do YouTube](how-to-get-youtube-api-key-en.md)
-- [Como configurar cookies do YouTube](youtube-cookie-setup-en.md)
-- [Como obter o ID do canal do YouTube](how-to-get-youtube-channel-id-en.md)
+- [Como obter a chave da API do YouTube](../how-to-get-youtube-api-key/how-to-get-youtube-api-key-en.md)
+- [Como configurar cookies do YouTube](../youtube-cookie-setup/youtube-cookie-setup-en.md)
+- [Como obter o ID do canal do YouTube](../how-to-get-youtube-channel-id/how-to-get-youtube-channel-id-en.md)
 
 ## Stack Tecnológico
 

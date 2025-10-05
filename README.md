@@ -9,7 +9,7 @@
 
 <div align="center">
 
-  [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](documents/README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](documents/README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](documents/README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](documents/README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](documents/README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](documents/README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](documents/README-KO.md)
+  [![中文 README](https://img.shields.io/badge/README-%E4%B8%AD%E6%96%87-red)](documents/readme/README-ZH.md) [![Español README](https://img.shields.io/badge/README-Español-orange)](documents/readme/README-ES.md) [![Português README](https://img.shields.io/badge/README-Português-green)](documents/readme/README-PT.md) [![日本語 README](https://img.shields.io/badge/README-日本語-blue)](documents/readme/README-JA.md) [![Deutsch README](https://img.shields.io/badge/README-Deutsch-yellow)](documents/readme/README-DE.md) [![Français README](https://img.shields.io/badge/README-Français-purple)](documents/readme/README-FR.md) [![한국어 README](https://img.shields.io/badge/README-한국어-pink)](documents/readme/README-KO.md)
 </div>
 
 ## Screenshots
@@ -98,9 +98,9 @@ Open your browser and visit `http://localhost:8080` with **default username: `ro
 
 ## Documentation
 
-- [How to get YouTube API Key](documents/how-to-get-youtube-api-key-en.md)
-- [How to setup YouTube Cookies](documents/youtube-cookie-setup-en.md)
-- [How to get YouTube channel ID](documents/how-to-get-youtube-channel-id-en.md)
+- [How to get YouTube API Key](documents/how-to-get-youtube-api-key/how-to-get-youtube-api-key-en.md)
+- [How to setup YouTube Cookies](documents/youtube-cookie-setup/youtube-cookie-setup-en.md)
+- [How to get YouTube channel ID](documents/how-to-get-youtube-channel-id/how-to-get-youtube-channel-id-en.md)
 
 
 ## Tech Stack
