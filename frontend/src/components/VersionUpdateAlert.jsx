@@ -128,9 +128,7 @@ const VersionUpdateAlert = () => {
       const isNewerThanCurrent = compareVersions(existingNotice.tag_name, currentVersion) > 0;
       if (!isNewerThanCurrent) {
         // 本地记录已过时（<= 当前版本），清理
-        try {
-          localStorage.removeItem('update_notice');
-        } catch (_) {}
+        localStorage.removeItem('update_notice');
       } else if (!existingNotice.skip) {
         const noticeTime = new Date(existingNotice.notice_time);
         if (now >= noticeTime) {
