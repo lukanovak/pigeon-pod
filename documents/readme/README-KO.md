@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../../frontend/src/assets/pigeonpod.svg" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>좋아하는 YouTube 채널을 가장 간단하고 우아한 방법으로 팟캐스트 채널로 변환하세요.</h2>
   <h3>셀프 호스팅이 부담스럽다면, 곧 출시될 온라인 서비스를 확인해보세요:

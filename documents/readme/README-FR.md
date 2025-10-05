@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../frontend/src/assets/pigeonpod.svg" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>Transformez vos chaînes YouTube préférées en chaînes de podcast de la manière la plus simple et élégante.</h2>
   <h3>Si l'auto-hébergement n'est pas votre tasse de thé, jetez un œil à nos services en ligne à venir :

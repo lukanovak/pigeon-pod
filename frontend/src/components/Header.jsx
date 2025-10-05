@@ -9,7 +9,7 @@ import {
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
-import logo from '../assets/pigeon.png';
+import logo from '../assets/pigeonpod.svg';
 import {
   IconBrandGithub,
   IconLanguage,

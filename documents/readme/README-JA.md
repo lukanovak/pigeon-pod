@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../../frontend/src/assets/pigeonpod.svg" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>お気に入りのYouTubeチャンネルを、最もシンプルでエレガントな方法でポッドキャストチャンネルに変換します。</h2>
   <h3>セルフホスティングがお好みでない場合は、こちらの今後のオンラインサービスをご覧ください：

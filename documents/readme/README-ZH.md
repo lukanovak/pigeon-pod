@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../../frontend/src/assets/pigeon.png" alt="pigeonpod" width="120" />
+  <img src="../../frontend/src/assets/pigeonpod.svg" alt="pigeonpod" width="120" />
   <h1>PigeonPod</h1>
   <h2>简单优雅的将你喜爱的 YouTube 频道转换为播客频道。</h2>
   <h3>如果自托管不是你的菜，欢迎看看我们即将上线的在线服务：
