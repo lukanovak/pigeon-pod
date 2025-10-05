@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -107,7 +109,7 @@ public class YoutubeVideoHelper {
       String containKeywords, String excludeKeywords, Integer minimalDuration) {
     VideoFetchConfig config = new VideoFetchConfig(
         channelId, null, fetchNum, containKeywords, excludeKeywords, minimalDuration,
-        (fetchNumLong) -> Math.min(50L, fetchNumLong), // API 单页最大 50
+        (fetchNumLong) -> 50L, // API 单页最大 50
         Integer.MAX_VALUE, // 不限制页数
         false
     );
@@ -201,7 +203,7 @@ public class YoutubeVideoHelper {
       Integer minimalDuration) {
     VideoFetchConfig config = new VideoFetchConfig(
         null, playlistId, fetchNum, containKeywords, excludeKeywords, minimalDuration,
-        (fetchNumLong) -> Math.min(50L, fetchNumLong), // API 单页最大 50
+        (fetchNumLong) -> 50L, // API 单页最大 50
         Integer.MAX_VALUE, // 不限制页数
         false
     );
@@ -366,28 +368,50 @@ public class YoutubeVideoHelper {
         log.info("处理第 {} 页，获取到 {} 个视频项", currentPage, pageItems.size());
       }
 
+      // Step 1: Pre-filter and collect video IDs
+      List<PlaylistItem> itemsToProcess = new ArrayList<>();
+      List<String> videoIdsToFetch = new ArrayList<>();
       for (PlaylistItem item : pageItems) {
-        // 检查停止条件
         if (stopCondition.test(item)) {
           shouldStop = true;
           break;
         }
-
-        // 检查跳过条件
         if (skipCondition.test(item)) {
           continue;
         }
+        itemsToProcess.add(item);
+        videoIdsToFetch.add(item.getSnippet().getResourceId().getVideoId());
+      }
 
-        VideoProcessResult processResult = processVideoItem(
-            item, config, youtubeApiKey, resultEpisodes);
+      if (shouldStop && itemsToProcess.isEmpty()) {
+        break;
+      }
 
-        if (processResult.shouldBreak()) {
+      // Step 2: Bulk fetch video details
+      Map<String, Video> videoDetailsMap = fetchVideoDetailsInBulk(videoIdsToFetch, youtubeApiKey);
+
+      // Step 3: Final filtering and processing
+      for (PlaylistItem item : itemsToProcess) {
+        String videoId = item.getSnippet().getResourceId().getVideoId();
+        Video video = videoDetailsMap.get(videoId);
+
+        Optional<Episode> episodeOptional = buildEpisodeIfMatches(item, video, config);
+        if (episodeOptional.isPresent()) {
+          resultEpisodes.add(episodeOptional.get());
+          if (config.maxPagesToCheck() < Integer.MAX_VALUE) {
+            log.info("添加符合条件的视频: {} (发布于: {})", episodeOptional.get().getTitle(),
+                episodeOptional.get().getPublishedAt());
+          }
+        }
+
+        if (resultEpisodes.size() >= config.fetchNum()) {
+          shouldStop = true;
           break;
         }
+      }
 
-        if (!processResult.shouldContinue()) {
-          continue;
-        }
+      if (shouldStop) {
+        break;
       }
 
       nextPageToken = response.getNextPageToken();
@@ -414,14 +438,10 @@ public class YoutubeVideoHelper {
     Deque<PlaylistItem> tailItems = new ArrayDeque<>();
     String nextPageToken = "";
     int currentPage = 0;
+    long pageSize = 50L; // Always use a full page size to build the buffer
     int bufferSize = Math.max(config.fetchNum() * 6, config.fetchNum() + 50);
 
     while (currentPage < config.maxPagesToCheck()) {
-      long pageSize = config.pageSizeCalculator().apply((long) config.fetchNum());
-      if (pageSize <= 0) {
-        pageSize = 50L;
-      }
-
       PlaylistItemListResponse response = fetchPlaylistPage(
           playlistId, pageSize, nextPageToken, youtubeApiKey);
 
@@ -469,6 +489,7 @@ public class YoutubeVideoHelper {
         break;
       }
 
+      // Revert to calling the old buildEpisodeIfMatches with apiKey
       Optional<Episode> episodeOptional = buildEpisodeIfMatches(item, config, youtubeApiKey);
       episodeOptional.ifPresent(resultEpisodes::add);
     }
@@ -490,46 +511,22 @@ public class YoutubeVideoHelper {
     return channelResponse.getItems().get(0).getContentDetails().getRelatedPlaylists().getUploads();
   }
 
-  /**
-   * 获取播放列表的一页数据
-   */
-  private PlaylistItemListResponse fetchPlaylistPage(String playlistId, long pageSize,
-      String nextPageToken, String youtubeApiKey) throws IOException {
-    YouTube.PlaylistItems.List request = youtubeService.playlistItems()
-        .list("snippet")
-        .setPlaylistId(playlistId)
-        .setMaxResults(pageSize)
-        .setPageToken(nextPageToken)
-        .setKey(youtubeApiKey);
-    log.info("[YouTube API] playlistItems.list(snippet) playlistId={} maxResults={} pageToken={}",
-        playlistId, pageSize, nextPageToken == null ? "<none>" : nextPageToken);
-    return request.execute();
-  }
+  private Video fetchVideoDetails(YouTube youtubeService, String apiKey, String videoId)
+      throws IOException {
+    log.info("[YouTube API] videos.list(contentDetails,snippet,liveStreamingDetails) videoId={}",
+        videoId);
+    VideoListResponse videoResponse = youtubeService.videos()
+        .list("contentDetails,snippet,liveStreamingDetails")
+        .setId(videoId)
+        .setKey(apiKey)
+        .execute();
 
-  /**
-   * 处理单个视频
-   */
-  private VideoProcessResult processVideoItem(PlaylistItem item, VideoFetchConfig config,
-      String youtubeApiKey, List<Episode> resultEpisodes) throws IOException {
-    Optional<Episode> episodeOptional = buildEpisodeIfMatches(item, config, youtubeApiKey);
-    if (episodeOptional.isEmpty()) {
-      return new VideoProcessResult(false, false);
+    List<Video> videos = videoResponse.getItems();
+    if (CollectionUtils.isEmpty(videos)) {
+      return null;
     }
 
-    Episode episode = episodeOptional.get();
-    resultEpisodes.add(episode);
-
-    if (config.maxPagesToCheck() < Integer.MAX_VALUE) {
-      log.info("添加符合条件的视频: {} (发布于: {})", episode.getTitle(),
-          episode.getPublishedAt());
-    }
-
-    // 检查是否已达到目标数量
-    if (resultEpisodes.size() >= config.fetchNum()) {
-      return new VideoProcessResult(false, true);
-    }
-
-    return new VideoProcessResult(true, false);
+    return videos.get(0);
   }
 
   private Optional<Episode> buildEpisodeIfMatches(PlaylistItem item, VideoFetchConfig config,
@@ -555,6 +552,55 @@ public class YoutubeVideoHelper {
         : null;
     if (!StringUtils.hasText(duration)) {
       log.warn("无法读取视频时长: {} - {}", videoId, video.getSnippet().getTitle());
+      return Optional.empty();
+    }
+
+    if (!matchesDurationFilter(duration, config.minimalDuration())) {
+      return Optional.empty();
+    }
+
+    String channelId = config.channelId() != null ? config.channelId()
+        : video.getSnippet().getChannelId();
+    Episode episode = buildEpisodeFromVideo(video, channelId, duration);
+    return Optional.of(episode);
+  }
+
+  /**
+   * 获取播放列表的一页数据
+   */
+  private PlaylistItemListResponse fetchPlaylistPage(String playlistId, long pageSize,
+      String nextPageToken, String youtubeApiKey) throws IOException {
+    YouTube.PlaylistItems.List request = youtubeService.playlistItems()
+        .list("snippet")
+        .setPlaylistId(playlistId)
+        .setMaxResults(pageSize)
+        .setPageToken(nextPageToken)
+        .setKey(youtubeApiKey);
+    log.info("[YouTube API] playlistItems.list(snippet) playlistId={} maxResults={} pageToken={}",
+        playlistId, pageSize, nextPageToken == null ? "<none>" : nextPageToken);
+    return request.execute();
+  }
+
+  private Optional<Episode> buildEpisodeIfMatches(PlaylistItem item, Video video, VideoFetchConfig config) {
+    String title = item.getSnippet().getTitle();
+
+    if (!matchesKeywordFilter(title, config.containKeywords(), config.excludeKeywords())) {
+      return Optional.empty();
+    }
+
+    if (video == null || video.getSnippet() == null) {
+      return Optional.empty();
+    }
+
+    if (shouldSkipLiveContent(video)) {
+      return Optional.empty();
+    }
+
+    String duration = (video.getContentDetails() != null)
+        ? video.getContentDetails().getDuration()
+        : null;
+    if (!StringUtils.hasText(duration)) {
+      log.warn("无法读取视频时长: {} - {}", video.getId(), video.getSnippet().getTitle());
       return Optional.empty();
     }
 
@@ -677,31 +723,23 @@ public class YoutubeVideoHelper {
 
   // 保留最小外部 API 调用：不再提供基于 videoId 的时长查询入口
 
-  /**
-   * 获取视频详细信息
-   *
-   * @param youtubeService YouTube 服务对象
-   * @param apiKey         API 密钥
-   * @param videoId        视频 ID
-   * @return 视频对象，如果未找到返回 null
-   * @throws IOException IO 异常
-   */
-  private Video fetchVideoDetails(YouTube youtubeService, String apiKey, String videoId)
-      throws IOException {
-    log.info("[YouTube API] videos.list(contentDetails,snippet,liveStreamingDetails) videoId={}",
-        videoId);
+  private Map<String, Video> fetchVideoDetailsInBulk(List<String> videoIds, String apiKey) throws IOException {
+    if (CollectionUtils.isEmpty(videoIds)) {
+        return Collections.emptyMap();
+    }
+    log.info("[YouTube API] videos.list(contentDetails,snippet,liveStreamingDetails) videoIds=[...](count: {})", videoIds.size());
     VideoListResponse videoResponse = youtubeService.videos()
-        .list("contentDetails,snippet,liveStreamingDetails")
-        .setId(videoId)
-        .setKey(apiKey)
-        .execute();
+            .list("contentDetails,snippet,liveStreamingDetails")
+            .setId(String.join(",", videoIds))
+            .setKey(apiKey)
+            .execute();
 
-    List<Video> videos = videoResponse.getItems();
-    if (CollectionUtils.isEmpty(videos)) {
-      return null;
+    if (CollectionUtils.isEmpty(videoResponse.getItems())) {
+        return Collections.emptyMap();
     }
 
-    return videos.get(0);
+    return videoResponse.getItems().stream()
+            .collect(Collectors.toMap(Video::getId, Function.identity()));
   }
 
   /**
@@ -782,10 +820,4 @@ public class YoutubeVideoHelper {
 
   }
 
-  /**
-   * 视频处理结果类
-   */
-  private record VideoProcessResult(boolean shouldContinue, boolean shouldBreak) {
-
-  }
 }
