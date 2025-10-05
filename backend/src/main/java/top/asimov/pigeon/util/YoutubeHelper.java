@@ -208,6 +208,8 @@ public class YoutubeHelper {
       channelRequest.setId(channelId);
       channelRequest.setKey(youtubeApiKey);
 
+      log.info("[YouTube API] channels.list(snippet,statistics,brandingSettings) channelId={}",
+          channelId);
       ChannelListResponse response = channelRequest.execute();
       List<com.google.api.services.youtube.model.Channel> channels = response.getItems();
 
@@ -232,6 +234,7 @@ public class YoutubeHelper {
       playlistRequest.setId(playlistId);
       playlistRequest.setKey(youtubeApiKey);
 
+      log.info("[YouTube API] playlists.list(snippet) playlistId={}", playlistId);
       PlaylistListResponse response = playlistRequest.execute();
       List<Playlist> playlists = response.getItems();
 
@@ -274,6 +277,7 @@ public class YoutubeHelper {
           .setMaxResults(1L); // 我们只需要最相关的那个
 
       searchListRequest.setKey(youtubeApiKey);
+      log.info("[YouTube API] search.list(part=snippet) q={} type=channel", handle);
       SearchListResponse response = searchListRequest.execute();
       List<SearchResult> searchResults = response.getItems();
 

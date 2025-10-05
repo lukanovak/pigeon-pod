@@ -24,6 +24,7 @@ import {
   Paper,
   TextInput,
   NumberInput,
+  Select,
   Badge,
   ActionIcon,
   Tooltip,
@@ -39,7 +40,7 @@ const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
-  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/cd50eca95a2fadd12805da072e5372373093331b/documents/audio-quality-guide/audio-quality-guide-en.md';
+  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
   const [feedSource, setFeedSource] = useState('');
   const [fetchFeedLoading, setFetchFeedLoading] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
@@ -50,6 +51,7 @@ const Home = () => {
   const [preview, setPreview] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
+  const isPlaylistFeed = String(feed?.type || '').toLowerCase() === 'playlist';
 
   const renderAudioQualityLabel = () => (
     <Group gap={4} align="center">
@@ -430,6 +432,21 @@ const Home = () => {
             value={feed.maximumEpisodes}
             onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
           />
+          {isPlaylistFeed ? (
+            <Select
+              label={t('episode_sort_label')}
+              name="episodeSort"
+              data={[
+                { value: 'default', label: t('episode_sort_default') },
+                { value: '1', label: t('episode_sort_desc') },
+              ]}
+              value={feed.episodeSort === 1 ? '1' : 'default'}
+              onChange={(value) => {
+                setFeed({ ...feed, episodeSort: value === '1' ? 1 : null });
+                setPreview(true);
+              }}
+            />
+          ) : null}
           <NumberInput
             label={renderAudioQualityLabel()}
             description={t('audio_quality_description')}

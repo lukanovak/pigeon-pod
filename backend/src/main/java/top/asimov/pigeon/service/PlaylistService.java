@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.FeedSource;
+import top.asimov.pigeon.constant.PlaylistEpisodeSort;
 import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.event.DownloadTaskEvent.DownloadTargetType;
 import top.asimov.pigeon.exception.BusinessException;
@@ -108,6 +109,11 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
     FeedConfigUpdateResult result = updateFeedConfig(playlistId, configuration);
     log.info("播放列表 {} 配置更新成功", playlistId);
     return result;
+  }
+
+  @Override
+  protected void applyAdditionalMutableFields(Playlist existingFeed, Playlist configuration) {
+    existingFeed.setEpisodeSort(configuration.getEpisodeSort());
   }
 
   public FeedPack<Playlist> fetchPlaylist(String playlistUrl) {
@@ -230,15 +236,20 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
         initialEpisodes);
 
     try {
-      List<Episode> episodes = youtubeVideoHelper.fetchPlaylistVideos(
-          playlistId, initialEpisodes, containKeywords, excludeKeywords, minimumDuration);
+      Playlist playlist = playlistMapper.selectById(playlistId);
+      PlaylistEpisodeSort sort = PlaylistEpisodeSort.fromValue(
+          playlist != null ? playlist.getEpisodeSort() : null);
+      int episodesToFetch = initialEpisodes != null && initialEpisodes > 0
+          ? initialEpisodes
+          : DEFAULT_FETCH_NUM;
+      List<Episode> episodes = fetchEpisodesBySort(playlistId, sort, episodesToFetch,
+          null, containKeywords, excludeKeywords, minimumDuration);
 
       if (episodes.isEmpty()) {
         log.info("播放列表 {} 没有找到任何视频。", playlistId);
         return;
       }
 
-      Playlist playlist = playlistMapper.selectById(playlistId);
       FeedEpisodeUtils.findLatestEpisode(episodes).ifPresent(latest -> {
         if (playlist != null) {
           playlist.setLastSyncVideoId(latest.getId());
@@ -312,6 +323,42 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
         log.warn("更新播放列表 {} 与节目 {} 的关联失败", playlistId, episode.getId());
       }
     }
+  }
+
+  private List<Episode> fetchEpisodesBySort(Playlist playlist, int fetchNum,
+      String containKeywords, String excludeKeywords, Integer minimalDuration) {
+    PlaylistEpisodeSort sort = PlaylistEpisodeSort.fromValue(playlist.getEpisodeSort());
+    return fetchEpisodesBySort(playlist.getId(), sort, fetchNum, null,
+        containKeywords, excludeKeywords, minimalDuration);
+  }
+
+  private List<Episode> fetchEpisodesBySort(Playlist playlist, int fetchNum,
+      String lastSyncedVideoId, String containKeywords, String excludeKeywords,
+      Integer minimalDuration) {
+    PlaylistEpisodeSort sort = PlaylistEpisodeSort.fromValue(playlist.getEpisodeSort());
+    return fetchEpisodesBySort(playlist.getId(), sort, fetchNum, lastSyncedVideoId,
+        containKeywords, excludeKeywords, minimalDuration);
+  }
+
+  private List<Episode> fetchEpisodesBySort(String playlistId, PlaylistEpisodeSort sort,
+      int fetchNum, String lastSyncedVideoId, String containKeywords,
+      String excludeKeywords, Integer minimalDuration) {
+    if (sort.isDescendingPosition()) {
+      if (lastSyncedVideoId != null) {
+        return youtubeVideoHelper.fetchPlaylistVideosDescending(playlistId, fetchNum,
+            lastSyncedVideoId, containKeywords, excludeKeywords, minimalDuration);
+      }
+      return youtubeVideoHelper.fetchPlaylistVideosDescending(playlistId, fetchNum,
+          containKeywords, excludeKeywords, minimalDuration);
+    }
+
+    if (lastSyncedVideoId != null) {
+      return youtubeVideoHelper.fetchPlaylistVideos(playlistId, fetchNum, lastSyncedVideoId,
+          containKeywords, excludeKeywords, minimalDuration);
+    }
+
+    return youtubeVideoHelper.fetchPlaylistVideos(playlistId, fetchNum, containKeywords,
+        excludeKeywords, minimalDuration);
   }
 
   private void removeOrphanEpisodes(Collection<Episode> episodes) {
@@ -393,15 +440,14 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
 
   @Override
   protected List<Episode> fetchEpisodes(Playlist feed, int fetchNum) {
-    return youtubeVideoHelper.fetchPlaylistVideos(feed.getId(), fetchNum,
-        feed.getContainKeywords(), feed.getExcludeKeywords(), feed.getMinimumDuration());
+    return fetchEpisodesBySort(feed, fetchNum, feed.getContainKeywords(),
+        feed.getExcludeKeywords(), feed.getMinimumDuration());
   }
 
   @Override
   protected List<Episode> fetchIncrementalEpisodes(Playlist feed) {
-    return youtubeVideoHelper.fetchPlaylistVideos(feed.getId(), MAX_FETCH_NUM,
-        feed.getLastSyncVideoId(), feed.getContainKeywords(), feed.getExcludeKeywords(),
-        feed.getMinimumDuration());
+    return fetchEpisodesBySort(feed, MAX_FETCH_NUM, feed.getLastSyncVideoId(),
+        feed.getContainKeywords(), feed.getExcludeKeywords(), feed.getMinimumDuration());
   }
 
   @Override

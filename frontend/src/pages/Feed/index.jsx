@@ -22,6 +22,7 @@ import {
   Loader,
   TextInput,
   NumberInput,
+  Select,
   Tooltip,
 } from '@mantine/core';
 import {
@@ -70,7 +71,7 @@ const FeedDetail = () => {
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
   const [refreshTimer, setRefreshTimer] = useState(null);
-  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/cd50eca95a2fadd12805da072e5372373093331b/documents/audio-quality-guide/audio-quality-guide-en.md';
+  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -752,6 +753,20 @@ const FeedDetail = () => {
             value={feed?.maximumEpisodes}
             onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
           />
+          {type?.toLowerCase() === 'playlist' ? (
+            <Select
+              label={t('episode_sort_label')}
+              name="episodeSort"
+              data={[
+                { value: 'default', label: t('episode_sort_default') },
+                { value: '1', label: t('episode_sort_desc') },
+              ]}
+              value={feed?.episodeSort === 1 ? '1' : 'default'}
+              onChange={(value) =>
+                setFeed({ ...feed, episodeSort: value === '1' ? 1 : null })
+              }
+            />
+          ) : null}
           <NumberInput
             label={renderAudioQualityLabel()}
             description={t('audio_quality_description')}

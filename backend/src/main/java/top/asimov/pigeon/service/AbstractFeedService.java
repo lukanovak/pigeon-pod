@@ -97,6 +97,7 @@ public abstract class AbstractFeedService<F extends Feed> {
     existingFeed.setMaximumEpisodes(configuration.getMaximumEpisodes());
     existingFeed.setInitialEpisodes(configuration.getInitialEpisodes());
     existingFeed.setAudioQuality(configuration.getAudioQuality());
+    applyAdditionalMutableFields(existingFeed, configuration);
   }
 
   @Transactional
@@ -163,6 +164,10 @@ public abstract class AbstractFeedService<F extends Feed> {
   }
 
   protected void afterEpisodesPersisted(F feed, List<Episode> episodes) {
+    // default no-op, subclasses may override
+  }
+
+  protected void applyAdditionalMutableFields(F existingFeed, F configuration) {
     // default no-op, subclasses may override
   }
 
