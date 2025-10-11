@@ -30,10 +30,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import top.asimov.pigeon.constant.Youtube;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
+import top.asimov.pigeon.model.Feed;
 import top.asimov.pigeon.model.Playlist;
 
 @Log4j2
@@ -77,7 +79,7 @@ public class RssService {
 
     List<Episode> episodes = episodeService.getEpisodeOrderByPublishDateDesc(channel.getId());
     SyndFeed feed = createFeed(channel.getTitle(), Youtube.CHANNEL_URL + channel.getId(),
-        channel.getDescription(), channel.getCoverUrl());
+        channel.getDescription(), getCoverUrl(channel));
     feed.setEntries(buildEntries(episodes));
     return writeFeed(feed);
   }
@@ -92,7 +94,7 @@ public class RssService {
 
     List<Episode> episodes = episodeService.getEpisodesByPlaylistId(playlistId);
     SyndFeed feed = createFeed(playlist.getTitle(), Youtube.PLAYLIST_URL + playlist.getId(),
-        playlist.getDescription(), playlist.getCoverUrl());
+        playlist.getDescription(), getCoverUrl(playlist));
     feed.setEntries(buildEntries(episodes));
     return writeFeed(feed);
   }
@@ -196,5 +198,17 @@ public class RssService {
       log.warn("无法解析时长字符串: '{}', 将返回0时长.", isoDuration, e);
       return new Duration();
     }
+  }
+
+  private String getCoverUrl(Feed feed) {
+    String customCoverExt = feed.getCustomCoverExt();
+    if (StringUtils.hasText(customCoverExt)) {
+      String coverUrl = appBaseUrl + "/media/feed/" + feed.getId() + "/cover";
+      if (feed.getLastUpdatedAt() != null) {
+        coverUrl += "?v=" + feed.getLastUpdatedAt().toEpochSecond(java.time.ZoneOffset.UTC);
+      }
+      return coverUrl;
+    }
+    return feed.getCoverUrl();
   }
 }

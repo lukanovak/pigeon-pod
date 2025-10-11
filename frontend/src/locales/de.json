@@ -129,5 +129,9 @@
   "hour": "Stunde",
   "minute": "Min",
   "edit_title": "Feed-Informationen anpassen",
-  "title": "Benutzerdefinierter Titel"
+  "custom_title": "Benutzerdefinierter Titel",
+  "custom_cover": "Benutzerdefiniertes Cover",
+  "upload_image": "Bild hochladen",
+  "update_feed_failed": "Feed konnte nicht aktualisiert werden",
+  "update_feed_success": "Feed erfolgreich aktualisiert"
 }

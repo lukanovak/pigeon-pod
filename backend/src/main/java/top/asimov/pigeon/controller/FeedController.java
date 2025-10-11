@@ -2,6 +2,7 @@ package top.asimov.pigeon.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.util.SaResult;
+import java.io.IOException;
 import java.util.Map;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import top.asimov.pigeon.constant.FeedType;
 import top.asimov.pigeon.service.FeedService;
 
@@ -45,8 +48,32 @@ public class FeedController {
   @PutMapping("/{type}/config/{id}")
   public SaResult updateConfig(@PathVariable String type, @PathVariable String id,
       @RequestBody Map<String, Object> payload) {
+    payload.remove("customCoverExt");
     FeedType feedType = feedService.resolveType(type);
     return SaResult.data(feedService.updateConfig(feedType, id, payload));
+  }
+
+  @PostMapping("/{type}/{id}/cover")
+  public SaResult uploadCover(@PathVariable String type, @PathVariable String id,
+      @RequestParam("file") MultipartFile file) {
+    try {
+      FeedType feedType = feedService.resolveType(type);
+      feedService.updateCustomCover(feedType, id, file);
+      return SaResult.ok();
+    } catch (IOException e) {
+      return SaResult.error(e.getMessage());
+    }
+  }
+
+  @DeleteMapping("/{type}/{id}/cover")
+  public SaResult deleteCustomCover(@PathVariable String type, @PathVariable String id) {
+    try {
+      FeedType feedType = feedService.resolveType(type);
+      feedService.clearCustomCover(feedType, id);
+      return SaResult.ok();
+    } catch (IOException e) {
+      return SaResult.error(e.getMessage());
+    }
   }
 
   @PostMapping("/fetch")

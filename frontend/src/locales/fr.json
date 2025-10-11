@@ -130,5 +130,9 @@
   "hour": "heure",
   "minute": "min",
   "edit_title": "Personnaliser les informations du flux",
-  "title": "Titre personnalisé"
+  "custom_title": "Titre personnalisé",
+  "custom_cover": "Couverture Personnalisée",
+  "upload_image": "Télécharger une image",
+  "update_feed_failed": "Échec de la mise à jour du flux",
+  "update_feed_success": "Flux mis à jour avec succès"
 }

@@ -130,5 +130,9 @@
   "hour": "時間",
   "minute": "分",
   "edit_title": "フィード情報をカスタマイズ",
-  "title": "カスタムタイトル"
+  "custom_title": "カスタムタイトル",
+  "custom_cover": "カスタムカバー",
+  "upload_image": "画像をアップロード",
+  "update_feed_failed": "フィードの更新に失敗しました",
+  "update_feed_success": "フィードが正常に更新されました"
 }

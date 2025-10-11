@@ -1,5 +1,6 @@
 package top.asimov.pigeon.model;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
@@ -21,7 +22,7 @@ public abstract class Feed {
   private String title;
   private String customTitle;
   private String coverUrl;
-  private String customCoverPath;
+  private String customCoverExt;
   private String source;
   private String description;
   private String containKeywords;
@@ -32,13 +33,21 @@ public abstract class Feed {
   private Integer audioQuality;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
+
+  @TableField(fill = FieldFill.INSERT)
   private LocalDateTime subscribedAt;
+
+  @TableField(fill = FieldFill.UPDATE)
+  private LocalDateTime lastUpdatedAt;
 
   @TableField(exist = false)
   private transient String originalUrl;
 
   @TableField(exist = false)
   private transient LocalDateTime lastPublishedAt;
+
+  @TableField(exist = false)
+  private transient String customCoverUrl;
 
   public abstract FeedType getType();
 }

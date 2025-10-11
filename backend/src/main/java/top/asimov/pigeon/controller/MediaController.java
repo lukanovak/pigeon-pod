@@ -1,6 +1,8 @@
 package top.asimov.pigeon.controller;
 
+import cn.dev33.satoken.util.SaResult;
 import java.io.File;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.log4j.Log4j2;
@@ -26,29 +28,38 @@ public class MediaController {
   @Autowired
   private MediaService mediaService;
 
-  /**
-   * 处理媒体文件请求 URL格式：/media/{episodeId}.mp3
-   */
+  @GetMapping("/feed/{feedId}/cover")
+  public ResponseEntity<Resource> getFeedCover(@PathVariable String feedId) {
+    try {
+      File coverFile = mediaService.getFeedCover(feedId);
+      if (coverFile == null) {
+        return ResponseEntity.notFound().build();
+      }
+      Resource resource = new FileSystemResource(coverFile);
+      MediaType mediaType = getMediaTypeByFileName(coverFile.getName());
+      return ResponseEntity.ok()
+          .contentType(mediaType)
+          .body(resource);
+    } catch (Exception e) {
+      return ResponseEntity.notFound().build();
+    }
+  }
+
   @GetMapping("/{episodeId}.mp3")
   public ResponseEntity<Resource> getMediaFile(@PathVariable String episodeId) {
     try {
       log.info("请求媒体文件，episode ID: {}", episodeId);
 
-      // 通过MediaService获取音频文件
       File audioFile = mediaService.getAudioFile(episodeId);
 
-      // 创建文件资源
       Resource resource = new FileSystemResource(audioFile);
 
-      // 设置响应头
       HttpHeaders headers = new HttpHeaders();
-      // 对文件名进行URL编码以支持中文字符
       String encodedFileName = URLEncoder.encode(audioFile.getName(), StandardCharsets.UTF_8)
-          .replace("+", "%20"); // 将+替换为%20，符合RFC标准
+          .replace("+", "%20");
       headers.add(HttpHeaders.CONTENT_DISPOSITION,
           "inline; filename*=UTF-8''" + encodedFileName);
 
-      // 根据文件扩展名设置Content-Type
       MediaType mediaType = getMediaTypeByFileName(audioFile.getName());
 
       return ResponseEntity.ok()
@@ -66,9 +77,6 @@ public class MediaController {
     }
   }
 
-  /**
-   * 根据文件名获取MediaType
-   */
   private MediaType getMediaTypeByFileName(String fileName) {
     String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
     return switch (extension) {
@@ -76,6 +84,10 @@ public class MediaController {
       case "m4a" -> MediaType.valueOf("audio/mp4");
       case "wav" -> MediaType.valueOf("audio/wav");
       case "ogg" -> MediaType.valueOf("audio/ogg");
+      case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
+      case "png" -> MediaType.IMAGE_PNG;
+      case "webp" -> MediaType.valueOf("image/webp");
+      case "gif" -> MediaType.IMAGE_GIF;
       default -> MediaType.APPLICATION_OCTET_STREAM;
     };
   }

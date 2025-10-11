@@ -130,5 +130,9 @@
   "hour": "hora",
   "minute": "min",
   "edit_title": "Personalizar información del feed",
-  "title": "Título Personalizado"
+  "custom_title": "Título Personalizado",
+  "custom_cover": "Portada Personalizada",
+  "upload_image": "Subir Imagen",
+  "update_feed_failed": "Error al actualizar el feed",
+  "update_feed_success": "Feed actualizado correctamente"
 }

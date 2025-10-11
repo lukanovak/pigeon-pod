@@ -132,5 +132,10 @@
   "edit_title": "Customize Feed Info",
   "update_title_failed": "Failed to update title",
   "update_title_success": "Title updated successfully",
-  "title": "Custom Title"
+  "custom_title": "Custom Title",
+  "clear_cover": "Clear Cover",
+  "custom_cover": "Custom Cover",
+  "upload_image": "Upload Image",
+  "update_feed_failed": "Failed to update feed",
+  "update_feed_success": "Feed updated successfully"
 }

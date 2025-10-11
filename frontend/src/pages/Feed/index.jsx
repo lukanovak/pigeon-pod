@@ -24,6 +24,7 @@ import {
   NumberInput,
   Select,
   Tooltip,
+  FileInput,
 } from '@mantine/core';
 import {
   IconBrandApplePodcast,
@@ -73,10 +74,11 @@ const FeedDetail = () => {
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
   const [
-    editTitleModalOpened,
-    { open: openEditTitleModal, close: closeEditTitleModal },
+    customizeFeedModalOpened,
+    { open: openCustomizeFeedModal, close: closeCustomizeFeedModal },
   ] = useDisclosure(false);
   const [editingTitle, setEditingTitle] = useState('');
+  const [customCoverFile, setCustomCoverFile] = useState(null);
   const [refreshTimer, setRefreshTimer] = useState(null);
   const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
 
@@ -212,18 +214,63 @@ const FeedDetail = () => {
     closeEditConfig();
   };
 
-  const handleUpdateTitle = async () => {
-    const res = await API.put(`/api/feed/${type}/config/${feedId}`, { ...feed, customTitle: editingTitle });
+  const handleUpdateCustomFeed = async () => {
+    if (customCoverFile) {
+      const formData = new FormData();
+      formData.append('file', customCoverFile);
+
+      try {
+        const uploadRes = await API.post(`/api/feed/${type}/${feedId}/cover`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (uploadRes.data.code !== 200) {
+          showError(uploadRes.data.msg || 'Failed to upload cover image');
+          return; // Stop if cover upload fails
+        }
+      } catch (error) {
+        showError('Failed to upload cover image');
+        console.error(error);
+        return; // Stop if cover upload fails
+      }
+    }
+
+    // Now update the title
+    const res = await API.put(`/api/feed/${type}/config/${feedId}`, {
+      ...feed,
+      customTitle: editingTitle,
+    });
+
     const { code, msg } = res.data;
 
     if (code !== 200) {
-      showError(msg || t('update_title_failed'));
+      showError(msg || t('update_feed_failed'));
       return;
     }
 
-    showSuccess(t('update_title_success'));
-    setFeed({ ...feed, customTitle: editingTitle });
-    closeEditTitleModal();
+    showSuccess(t('update_feed_success'));
+    await fetchFeedDetail(); // Refetch to get all updated data
+    closeCustomizeFeedModal();
+    setCustomCoverFile(null);
+  };
+
+  const handleClearCustomCover = async () => {
+    try {
+      const res = await API.delete(`/api/feed/${type}/${feedId}/cover`);
+      if (res.data.code !== 200) {
+        showError(res.data.msg || 'Failed to clear custom cover');
+        return;
+      }
+      showSuccess('Custom cover cleared successfully');
+      await fetchFeedDetail(); // Refetch to get all updated data
+      closeCustomizeFeedModal();
+      setCustomCoverFile(null);
+    } catch (error) {
+      showError('Failed to clear custom cover');
+      console.error(error);
+    }
   };
 
   const deleteFeed = async () => {
@@ -422,8 +469,8 @@ const FeedDetail = () => {
             <Center>
               <Box pos="relative" style={{ display: 'inline-block' }}>
                 <Avatar
-                  src={feed.coverUrl}
-                  alt={feed.title}
+                  src={feed.customCoverUrl || feed.coverUrl}
+                  alt={feed.customTitle || feed.title}
                   size={isSmallScreen ? 100 : 180}
                   radius="md"
                   component="a"
@@ -459,12 +506,12 @@ const FeedDetail = () => {
                 {feed.customTitle || feed.title}
               </Title>
               <ActionIcon
-                variant="light"
+                variant="subtle"
                 size="sm"
                 aria-label="Edit title and cover"
                 onClick={() => {
                   setEditingTitle(feed.customTitle || '');
-                  openEditTitleModal();
+                  openCustomizeFeedModal();
                 }}
               >
                 <IconPencil size={18} />
@@ -813,6 +860,9 @@ const FeedDetail = () => {
             }
           />
           <Group mt="md" justify="flex-end">
+            <Button variant="default" onClick={closeEditConfig}>
+              {t('cancel')}
+            </Button>
             <Button variant="filled" onClick={updateFeedConfig}>
               {t('save_changes')}
             </Button>
@@ -828,25 +878,52 @@ const FeedDetail = () => {
         title={t('manual_copy_title')}
       />
 
-      {/* Edit Title Modal */}
+      {/* Customize Feed Modal */}
       <Modal
-        opened={editTitleModalOpened}
-        onClose={closeEditTitleModal}
+        opened={customizeFeedModalOpened}
+        onClose={closeCustomizeFeedModal}
         title={t('edit_title')}
       >
-        <TextInput
-          label={t('title')}
-          value={editingTitle}
-          onChange={(event) => setEditingTitle(event.currentTarget.value)}
-          data-autofocus
-        />
-        <Group justify="flex-end" mt="md">
-          <Button variant="default" onClick={closeEditTitleModal}>
+        <Stack>
+          <TextInput
+            label={t('custom_title')}
+            value={editingTitle}
+            onChange={(event) => setEditingTitle(event.currentTarget.value)}
+            data-autofocus
+          />
+          <Grid align="flex-end">
+            <Grid.Col span="auto">
+              <FileInput
+                label={t('custom_cover')}
+                placeholder={t('upload_image')}
+                value={customCoverFile}
+                onChange={setCustomCoverFile}
+                accept="image/jpeg,image/png,image/webp"
+                clearable
+              />
+            </Grid.Col>
+            {feed.customCoverUrl && (
+              <Grid.Col span="content">
+                <Button
+                  variant="outline"
+                  color="red"
+                  onClick={() => {
+                    handleClearCustomCover().then(() => {});
+                  }}
+                >
+                  {t('clear_cover')}
+                </Button>
+              </Grid.Col>
+            )}
+          </Grid>
+        </Stack>
+        <Group justify="flex-end" mt="xl">
+          <Button variant="default" onClick={closeCustomizeFeedModal}>
             {t('cancel')}
           </Button>
           <Button
             onClick={() => {
-              handleUpdateTitle().then(() => {});
+              handleUpdateCustomFeed().then(() => {});
             }}
           >
             {t('confirm')}

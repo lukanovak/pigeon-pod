@@ -210,7 +210,7 @@ const Home = () => {
                     <Box pos="relative">
                       <AspectRatio ratio={1}>
                         <Image
-                          src={feed.coverUrl}
+                          src={feed.customCoverUrl || feed.coverUrl}
                           alt={feed.name}
                           w="100%"
                           h="100%"

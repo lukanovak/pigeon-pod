@@ -2,6 +2,11 @@ package top.asimov.pigeon.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.mapper.EpisodeMapper;
 import top.asimov.pigeon.model.Episode;
@@ -26,17 +32,57 @@ public class MediaService {
   @Value("${pigeon.audio-file-path}")
   private String audioStoragePath;
 
-  /**
-   * 根据episode ID获取音频文件
-   *
-   * @param episodeId episode的ID
-   * @return 音频文件对象
-   * @throws BusinessException 当文件不存在或无法访问时抛出
-   */
+  @Value("${pigeon.cover-path}")
+  private String coverStoragePath;
+
+  public String saveFeedCover(String feedId, MultipartFile file) throws IOException {
+    String contentType = file.getContentType();
+    if (!Arrays.asList("image/jpeg", "image/png", "image/webp").contains(contentType)) {
+      throw new IOException("Invalid file type. Only JPG, JPEG, PNG, and WEBP are allowed.");
+    }
+
+    Path coverPath = Path.of(coverStoragePath);
+    if (!Files.exists(coverPath)) {
+      Files.createDirectories(coverPath);
+    }
+
+    String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+    String filename = feedId + "." + extension;
+    Path destinationFile = coverPath.resolve(filename);
+    Files.copy(file.getInputStream(), destinationFile, StandardCopyOption.REPLACE_EXISTING);
+    return extension;
+  }
+
+  public void deleteFeedCover(String feedId, String extension) throws IOException {
+    if (!StringUtils.hasText(feedId) || !StringUtils.hasText(extension)) {
+      return;
+    }
+    Path coverPath = Path.of(coverStoragePath);
+    if (!Files.exists(coverPath)) {
+      return;
+    }
+    Path fileToDelete = coverPath.resolve(feedId + "." + extension);
+    if (Files.exists(fileToDelete)) {
+      Files.delete(fileToDelete);
+    }
+  }
+
+  public File getFeedCover(String feedId) throws IOException {
+    Path coverPath = Path.of(coverStoragePath);
+    if (!Files.exists(coverPath)) {
+      return null;
+    }
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(coverPath, feedId + ".*")) {
+      for (Path entry : stream) {
+        return entry.toFile();
+      }
+    }
+    return null;
+  }
+
   public File getAudioFile(String episodeId) throws BusinessException {
     log.info("获取音频文件，episode ID: {}", episodeId);
 
-    // 根据episode ID查询数据库获取文件路径
     Episode episode = episodeMapper.selectById(episodeId);
     if (episode == null) {
       log.warn("未找到episode: {}", episodeId);
@@ -51,7 +97,6 @@ public class MediaService {
           new Object[]{episodeId}, LocaleContextHolder.getLocale()));
     }
 
-    // 创建文件对象并验证
     File audioFile = new File(audioFilePath);
     if (!audioFile.exists() || !audioFile.isFile()) {
       log.warn("音频文件不存在: {}", audioFilePath);
@@ -59,7 +104,6 @@ public class MediaService {
           new Object[]{audioFilePath}, LocaleContextHolder.getLocale()));
     }
 
-    // 安全检查：确保文件在允许的目录内
     if (!isFileInAllowedDirectory(audioFile)) {
       log.error("尝试访问不被允许的文件路径: {}", audioFilePath);
       throw new BusinessException(messageSource.getMessage("media.file.access.denied",
@@ -70,13 +114,14 @@ public class MediaService {
     return audioFile;
   }
 
-  /**
-   * 安全检查：确保请求的文件在允许的目录内
-   */
   private boolean isFileInAllowedDirectory(File file) {
+    return isFileInAllowedDirectory(file, audioStoragePath) || isFileInAllowedDirectory(file, coverStoragePath);
+  }
+
+  private boolean isFileInAllowedDirectory(File file, String allowedPath) {
     try {
       String canonicalFilePath = file.getCanonicalPath();
-      String canonicalAllowedPath = new File(audioStoragePath).getCanonicalPath();
+      String canonicalAllowedPath = new File(allowedPath).getCanonicalPath();
       return canonicalFilePath.startsWith(canonicalAllowedPath);
     } catch (IOException e) {
       log.error("安全检查时发生错误", e);

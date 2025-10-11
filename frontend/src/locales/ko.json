@@ -130,5 +130,9 @@
   "hour": "시간",
   "minute": "분",
   "edit_title": "피드 정보 사용자 정의",
-  "title": "사용자 정의 제목"
+  "custom_title": "사용자 정의 제목",
+  "custom_cover": "사용자 지정 커버",
+  "upload_image": "이미지 업로드",
+  "update_feed_failed": "피드 업데이트 실패",
+  "update_feed_success": "피드가 성공적으로 업데이트되었습니다"
 }

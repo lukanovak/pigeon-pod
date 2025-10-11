@@ -1,5 +1,7 @@
 package top.asimov.pigeon.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -10,7 +12,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import top.asimov.pigeon.constant.FeedType;
 import top.asimov.pigeon.exception.BusinessException;
 import top.asimov.pigeon.model.Feed;
@@ -24,13 +28,15 @@ public class FeedService {
 
   private final Map<FeedType, FeedHandler<? extends Feed>> handlerRegistry;
   private final MessageSource messageSource;
+  private final MediaService mediaService;
 
   public FeedService(List<FeedHandler<? extends Feed>> feedHandlers,
-      MessageSource messageSource) {
+      MessageSource messageSource, MediaService mediaService) {
     Map<FeedType, FeedHandler<? extends Feed>> registry = new EnumMap<>(FeedType.class);
     feedHandlers.forEach(handler -> registry.put(handler.getType(), handler));
     this.handlerRegistry = Collections.unmodifiableMap(registry);
     this.messageSource = messageSource;
+    this.mediaService = mediaService;
   }
 
   public FeedType resolveType(String rawType) {
@@ -53,14 +59,32 @@ public class FeedService {
     for (FeedType type : FeedType.values()) {
       FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
       if (handler != null) {
-        result.addAll(handler.list());
+        List<? extends Feed> list = handler.list();
+        for (Feed feed : list) {
+          if (StringUtils.hasText(feed.getCustomCoverExt())) {
+            String coverUrl = "/media/feed/" + feed.getId() + "/cover";
+            if (feed.getLastUpdatedAt() != null) {
+              coverUrl += "?v=" + feed.getLastUpdatedAt().toEpochSecond(java.time.ZoneOffset.UTC);
+            }
+            feed.setCustomCoverUrl(coverUrl);
+          }
+          result.add(feed);
+        }
       }
     }
     return result;
   }
 
   public Feed detail(FeedType type, String id) {
-    return resolveHandler(type).detail(id);
+    Feed feed = resolveHandler(type).detail(id);
+    if (StringUtils.hasText(feed.getCustomCoverExt())) {
+      String coverUrl = "/media/feed/" + feed.getId() + "/cover";
+      if (feed.getLastUpdatedAt() != null) {
+        coverUrl += "?v=" + feed.getLastUpdatedAt().toEpochSecond(java.time.ZoneOffset.UTC);
+      }
+      feed.setCustomCoverUrl(coverUrl);
+    }
+    return feed;
   }
 
   public String getSubscribeUrl(FeedType type, String id) {
@@ -70,6 +94,31 @@ public class FeedService {
   public FeedConfigUpdateResult updateConfig(FeedType type, String id,
       Map<String, Object> payload) {
     return resolveHandler(type).updateConfig(id, payload);
+  }
+
+  public void updateCustomCover(FeedType type, String id, MultipartFile file) throws IOException {
+    Feed feed = resolveHandler(type).detail(id);
+    if (feed == null) {
+      throw new BusinessException("Feed not found");
+    }
+    mediaService.deleteFeedCover(id, feed.getCustomCoverExt());
+    String newExtension = mediaService.saveFeedCover(id, file);
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("customCoverExt", newExtension);
+    resolveHandler(type).updateConfig(id, payload);
+  }
+
+  public void clearCustomCover(FeedType type, String id) throws IOException {
+    Feed feed = resolveHandler(type).detail(id);
+    if (feed == null) {
+      throw new BusinessException("Feed not found");
+    }
+    if (StringUtils.hasText(feed.getCustomCoverExt())) {
+      mediaService.deleteFeedCover(id, feed.getCustomCoverExt());
+      Map<String, Object> payload = new HashMap<>();
+      payload.put("customCoverExt", "");
+      resolveHandler(type).updateConfig(id, payload);
+    }
   }
 
   public FeedPack<? extends Feed> fetch(Map<String, String> payload) {
@@ -141,6 +190,14 @@ public class FeedService {
   }
 
   public void delete(FeedType type, String id) {
+    Feed feed = resolveHandler(type).detail(id);
+    if (feed != null && StringUtils.hasText(feed.getCustomCoverExt())) {
+      try {
+        mediaService.deleteFeedCover(id, feed.getCustomCoverExt());
+      } catch (IOException e) {
+        log.error("Failed to delete custom cover for feed " + id, e);
+      }
+    }
     resolveHandler(type).delete(id);
   }
 

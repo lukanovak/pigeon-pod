@@ -129,8 +129,11 @@
   "skip_this_version": "跳过此版本",
   "hour": "小时",
   "minute": "分",
-  "edit_title": "自定义 Feed 信息",
-  "update_title_failed": "更新标题失败",
-  "update_title_success": "标题更新成功",
-  "title": "自定义标题"
+  "edit_title": "编辑标题和封面",
+  "custom_title": "自定义标题",
+  "clear_cover": "清除封面",
+  "custom_cover": "自定义封面",
+  "upload_image": "上传图片",
+  "update_feed_failed": "更新Feed失败",
+  "update_feed_success": "Feed更新成功"
 }

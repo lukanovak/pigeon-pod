@@ -25,10 +25,15 @@ spring:
   sql:
     init:
       mode: never
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 pigeon:
   base-url: http://localhost:8080
   audio-file-path: /Users/asimov/Developer/pigeon-pod/data/audio/
+  cover-path: /Users/asimov/Developer/pigeon-pod/data/cover/
 
 sa-token:
   # Token name (also the cookie name)
