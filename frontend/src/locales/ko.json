@@ -128,5 +128,7 @@
   "remind_later": "나중에 알림",
   "skip_this_version": "이 버전 건너뛰기",
   "hour": "시간",
-  "minute": "분"
+  "minute": "분",
+  "edit_title": "피드 정보 사용자 정의",
+  "title": "사용자 정의 제목"
 }

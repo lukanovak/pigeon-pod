@@ -97,6 +97,7 @@ public abstract class AbstractFeedService<F extends Feed> {
     existingFeed.setMaximumEpisodes(configuration.getMaximumEpisodes());
     existingFeed.setInitialEpisodes(configuration.getInitialEpisodes());
     existingFeed.setAudioQuality(configuration.getAudioQuality());
+    existingFeed.setCustomTitle(configuration.getCustomTitle());
     applyAdditionalMutableFields(existingFeed, configuration);
   }
 

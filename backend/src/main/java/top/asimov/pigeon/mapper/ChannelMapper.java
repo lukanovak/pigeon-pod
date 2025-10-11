@@ -7,7 +7,7 @@ import top.asimov.pigeon.model.Channel;
 
 public interface ChannelMapper extends BaseMapper<Channel> {
 
-  @Select("SELECT c.id, c.handler, c.title, c.cover_url, c.description, c.source, c.audio_quality, " +
+  @Select("SELECT c.id, c.handler, c.custom_title, c.title, c.cover_url, c.description, c.source, c.audio_quality, " +
       "max(e.published_at) as last_published_at " +
       "FROM channel c LEFT JOIN episode e ON c.id = e.channel_id " +
       "GROUP BY c.id, c.handler, c.title, c.cover_url, c.description, c.source, c.audio_quality " +

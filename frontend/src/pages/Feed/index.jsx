@@ -34,6 +34,8 @@ import {
   IconBackspace,
   IconRotate,
   IconHelpCircle,
+  IconEdit,
+  IconPencil,
 } from '@tabler/icons-react';
 import {
   API,
@@ -70,6 +72,11 @@ const FeedDetail = () => {
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
   const [copyModalOpened, { open: openCopyModal, close: closeCopyModal }] = useDisclosure(false);
   const [copyText, setCopyText] = useState('');
+  const [
+    editTitleModalOpened,
+    { open: openEditTitleModal, close: closeEditTitleModal },
+  ] = useDisclosure(false);
+  const [editingTitle, setEditingTitle] = useState('');
   const [refreshTimer, setRefreshTimer] = useState(null);
   const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
 
@@ -203,6 +210,20 @@ const FeedDetail = () => {
       showSuccess(t('channel_config_updated'));
     }
     closeEditConfig();
+  };
+
+  const handleUpdateTitle = async () => {
+    const res = await API.put(`/api/feed/${type}/config/${feedId}`, { ...feed, customTitle: editingTitle });
+    const { code, msg } = res.data;
+
+    if (code !== 200) {
+      showError(msg || t('update_title_failed'));
+      return;
+    }
+
+    showSuccess(t('update_title_success'));
+    setFeed({ ...feed, customTitle: editingTitle });
+    closeEditTitleModal();
   };
 
   const deleteFeed = async () => {
@@ -435,8 +456,19 @@ const FeedDetail = () => {
                 rel="noopener noreferrer"
                 style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
               >
-                {feed.title}
+                {feed.customTitle || feed.title}
               </Title>
+              <ActionIcon
+                variant="light"
+                size="sm"
+                aria-label="Edit title and cover"
+                onClick={() => {
+                  setEditingTitle(feed.customTitle || '');
+                  openEditTitleModal();
+                }}
+              >
+                <IconPencil size={18} />
+              </ActionIcon>
             </Group>
 
             <Text
@@ -795,6 +827,32 @@ const FeedDetail = () => {
         text={copyText}
         title={t('manual_copy_title')}
       />
+
+      {/* Edit Title Modal */}
+      <Modal
+        opened={editTitleModalOpened}
+        onClose={closeEditTitleModal}
+        title={t('edit_title')}
+      >
+        <TextInput
+          label={t('title')}
+          value={editingTitle}
+          onChange={(event) => setEditingTitle(event.currentTarget.value)}
+          data-autofocus
+        />
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={closeEditTitleModal}>
+            {t('cancel')}
+          </Button>
+          <Button
+            onClick={() => {
+              handleUpdateTitle().then(() => {});
+            }}
+          >
+            {t('confirm')}
+          </Button>
+        </Group>
+      </Modal>
     </Container>
   );
 };

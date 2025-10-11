@@ -80,7 +80,7 @@
   "episode_sort_default": "Use YouTube playlist order",
   "episode_sort_desc": "Reverse YouTube playlist order",
   "initial_episodes": "Initial episodes to download",
-  "initial_episodes_channel": "Download history episodes (must be greater than or equal to the current value)",
+  "initial_episodes_channel": "Download historical episodes (must be greater than or equal to the current value)",
   "unlimited": "Unlimited",
   "save_changes": "Save Changes",
   "youtube_api_key_not_set": "Not set",
@@ -128,5 +128,9 @@
   "remind_later": "Remind Later",
   "skip_this_version": "Skip This Version",
   "hour": "hour",
-  "minute": "min"
+  "minute": "min",
+  "edit_title": "Customize Feed Info",
+  "update_title_failed": "Failed to update title",
+  "update_title_success": "Title updated successfully",
+  "title": "Custom Title"
 }

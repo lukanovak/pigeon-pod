@@ -128,5 +128,7 @@
   "remind_later": "Recordar más tarde",
   "skip_this_version": "Omitir esta versión",
   "hour": "hora",
-  "minute": "min"
+  "minute": "min",
+  "edit_title": "Personalizar información del feed",
+  "title": "Título Personalizado"
 }

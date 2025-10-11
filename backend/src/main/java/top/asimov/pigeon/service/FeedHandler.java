@@ -1,4 +1,4 @@
-package top.asimov.pigeon.service.feed;
+package top.asimov.pigeon.service;
 
 import java.util.List;
 import java.util.Map;

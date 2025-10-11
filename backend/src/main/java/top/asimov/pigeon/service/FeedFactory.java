@@ -1,4 +1,4 @@
-package top.asimov.pigeon.service.feed;
+package top.asimov.pigeon.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;

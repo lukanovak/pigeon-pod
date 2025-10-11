@@ -128,5 +128,7 @@
   "remind_later": "後で通知",
   "skip_this_version": "このバージョンをスキップ",
   "hour": "時間",
-  "minute": "分"
+  "minute": "分",
+  "edit_title": "フィード情報をカスタマイズ",
+  "title": "カスタムタイトル"
 }

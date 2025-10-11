@@ -239,7 +239,7 @@ const Home = () => {
                     display: 'block',
                   }}
                 >
-                  {feed.title}
+                  {feed.customTitle || feed.title}
                 </Text>
                 <Text c="dimmed" size="xs">
                   {new Date(feed.lastPublishedAt).toLocaleDateString()} {t('updated')}

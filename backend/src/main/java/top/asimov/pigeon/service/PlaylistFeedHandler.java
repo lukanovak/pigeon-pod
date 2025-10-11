@@ -1,4 +1,4 @@
-package top.asimov.pigeon.service.feed;
+package top.asimov.pigeon.service;
 
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,6 @@ import top.asimov.pigeon.model.FeedConfigUpdateResult;
 import top.asimov.pigeon.model.FeedPack;
 import top.asimov.pigeon.model.FeedSaveResult;
 import top.asimov.pigeon.model.Playlist;
-import top.asimov.pigeon.service.PlaylistService;
 
 @Component
 public class PlaylistFeedHandler extends AbstractFeedHandler<Playlist> {

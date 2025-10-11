@@ -17,7 +17,6 @@ import top.asimov.pigeon.model.Feed;
 import top.asimov.pigeon.model.FeedConfigUpdateResult;
 import top.asimov.pigeon.model.FeedPack;
 import top.asimov.pigeon.model.FeedSaveResult;
-import top.asimov.pigeon.service.feed.FeedHandler;
 
 @Log4j2
 @Service

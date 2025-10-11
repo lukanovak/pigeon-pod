@@ -128,5 +128,9 @@
   "remind_later": "晚点再提示",
   "skip_this_version": "跳过此版本",
   "hour": "小时",
-  "minute": "分"
+  "minute": "分",
+  "edit_title": "自定义 Feed 信息",
+  "update_title_failed": "更新标题失败",
+  "update_title_success": "标题更新成功",
+  "title": "自定义标题"
 }

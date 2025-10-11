@@ -19,7 +19,9 @@ public abstract class Feed {
   private String id;
 
   private String title;
+  private String customTitle;
   private String coverUrl;
+  private String customCoverPath;
   private String source;
   private String description;
   private String containKeywords;

@@ -7,7 +7,7 @@ import top.asimov.pigeon.model.Playlist;
 
 public interface PlaylistMapper extends BaseMapper<Playlist> {
 
-  @Select("SELECT p.id, p.owner_id, p.title, p.cover_url, p.description, p.source, p.audio_quality, "
+  @Select("SELECT p.id, p.owner_id, p.custom_title, p.title, p.cover_url, p.description, p.source, p.audio_quality, "
       + "p.contain_keywords, p.exclude_keywords, p.minimum_duration, p.initial_episodes, "
       + "p.maximum_episodes, p.last_sync_video_id, p.last_sync_timestamp, p.subscribed_at, "
       + "p.episode_sort, "

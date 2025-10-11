@@ -128,5 +128,7 @@
   "remind_later": "Rappeler plus tard",
   "skip_this_version": "Ignorer cette version",
   "hour": "heure",
-  "minute": "min"
+  "minute": "min",
+  "edit_title": "Personnaliser les informations du flux",
+  "title": "Titre personnalisé"
 }
