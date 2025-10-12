@@ -125,13 +125,7 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
 
     com.google.api.services.youtube.model.Playlist ytPlaylist;
 
-    try {
-      ytPlaylist = youtubeHelper.fetchYoutubePlaylist(playlistUrl);
-    } catch (Exception e) {
-      log.error("获取播放列表信息失败，输入: {}, 错误: {}", playlistUrl, e.getMessage());
-      throw new BusinessException(messageSource.getMessage("youtube.fetch.playlist.failed",
-          new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
-    }
+    ytPlaylist = youtubeHelper.fetchYoutubePlaylist(playlistUrl);
 
     String ytPlaylistId = ytPlaylist.getId();
     // 先抓取预览视频，用于挑选无黑边的封面

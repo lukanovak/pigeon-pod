@@ -123,44 +123,17 @@ public class FeedService {
 
   public FeedPack<? extends Feed> fetch(Map<String, String> payload) {
     String source = payload == null ? null : payload.getOrDefault("source", null);
-    List<FeedType> detectionOrder = buildDetectionOrder(source);
-    BusinessException lastError = null;
-    for (FeedType type : detectionOrder) {
-      FeedHandler<? extends Feed> handler = handlerRegistry.get(type);
-      if (handler == null) {
-        continue;
-      }
-      Map<String, Object> handlerPayload = buildFetchPayload(type, source);
-      try {
-        return handler.fetch(handlerPayload);
-      } catch (BusinessException ex) {
-        lastError = ex;
-      }
+    FeedType feedType = guessFeedType(source);
+    FeedHandler<? extends Feed> handler = handlerRegistry.get(feedType);
+    if (handler == null) {
+      throw new BusinessException("error.feed.type.unsupported");
     }
-
-    if (lastError != null) {
-      throw lastError;
-    }
-
-    throw new BusinessException(messageSource
-        .getMessage("feed.type.invalid", new Object[]{source},
-            LocaleContextHolder.getLocale()));
+    Map<String, Object> handlerPayload = buildFetchPayload(feedType, source);
+    return handler.fetch(handlerPayload);
   }
 
   public FeedPack<? extends Feed> preview(FeedType type, Map<String, Object> payload) {
     return resolveHandler(type).preview(payload);
-  }
-
-  private List<FeedType> buildDetectionOrder(String source) {
-    List<FeedType> order = new ArrayList<>();
-    FeedType primary = guessFeedType(source);
-    order.add(primary);
-    for (FeedType candidate : FeedType.values()) {
-      if (!order.contains(candidate)) {
-        order.add(candidate);
-      }
-    }
-    return order;
   }
 
   private FeedType guessFeedType(String source) {

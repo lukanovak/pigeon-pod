@@ -156,13 +156,7 @@ public class ChannelService extends AbstractFeedService<Channel> {
     // 获取频道信息
     com.google.api.services.youtube.model.Channel ytChannel;
 
-    try {
-      ytChannel = youtubeHelper.fetchYoutubeChannel(channelUrl);
-    } catch (Exception e) {
-      log.error("获取频道信息失败，输入: {}, 错误: {}", channelUrl, e.getMessage());
-      throw new BusinessException(messageSource.getMessage("youtube.fetch.channel.failed",
-          new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
-    }
+    ytChannel = youtubeHelper.fetchYoutubeChannel(channelUrl);
 
     String ytChannelId = ytChannel.getId();
     Channel fetchedChannel = Channel.builder()
