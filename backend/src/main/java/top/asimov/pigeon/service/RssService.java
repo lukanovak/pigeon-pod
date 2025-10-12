@@ -79,8 +79,9 @@ public class RssService {
     }
 
     List<Episode> episodes = episodeService.getEpisodeOrderByPublishDateDesc(channel.getId());
-    SyndFeed feed = createFeed(channel.getTitle(), Youtube.CHANNEL_URL + channel.getId(),
-        channel.getDescription(), getCoverUrl(channel));
+    SyndFeed feed = createFeed(StringUtils.hasText(channel.getCustomTitle()) ?
+            channel.getCustomTitle() : channel.getTitle(),
+        Youtube.CHANNEL_URL + channel.getId(), channel.getDescription(), getCoverUrl(channel));
     feed.setEntries(buildEntries(episodes));
     return writeFeed(feed);
   }
@@ -94,8 +95,9 @@ public class RssService {
     }
 
     List<Episode> episodes = episodeService.getEpisodesByPlaylistId(playlistId);
-    SyndFeed feed = createFeed(playlist.getTitle(), Youtube.PLAYLIST_URL + playlist.getId(),
-        playlist.getDescription(), getCoverUrl(playlist));
+    SyndFeed feed = createFeed(StringUtils.hasText(playlist.getCustomTitle()) ?
+            playlist.getCustomTitle() : playlist.getTitle(),
+        Youtube.PLAYLIST_URL + playlist.getId(), playlist.getDescription(), getCoverUrl(playlist));
     feed.setEntries(buildEntries(episodes));
     return writeFeed(feed);
   }
