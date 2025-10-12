@@ -81,6 +81,7 @@
   "episode_sort_desc": "按照 YouTube 播放列表倒序",
   "initial_episodes": "下载历史节目数量",
   "initial_episodes_channel": "下载历史节目数量（只能大于等于当前值）",
+  "historical_episodes_must_equal_to_or_greater_than_before": "下载历史节目数量只能大于等于当前值",
   "unlimited": "无限制",
   "save_changes": "保存更改",
   "youtube_api_key_not_set": "未设置",

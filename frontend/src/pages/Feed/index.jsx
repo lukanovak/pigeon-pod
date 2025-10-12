@@ -79,7 +79,28 @@ const FeedDetail = () => {
   const [editingTitle, setEditingTitle] = useState('');
   const [customCoverFile, setCustomCoverFile] = useState(null);
   const [refreshTimer, setRefreshTimer] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
+
+  // 添加验证函数
+  const validateInitialEpisodes = (value) => {
+    if (value !== null && value !== undefined && value < originalInitialEpisodes) {
+      setValidationErrors(prev => ({
+        ...prev,
+        initialEpisodes: t('historical_episodes_must_equal_to_or_greater_than_before')
+      }));
+      return false;
+    } else {
+      setValidationErrors(prev => {
+        const { initialEpisodes, ...rest } = prev;
+        return rest;
+      });
+      return true;
+    }
+  };
+
+  // 检查是否有验证错误
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
   // Intersection Observer callback for infinite scrolling
   const lastEpisodeElementRef = useCallback(
@@ -820,9 +841,13 @@ const FeedDetail = () => {
             name="initialEpisodes"
             placeholder={t('3')}
             value={feed?.initialEpisodes}
-            min={originalInitialEpisodes}
-            clampBehavior="strict"
+            error={validationErrors.initialEpisodes}
             onChange={(value) => setFeed({ ...feed, initialEpisodes: value })}
+            onBlur={() => {
+              if (feed?.initialEpisodes !== null && feed?.initialEpisodes !== undefined) {
+                validateInitialEpisodes(feed.initialEpisodes);
+              }
+            }}
           />
           <NumberInput
             label={t('maximum_episodes')}
@@ -874,7 +899,6 @@ const FeedDetail = () => {
               value={feed?.audioQuality}
               min={0}
               max={10}
-              clampBehavior="strict"
               onChange={(value) =>
                 setFeed({ ...feed, audioQuality: value === '' ? null : value })
               }
@@ -903,7 +927,7 @@ const FeedDetail = () => {
             <Button variant="default" onClick={closeEditConfig}>
               {t('cancel')}
             </Button>
-            <Button variant="filled" onClick={updateFeedConfig}>
+            <Button variant="filled" onClick={updateFeedConfig} disabled={hasValidationErrors}>
               {t('save_changes')}
             </Button>
           </Group>
