@@ -92,8 +92,7 @@ const FeedDetail = () => {
       return false;
     } else {
       setValidationErrors(prev => {
-        const { initialEpisodes, ...rest } = prev;
-        return rest;
+        return Object.fromEntries(Object.entries(prev).filter(([key]) => key !== 'initialEpisodes'));
       });
       return true;
     }
