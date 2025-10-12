@@ -15,6 +15,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.feed.synd.SyndFeedImpl;
 import com.rometools.rome.io.SyndFeedOutput;
 import jakarta.annotation.PostConstruct;
+import java.io.File;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -139,14 +140,19 @@ public class RssService {
       entry.setDescription(description);
 
       try {
-        if (episode.getAudioFilePath() == null) {
+        String mediaFilePath = episode.getMediaFilePath();
+        if (mediaFilePath == null) {
           continue;
         }
+
         SyndEnclosure enclosure = new SyndEnclosureImpl();
-        String audioUrl = appBaseUrl + "/media/" + episode.getId() + ".mp3";
+        String suffix = getSuffix(mediaFilePath);
+        String audioUrl = appBaseUrl + "/media/" + episode.getId() + "." + suffix;
         enclosure.setUrl(audioUrl);
-        enclosure.setType("audio/mpeg");
-        long fileSize = Files.size(Paths.get(episode.getAudioFilePath()));
+        String enclosureType = StringUtils.hasText(episode.getMediaType()) ?
+            episode.getMediaType() : "audio/mpeg";
+        enclosure.setType(enclosureType);
+        long fileSize = Files.size(Paths.get(mediaFilePath));
         enclosure.setLength(fileSize);
         entry.setEnclosures(Collections.singletonList(enclosure));
       } catch (Exception e) {
@@ -210,5 +216,10 @@ public class RssService {
       return coverUrl;
     }
     return feed.getCoverUrl();
+  }
+
+  private String getSuffix(String mediaFilePath) {
+    String[] strings = mediaFilePath.split("\\.");
+    return strings[strings.length -1 ];
   }
 }

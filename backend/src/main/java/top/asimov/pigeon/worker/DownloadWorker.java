@@ -16,12 +16,15 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import top.asimov.pigeon.constant.DownloadType;
 import top.asimov.pigeon.constant.EpisodeStatus;
 import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.EpisodeMapper;
 import top.asimov.pigeon.mapper.PlaylistEpisodeMapper;
 import top.asimov.pigeon.mapper.PlaylistMapper;
+import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
+import top.asimov.pigeon.model.Playlist;
 import top.asimov.pigeon.model.PlaylistEpisode;
 import top.asimov.pigeon.service.CookiesService;
 
@@ -85,8 +88,7 @@ public class DownloadWorker {
       String outputDirPath = audioStoragePath + sanitizeFileName(feedName) + File.separator;
 
       // 获取下载进程
-      Process process = getProcess(episodeId, tempCookiesFile, outputDirPath, safeTitle,
-          feedContext.audioQuality());
+      Process process = getProcess(episodeId, tempCookiesFile, outputDirPath, safeTitle, feedContext);
 
       // 读取命令输出和错误，非常重要，否则可能导致进程阻塞
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -112,9 +114,15 @@ public class DownloadWorker {
 
       // 根据结果更新最终状态
       if (exitCode == 0) {
+        DownloadType downloadType = feedContext.downloadType();
+        String extension = (downloadType == DownloadType.VIDEO) ? "mp4" : "mp3";
+        String mimeType = (downloadType == DownloadType.VIDEO) ? "video/mp4" : "audio/mpeg";
+
         String finalPath =
-            audioStoragePath + sanitizeFileName(feedName) + File.separator + safeTitle + ".mp3";
-        episode.setAudioFilePath(finalPath);
+            audioStoragePath + sanitizeFileName(feedName) + File.separator + safeTitle + "." + extension;
+
+        episode.setMediaFilePath(finalPath);
+        episode.setMediaType(mimeType);
         episode.setDownloadStatus(EpisodeStatus.COMPLETED.name());
         // 如果之前有错误日志，下载成功后清空
         episode.setErrorLog(null);
@@ -141,7 +149,7 @@ public class DownloadWorker {
   }
 
   private Process getProcess(String videoId, String cookiesFilePath, String outputDirPath,
-      String safeTitle, Integer audioQuality) throws IOException {
+      String safeTitle, FeedContext feedContext) throws IOException {
     File outputDir = new File(outputDirPath);
     // 确保目录存在，如果不存在则创建，支持并发安全
     if (!outputDir.exists()) {
@@ -159,23 +167,44 @@ public class DownloadWorker {
 
     List<String> command = new ArrayList<>();
     command.add("yt-dlp");
-    command.add("-x"); // 提取音频
-    command.add("--audio-format");
-    command.add("mp3"); // 指定音频格式
+
+    DownloadType downloadType = feedContext.downloadType();
+
+    if (downloadType == DownloadType.VIDEO) {
+      command.add("-f");
+      String videoQuality = feedContext.videoQuality();
+      if (StringUtils.hasText(videoQuality)) {
+        String format = String.format(
+            "bestvideo[height<=%s]+bestaudio/best[height<=%s]",
+            videoQuality, videoQuality
+        );
+        command.add(format);
+        log.info("配置为视频下载模式，最高质量: {}p", videoQuality);
+      } else {
+        command.add("bestvideo+bestaudio/best");
+        log.info("配置为视频下载模式，质量: 最佳");
+      }
+      command.add("--merge-output-format");
+      command.add("mp4");
+    } else {
+      command.add("-x"); // 提取音频
+      command.add("--audio-format");
+      command.add("mp3"); // 指定音频格式
+      command.add("-f");
+      command.add("bestaudio/best");
+
+      Integer normalizedQuality = normalizeAudioQuality(feedContext.audioQuality());
+      if (normalizedQuality != null) {
+        command.add("--audio-quality");
+        command.add(String.valueOf(normalizedQuality));
+        log.debug("使用音频质量参数: {}", normalizedQuality);
+      }
+      log.info("配置为音频下载模式");
+    }
+
     command.add("-o");
     String outputTemplate = outputDirPath + safeTitle + ".%(ext)s";
     command.add(outputTemplate); // 输出文件模板:{outputDir}/{title}.%(ext)s
-
-    // 添加格式回退机制，优先选择最佳音频格式
-    command.add("-f");
-    command.add("bestaudio[ext=mp4]/bestaudio[ext=webm]/bestaudio/best/best[height<=480]/worst");
-
-    Integer normalizedQuality = normalizeAudioQuality(audioQuality);
-    if (normalizedQuality != null) {
-      command.add("--audio-quality");
-      command.add(String.valueOf(normalizedQuality));
-      log.debug("使用音频质量参数: {}", normalizedQuality);
-    }
 
     // 忽略一些非致命错误
     command.add("--ignore-errors");
@@ -197,23 +226,21 @@ public class DownloadWorker {
   }
 
   private FeedContext resolveFeedContext(Episode episode) {
-    PlaylistEpisode playlistEpisode =
-        playlistEpisodeMapper.selectLatestByEpisodeId(episode.getId());
-    if (playlistEpisode != null) {
-      var playlist = playlistMapper.selectById(playlistEpisode.getPlaylistId());
-      if (playlist != null) {
-        String title = safeFeedTitle(playlist.getTitle());
-        return new FeedContext(title, playlist.getAudioQuality());
-      }
+    Playlist playlist = playlistMapper.selectLatestByEpisodeId(episode.getId());
+    if (playlist != null) {
+      String title = safeFeedTitle(playlist.getTitle());
+      return new FeedContext(title, playlist.getDownloadType(), playlist.getAudioQuality(),
+          playlist.getVideoQuality());
     }
 
-    var channel = channelMapper.selectById(episode.getChannelId());
+    Channel channel = channelMapper.selectById(episode.getChannelId());
     if (channel != null) {
       String title = safeFeedTitle(channel.getTitle());
-      return new FeedContext(title, channel.getAudioQuality());
+      return new FeedContext(title, channel.getDownloadType(), channel.getAudioQuality(),
+          channel.getVideoQuality());
     }
 
-    return new FeedContext("unknown", null);
+    return new FeedContext("unknown", DownloadType.AUDIO, null, null);
   }
 
   private String safeFeedTitle(String rawTitle) {
@@ -234,7 +261,7 @@ public class DownloadWorker {
     return normalized;
   }
 
-  private record FeedContext(String title, Integer audioQuality) {
+  private record FeedContext(String title, DownloadType downloadType, Integer audioQuality, String videoQuality) {
   }
 
   // 处理title，按UTF-8字节长度截断，最多200字节，结尾加...，并去除非法字符

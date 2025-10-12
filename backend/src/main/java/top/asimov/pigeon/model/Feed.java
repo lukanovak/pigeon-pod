@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import top.asimov.pigeon.constant.DownloadType;
 import top.asimov.pigeon.constant.FeedType;
 
 @Data
@@ -31,6 +32,8 @@ public abstract class Feed {
   private Integer initialEpisodes;
   private Integer maximumEpisodes;
   private Integer audioQuality;
+  private DownloadType downloadType;
+  private String videoQuality;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
 

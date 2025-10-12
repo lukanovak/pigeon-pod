@@ -134,5 +134,11 @@
   "custom_cover": "Portada Personalizada",
   "upload_image": "Subir Imagen",
   "update_feed_failed": "Error al actualizar el feed",
-  "update_feed_success": "Feed actualizado correctamente"
+  "update_feed_success": "Feed actualizado correctamente",
+  "download_type": "Tipo de Descarga",
+  "audio": "Audio",
+  "video": "Video",
+  "video_quality": "Calidad de Video",
+  "video_quality_description": "Dejar en blanco para la mejor calidad disponible.",
+  "best": "La Mejor"
 }

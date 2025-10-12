@@ -25,8 +25,11 @@ import top.asimov.pigeon.service.MediaService;
 @RequestMapping("/media")
 public class MediaController {
 
-  @Autowired
-  private MediaService mediaService;
+  private final MediaService mediaService;
+
+  public MediaController(MediaService mediaService) {
+    this.mediaService = mediaService;
+  }
 
   @GetMapping("/feed/{feedId}/cover")
   public ResponseEntity<Resource> getFeedCover(@PathVariable String feedId) {
@@ -45,7 +48,7 @@ public class MediaController {
     }
   }
 
-  @GetMapping("/{episodeId}.mp3")
+  @GetMapping({"/{episodeId}.mp3", "/{episodeId}.mp4"})
   public ResponseEntity<Resource> getMediaFile(@PathVariable String episodeId) {
     try {
       log.info("请求媒体文件，episode ID: {}", episodeId);
@@ -84,6 +87,7 @@ public class MediaController {
       case "m4a" -> MediaType.valueOf("audio/mp4");
       case "wav" -> MediaType.valueOf("audio/wav");
       case "ogg" -> MediaType.valueOf("audio/ogg");
+      case "mp4" -> MediaType.valueOf("video/mp4");
       case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
       case "png" -> MediaType.IMAGE_PNG;
       case "webp" -> MediaType.valueOf("image/webp");

@@ -99,7 +99,7 @@ public class EpisodeService {
   @Transactional
   public int deleteEpisodeById(String id) {
     Episode episode = episodeMapper.selectById(id);
-    String audioFilePath = episode.getAudioFilePath();
+    String audioFilePath = episode.getMediaFilePath();
     if (StringUtils.hasText(audioFilePath)) {
       try {
         Files.deleteIfExists(Paths.get(audioFilePath));
@@ -155,7 +155,7 @@ public class EpisodeService {
     }
 
     // 2. 删除当前episode的audio file，可能有，也可能没有，需要做好错误处理
-    String audioFilePath = episode.getAudioFilePath();
+    String audioFilePath = episode.getMediaFilePath();
     if (StringUtils.hasText(audioFilePath)) {
       try {
         boolean deleted = Files.deleteIfExists(Paths.get(audioFilePath));
@@ -165,7 +165,7 @@ public class EpisodeService {
           log.info("Audio file does not exist: {}", audioFilePath);
         }
         // 清空数据库中的音频文件路径
-        episode.setAudioFilePath(null);
+        episode.setMediaFilePath(null);
         episodeMapper.updateById(episode);
       } catch (Exception e) {
         log.warn("Failed to delete audio file: {} - {}", audioFilePath, e.getMessage());

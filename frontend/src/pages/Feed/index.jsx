@@ -25,17 +25,16 @@ import {
   Select,
   Tooltip,
   FileInput,
+  Radio,
 } from '@mantine/core';
 import {
   IconBrandApplePodcast,
   IconClock,
-  IconBrandYoutubeFilled,
   IconPlayerPlayFilled,
   IconSettings,
   IconBackspace,
   IconRotate,
   IconHelpCircle,
-  IconEdit,
   IconPencil,
 } from '@tabler/icons-react';
 import {
@@ -846,19 +845,60 @@ const FeedDetail = () => {
               }
             />
           ) : null}
-          <NumberInput
-            label={renderAudioQualityLabel()}
-            description={t('audio_quality_description')}
-            name="audioQuality"
-            placeholder=""
-            value={feed?.audioQuality}
-            min={0}
-            max={10}
-            clampBehavior="strict"
-            onChange={(value) =>
-              setFeed({ ...feed, audioQuality: value === '' ? null : value })
-            }
-          />
+
+          <Radio.Group
+            name="downloadType"
+            label={t('download_type')}
+            value={feed?.downloadType || 'AUDIO'}
+            onChange={(value) => {
+              setFeed({ 
+                ...feed, 
+                downloadType: value,
+                audioQuality: value === 'VIDEO' ? null : feed.audioQuality,
+                videoQuality: value === 'AUDIO' ? null : feed.videoQuality
+              });
+            }}
+          >
+            <Group mt="xs">
+              <Radio value="AUDIO" label={t('audio')} />
+              <Radio value="VIDEO" label={t('video')} />
+            </Group>
+          </Radio.Group>
+
+          {(feed?.downloadType || 'AUDIO') === 'AUDIO' ? (
+            <NumberInput
+              label={renderAudioQualityLabel()}
+              description={t('audio_quality_description')}
+              name="audioQuality"
+              placeholder=""
+              value={feed?.audioQuality}
+              min={0}
+              max={10}
+              clampBehavior="strict"
+              onChange={(value) =>
+                setFeed({ ...feed, audioQuality: value === '' ? null : value })
+              }
+            />
+          ) : (
+            <Select
+              label={t('video_quality')}
+              description={t('video_quality_description')}
+              name="videoQuality"
+              data={[
+                { value: '', label: t('best') },
+                { value: '2160', label: '2160p' },
+                { value: '1440', label: '1440p' },
+                { value: '1080', label: '1080p' },
+                { value: '720', label: '720p' },
+                { value: '480', label: '480p' },
+              ]}
+              value={feed?.videoQuality || ''}
+              onChange={(value) => {
+                setFeed({ ...feed, videoQuality: value });
+              }}
+            />
+          )}
+
           <Group mt="md" justify="flex-end">
             <Button variant="default" onClick={closeEditConfig}>
               {t('cancel')}

@@ -99,6 +99,8 @@ public abstract class AbstractFeedService<F extends Feed> {
     existingFeed.setAudioQuality(configuration.getAudioQuality());
     existingFeed.setCustomTitle(configuration.getCustomTitle());
     existingFeed.setCustomCoverExt(configuration.getCustomCoverExt());
+    existingFeed.setDownloadType(configuration.getDownloadType());
+    existingFeed.setVideoQuality(configuration.getVideoQuality());
     applyAdditionalMutableFields(existingFeed, configuration);
   }
 

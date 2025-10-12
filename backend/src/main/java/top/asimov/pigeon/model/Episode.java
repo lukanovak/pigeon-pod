@@ -25,7 +25,8 @@ public class Episode {
   private String maxCoverUrl;
   private String duration; // in ISO 8601 format
   private String downloadStatus;
-  private String audioFilePath;
+  private String mediaFilePath;
+  private String mediaType;
   private String errorLog;
   private Integer retryNumber;
   private LocalDateTime createdAt;

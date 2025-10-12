@@ -373,11 +373,11 @@ public class PlaylistService extends AbstractFeedService<Playlist> {
         continue;
       }
 
-      String audioFilePath = episode.getAudioFilePath();
+      String mediaFilePath = episode.getMediaFilePath();
       try {
         int deleteResult = episodeService().deleteEpisodeById(episode.getId());
-        if (deleteResult > 0 && StringUtils.hasText(audioFilePath)) {
-          File audioFile = new File(audioFilePath);
+        if (deleteResult > 0 && StringUtils.hasText(mediaFilePath)) {
+          File audioFile = new File(mediaFilePath);
           File parentDir = audioFile.getParentFile();
           if (parentDir != null) {
             candidateDirectories.add(parentDir.getAbsolutePath());

@@ -134,5 +134,11 @@
   "custom_cover": "カスタムカバー",
   "upload_image": "画像をアップロード",
   "update_feed_failed": "フィードの更新に失敗しました",
-  "update_feed_success": "フィードが正常に更新されました"
+  "update_feed_success": "フィードが正常に更新されました",
+  "download_type": "ダウンロードタイプ",
+  "audio": "音声",
+  "video": "ビデオ",
+  "video_quality": "ビデオ品質",
+  "video_quality_description": "利用可能な最高の品質にするには、空白のままにしてください。",
+  "best": "最高"
 }

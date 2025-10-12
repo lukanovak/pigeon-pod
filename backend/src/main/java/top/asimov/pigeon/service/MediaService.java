@@ -90,7 +90,7 @@ public class MediaService {
           new Object[]{episodeId}, LocaleContextHolder.getLocale()));
     }
 
-    String audioFilePath = episode.getAudioFilePath();
+    String audioFilePath = episode.getMediaFilePath();
     if (!StringUtils.hasText(audioFilePath)) {
       log.warn("Episode {} 没有关联的音频文件路径", episodeId);
       throw new BusinessException(messageSource.getMessage("media.file.not.found",

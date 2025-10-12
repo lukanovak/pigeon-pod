@@ -137,5 +137,11 @@
   "custom_cover": "Custom Cover",
   "upload_image": "Upload Image",
   "update_feed_failed": "Failed to update feed",
-  "update_feed_success": "Feed updated successfully"
+  "update_feed_success": "Feed updated successfully",
+  "download_type": "Download Type",
+"audio": "Audio",
+  "video": "Video",
+  "video_quality": "Video Quality",
+  "video_quality_description": "Leave blank for best available quality.",
+  "best": "Best"
 }

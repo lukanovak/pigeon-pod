@@ -28,6 +28,7 @@ import {
   Badge,
   ActionIcon,
   Tooltip,
+  Radio,
 } from '@mantine/core';
 import { AspectRatio } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
@@ -447,20 +448,63 @@ const Home = () => {
               }}
             />
           ) : null}
-          <NumberInput
-            label={renderAudioQualityLabel()}
-            description={t('audio_quality_description')}
-            name="audioQuality"
-            placeholder=""
-            min={0}
-            max={10}
-            clampBehavior="strict"
-            value={feed.audioQuality}
+
+          <Radio.Group
+            name="downloadType"
+            label={t('download_type')}
+            value={feed.downloadType || 'AUDIO'}
             onChange={(value) => {
-              setFeed({ ...feed, audioQuality: value === '' ? null : value });
+              setFeed({ 
+                ...feed, 
+                downloadType: value,
+                audioQuality: value === 'VIDEO' ? null : feed.audioQuality,
+                videoQuality: value === 'AUDIO' ? null : feed.videoQuality
+              });
               setPreview(true);
             }}
-          />
+          >
+            <Group mt="xs">
+              <Radio value="AUDIO" label={t('audio')} />
+              <Radio value="VIDEO" label={t('video')} />
+            </Group>
+          </Radio.Group>
+
+          {(feed.downloadType || 'AUDIO') === 'AUDIO' ? (
+            <NumberInput
+              label={renderAudioQualityLabel()}
+              description={t('audio_quality_description')}
+              name="audioQuality"
+              placeholder=""
+              min={0}
+              max={10}
+              clampBehavior="strict"
+              value={feed.audioQuality}
+              onChange={(value) => {
+                setFeed({ ...feed, audioQuality: value === '' ? null : value });
+                setPreview(true);
+              }}
+            />
+          ) : (
+            <Select
+              label={t('video_quality')}
+              description={t('video_quality_description')}
+              name="videoQuality"
+              data={[
+                { value: '', label: t('best') },
+                { value: '2160', label: '2160p' },
+                { value: '1440', label: '1440p' },
+                { value: '1080', label: '1080p' },
+                { value: '720', label: '720p' },
+                { value: '480', label: '480p' },
+              ]}
+              value={feed.videoQuality || ''}
+              onChange={(value) => {
+                setFeed({ ...feed, videoQuality: value });
+                setPreview(true);
+              }}
+            />
+          )}
+
           <Group mt="md" justify={isSmallScreen ? 'stretch' : 'flex-end'}>
             <Button
               variant="filled"

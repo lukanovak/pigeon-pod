@@ -133,5 +133,11 @@
   "custom_cover": "Benutzerdefiniertes Cover",
   "upload_image": "Bild hochladen",
   "update_feed_failed": "Feed konnte nicht aktualisiert werden",
-  "update_feed_success": "Feed erfolgreich aktualisiert"
+  "update_feed_success": "Feed erfolgreich aktualisiert",
+  "download_type": "Download-Typ",
+  "audio": "Audio",
+  "video": "Video",
+  "video_quality": "Videoqualität",
+  "video_quality_description": "Für die beste verfügbare Qualität leer lassen.",
+  "best": "Beste"
 }

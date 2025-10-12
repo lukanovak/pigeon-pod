@@ -135,5 +135,11 @@
   "custom_cover": "自定义封面",
   "upload_image": "上传图片",
   "update_feed_failed": "更新Feed失败",
-  "update_feed_success": "Feed更新成功"
+  "update_feed_success": "Feed更新成功",
+  "download_type": "下载类型",
+  "audio": "音频",
+  "video": "视频",
+  "video_quality": "视频质量",
+  "video_quality_description": "留空为可下载到的最高质量。",
+  "best": "最佳"
 }

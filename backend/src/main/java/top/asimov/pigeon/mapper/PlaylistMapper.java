@@ -20,4 +20,10 @@ public interface PlaylistMapper extends BaseMapper<Playlist> {
       + "p.episode_sort "
       + "ORDER BY CASE WHEN last_published_at IS NULL THEN '9999' ELSE last_published_at END DESC")
   List<Playlist> selectPlaylistsByLastPublishedAt();
+
+  @Select("SELECT p.* FROM playlist p "
+      + "INNER JOIN playlist_episode pe ON p.id = pe.playlist_id "
+      + "WHERE pe.episode_id = #{episodeId} "
+      + "ORDER BY pe.published_at DESC, pe.id DESC LIMIT 1")
+  Playlist selectLatestByEpisodeId(String episodeId);
 }

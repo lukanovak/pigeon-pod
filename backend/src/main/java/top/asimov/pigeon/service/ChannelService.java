@@ -364,27 +364,27 @@ public class ChannelService extends AbstractFeedService<Channel> {
 
     // 删除所有音频文件，同时收集频道目录路径
     for (Episode episode : episodes) {
-      String audioFilePath = episode.getAudioFilePath();
-      if (!ObjectUtils.isEmpty(audioFilePath)) {
+      String mediaFilePath = episode.getMediaFilePath();
+      if (!ObjectUtils.isEmpty(mediaFilePath)) {
         try {
-          java.io.File audioFile = new java.io.File(audioFilePath);
+          java.io.File audioFile = new java.io.File(mediaFilePath);
           if (audioFile.exists()) {
             boolean deleted = audioFile.delete();
             if (deleted) {
-              log.info("音频文件删除成功: {}", audioFilePath);
+              log.info("音频文件删除成功: {}", mediaFilePath);
               // 收集父目录路径（频道文件夹）
               java.io.File parentDir = audioFile.getParentFile();
               if (parentDir != null) {
                 channelDirectories.add(parentDir.getAbsolutePath());
               }
             } else {
-              log.warn("音频文件删除失败: {}", audioFilePath);
+              log.warn("音频文件删除失败: {}", mediaFilePath);
             }
           } else {
-            log.warn("音频文件不存在: {}", audioFilePath);
+            log.warn("音频文件不存在: {}", mediaFilePath);
           }
         } catch (Exception e) {
-          log.error("删除音频文件时出错: {}", audioFilePath, e);
+          log.error("删除音频文件时出错: {}", mediaFilePath, e);
         }
       }
     }
