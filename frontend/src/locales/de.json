@@ -141,5 +141,6 @@
   "video": "Video",
   "video_quality": "Videoqualität",
   "video_quality_description": "Für die beste verfügbare Qualität leer lassen.",
-  "best": "Beste"
+  "best": "Beste",
+  "video_encoding_help_tooltip": "Erfahren Sie, wie sich die Video-Encoding-Einstellung auf Dateigröße und Kompatibilität auswirkt."
 }

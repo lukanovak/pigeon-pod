@@ -141,5 +141,6 @@
   "video": "Video",
   "video_quality": "Calidad de Video",
   "video_quality_description": "Dejar en blanco para la mejor calidad disponible.",
-  "best": "La Mejor"
+  "best": "La Mejor",
+  "video_encoding_help_tooltip": "Aprenda cómo la configuración de codificación de video afecta el tamaño del archivo y la compatibilidad."
 }

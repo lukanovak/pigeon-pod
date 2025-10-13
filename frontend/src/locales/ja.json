@@ -141,5 +141,6 @@
   "video": "ビデオ",
   "video_quality": "ビデオ品質",
   "video_quality_description": "利用可能な最高の品質にするには、空白のままにしてください。",
-  "best": "最高"
+  "best": "最高",
+  "video_encoding_help_tooltip": "ビデオエンコーディング設定がファイルサイズと互換性にどのように影響するかをご覧ください。"
 }
