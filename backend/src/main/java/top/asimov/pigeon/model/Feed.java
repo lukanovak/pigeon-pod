@@ -34,6 +34,7 @@ public abstract class Feed {
   private Integer audioQuality;
   private DownloadType downloadType;
   private String videoQuality;
+  private String videoEncoding;
   private String lastSyncVideoId;
   private LocalDateTime lastSyncTimestamp;
 

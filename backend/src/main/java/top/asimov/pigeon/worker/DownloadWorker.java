@@ -20,12 +20,10 @@ import top.asimov.pigeon.constant.DownloadType;
 import top.asimov.pigeon.constant.EpisodeStatus;
 import top.asimov.pigeon.mapper.ChannelMapper;
 import top.asimov.pigeon.mapper.EpisodeMapper;
-import top.asimov.pigeon.mapper.PlaylistEpisodeMapper;
 import top.asimov.pigeon.mapper.PlaylistMapper;
 import top.asimov.pigeon.model.Channel;
 import top.asimov.pigeon.model.Episode;
 import top.asimov.pigeon.model.Playlist;
-import top.asimov.pigeon.model.PlaylistEpisode;
 import top.asimov.pigeon.service.CookiesService;
 
 @Log4j2
@@ -38,17 +36,14 @@ public class DownloadWorker {
   private final CookiesService cookiesService;
   private final ChannelMapper channelMapper;
   private final PlaylistMapper playlistMapper;
-  private final PlaylistEpisodeMapper playlistEpisodeMapper;
   private final MessageSource messageSource;
 
   public DownloadWorker(EpisodeMapper episodeMapper, CookiesService cookiesService,
-      ChannelMapper channelMapper, PlaylistMapper playlistMapper,
-      PlaylistEpisodeMapper playlistEpisodeMapper, MessageSource messageSource) {
+      ChannelMapper channelMapper, PlaylistMapper playlistMapper, MessageSource messageSource) {
     this.episodeMapper = episodeMapper;
     this.cookiesService = cookiesService;
     this.channelMapper = channelMapper;
     this.playlistMapper = playlistMapper;
-    this.playlistEpisodeMapper = playlistEpisodeMapper;
     this.messageSource = messageSource;
   }
 
@@ -87,36 +82,35 @@ public class DownloadWorker {
       // 构建输出目录：audioStoragePath/{feed name}/
       String outputDirPath = audioStoragePath + sanitizeFileName(feedName) + File.separator;
 
-      // 获取下载进程
-      Process process = getProcess(episodeId, tempCookiesFile, outputDirPath, safeTitle, feedContext);
-
-      // 读取命令输出和错误，非常重要，否则可能导致进程阻塞
-      BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      BufferedReader errorReader = new BufferedReader(
-          new InputStreamReader(process.getErrorStream()));
-      String line;
+      int exitCode;
       StringBuilder errorLog = new StringBuilder();
 
-      while ((line = reader.readLine()) != null) {
-        log.debug("[yt-dlp-out] {}", line);
+      Process process = getProcess(episodeId, tempCookiesFile, outputDirPath, safeTitle, feedContext);
+
+      // 读取输出
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+          BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          log.debug("[yt-dlp-out] {}", line);
+        }
+        while ((line = errorReader.readLine()) != null) {
+          log.warn("[yt-dlp-err] {}", line);
+          errorLog.append(line).append("\n");
+        }
       }
-      while ((line = errorReader.readLine()) != null) {
-        log.error("[yt-dlp-err] {}", line);
-        errorLog.append(line).append("\n");
-      }
+      exitCode = process.waitFor();
 
       // 设置详细的错误日志
-      if (!errorLog.isEmpty()) {
+      if (exitCode != 0 && !errorLog.isEmpty()) {
         episode.setErrorLog(errorLog.toString());
       }
-
-      int exitCode = process.waitFor(); // 等待命令执行完成
 
       // 根据结果更新最终状态
       if (exitCode == 0) {
         DownloadType downloadType = feedContext.downloadType();
-        String extension = (downloadType == DownloadType.VIDEO) ? "mp4" : "mp3";
-        String mimeType = (downloadType == DownloadType.VIDEO) ? "video/mp4" : "audio/mpeg";
+        String extension = (downloadType == DownloadType.VIDEO) ? "mp4" : "m4a";
+        String mimeType = (downloadType == DownloadType.VIDEO) ? "video/mp4" : "audio/aac";
 
         String finalPath =
             audioStoragePath + sanitizeFileName(feedName) + File.separator + safeTitle + "." + extension;
@@ -150,29 +144,72 @@ public class DownloadWorker {
 
   private Process getProcess(String videoId, String cookiesFilePath, String outputDirPath,
       String safeTitle, FeedContext feedContext) throws IOException {
-    File outputDir = new File(outputDirPath);
-    // 确保目录存在，如果不存在则创建，支持并发安全
-    if (!outputDir.exists()) {
-      // 使用 mkdirs() 创建目录，即使多线程同时调用也是安全的
-      // mkdirs() 返回 false 可能因为：1) 创建失败，2) 目录已存在（其他线程创建的）
-      outputDir.mkdirs();
-      // 再次检查目录是否存在，这是最可靠的方式
-      if (!outputDir.exists()) {
-        throw new RuntimeException(messageSource.getMessage("system.create.directory.failed",
-            new Object[]{outputDirPath}, LocaleContextHolder.getLocale()));
-      }
-    }
 
-    String videoUrl = "https://www.youtube.com/watch?v=" + videoId;
+    prepareOutputDirectory(outputDirPath);
 
     List<String> command = new ArrayList<>();
     command.add("yt-dlp");
 
-    DownloadType downloadType = feedContext.downloadType();
+    addDownloadSpecificOptions(command, feedContext);
 
-    if (downloadType == DownloadType.VIDEO) {
+    String videoUrl = "https://www.youtube.com/watch?v=" + videoId;
+    addCommonOptions(command, outputDirPath, safeTitle, cookiesFilePath, videoUrl);
+
+    log.info("执行 yt-dlp 命令: {}", String.join(" ", command));
+
+    ProcessBuilder processBuilder = new ProcessBuilder(command);
+    processBuilder.directory(new File(outputDirPath));
+    return processBuilder.start();
+  }
+
+  private void prepareOutputDirectory(String outputDirPath) {
+    File outputDir = new File(outputDirPath);
+    if (!outputDir.exists()) {
+      if (!outputDir.mkdirs()) {
+        // Re-check for existence in case of a race condition
+        if (!outputDir.exists()) {
+          throw new RuntimeException(messageSource.getMessage("system.create.directory.failed",
+              new Object[]{outputDirPath}, LocaleContextHolder.getLocale()));
+        }
+      }
+    }
+  }
+
+  private void addDownloadSpecificOptions(List<String> command, FeedContext feedContext) {
+    if (feedContext.downloadType() == DownloadType.VIDEO) {
+      addVideoOptions(command, feedContext);
+    } else if (feedContext.downloadType() == DownloadType.AUDIO){
+      addAudioOptions(command, feedContext);
+    } else {
+      throw new IllegalArgumentException("Unsupported download type: " + feedContext.downloadType());
+    }
+  }
+
+  private void addVideoOptions(List<String> command, FeedContext feedContext) {
+    String videoEncoding = feedContext.videoEncoding();
+    String videoQuality = feedContext.videoQuality();
+
+    if (StringUtils.hasText(videoEncoding)) {
+      // 强制编码
+      String vcodec = "H265".equalsIgnoreCase(videoEncoding) ? "hevc" :
+          "H264".equalsIgnoreCase(videoEncoding) ? "avc1" : videoEncoding;
+      String qualityFilter =
+          StringUtils.hasText(videoQuality) ? String.format("[height<=%s]", videoQuality) : "";
+
+      String formatString = String.format(
+          "bestvideo%s[vcodec^=%s]+bestaudio[ext=m4a]/bestvideo%s[vcodec!^=av01][vcodec!^=vp9]+bestaudio[ext=m4a]/bestvideo%s+bestaudio",
+          qualityFilter, vcodec, qualityFilter, qualityFilter);
+
       command.add("-f");
-      String videoQuality = feedContext.videoQuality();
+      command.add(formatString);
+      command.add("--recode-video");
+      command.add("mp4");
+      log.info("配置为视频下载模式，强制编码: {}, 最高质量: {}", videoEncoding,
+          StringUtils.hasText(videoQuality) ? videoQuality + "p" : "最佳");
+
+    } else {
+      // 非强制编码，下载指定分辨率或最佳
+      command.add("-f");
       if (StringUtils.hasText(videoQuality)) {
         String format = String.format(
             "bestvideo[height<=%s]+bestaudio/best[height<=%s]",
@@ -181,27 +218,34 @@ public class DownloadWorker {
         command.add(format);
         log.info("配置为视频下载模式，最高质量: {}p", videoQuality);
       } else {
+        // 不限制质量，下载最佳
         command.add("bestvideo+bestaudio/best");
         log.info("配置为视频下载模式，质量: 最佳");
       }
       command.add("--merge-output-format");
       command.add("mp4");
-    } else {
-      command.add("-x"); // 提取音频
-      command.add("--audio-format");
-      command.add("mp3"); // 指定音频格式
-      command.add("-f");
-      command.add("bestaudio/best");
-
-      Integer normalizedQuality = normalizeAudioQuality(feedContext.audioQuality());
-      if (normalizedQuality != null) {
-        command.add("--audio-quality");
-        command.add(String.valueOf(normalizedQuality));
-        log.debug("使用音频质量参数: {}", normalizedQuality);
-      }
-      log.info("配置为音频下载模式");
     }
+  }
 
+  private void addAudioOptions(List<String> command, FeedContext feedContext) {
+    command.add("-x"); // 提取音频
+    command.add("--audio-format");
+    command.add("aac"); // 指定音频格式为 AAC
+    command.add("-f");
+    // 优先下载 aac 格式 (m4a) 来避免转码，如果没有则回退到最佳音质（通常是 opus）
+    command.add("bestaudio[ext=m4a]/bestaudio");
+
+    Integer normalizedQuality = normalizeAudioQuality(feedContext.audioQuality());
+    if (normalizedQuality != null) {
+      command.add("--audio-quality");
+      command.add(String.valueOf(normalizedQuality));
+      log.debug("使用音频质量参数: {}", normalizedQuality);
+    }
+    log.info("配置为音频下载模式，优先使用 AAC");
+  }
+
+  private void addCommonOptions(List<String> command, String outputDirPath, String safeTitle,
+      String cookiesFilePath, String videoUrl) {
     command.add("-o");
     String outputTemplate = outputDirPath + safeTitle + ".%(ext)s";
     command.add(outputTemplate); // 输出文件模板:{outputDir}/{title}.%(ext)s
@@ -217,12 +261,6 @@ public class DownloadWorker {
     }
 
     command.add(videoUrl);
-
-    log.info("执行 yt-dlp 命令: {}", String.join(" ", command));
-
-    ProcessBuilder processBuilder = new ProcessBuilder(command);
-    processBuilder.directory(outputDir); // 设置工作目录
-    return processBuilder.start();
   }
 
   private FeedContext resolveFeedContext(Episode episode) {
@@ -230,17 +268,17 @@ public class DownloadWorker {
     if (playlist != null) {
       String title = safeFeedTitle(playlist.getTitle());
       return new FeedContext(title, playlist.getDownloadType(), playlist.getAudioQuality(),
-          playlist.getVideoQuality());
+          playlist.getVideoQuality(), playlist.getVideoEncoding());
     }
 
     Channel channel = channelMapper.selectById(episode.getChannelId());
     if (channel != null) {
       String title = safeFeedTitle(channel.getTitle());
       return new FeedContext(title, channel.getDownloadType(), channel.getAudioQuality(),
-          channel.getVideoQuality());
+          channel.getVideoQuality(), channel.getVideoEncoding());
     }
 
-    return new FeedContext("unknown", DownloadType.AUDIO, null, null);
+    return new FeedContext("unknown", DownloadType.AUDIO, null, null, null);
   }
 
   private String safeFeedTitle(String rawTitle) {
@@ -261,7 +299,7 @@ public class DownloadWorker {
     return normalized;
   }
 
-  private record FeedContext(String title, DownloadType downloadType, Integer audioQuality, String videoQuality) {
+  private record FeedContext(String title, DownloadType downloadType, Integer audioQuality, String videoQuality, String videoEncoding) {
   }
 
   // 处理title，按UTF-8字节长度截断，最多200字节，结尾加...，并去除非法字符

@@ -142,5 +142,8 @@
   "video": "视频",
   "video_quality": "视频质量",
   "video_quality_description": "留空为可下载到的最高质量。",
-  "best": "最佳"
+  "best": "最佳",
+  "video_encoding": "视频编码",
+  "video_encoding_description": "留空为默认；H.264/H.265详情见文档。",
+  "default": "默认"
 }

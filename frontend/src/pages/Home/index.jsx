@@ -22,13 +22,8 @@ import {
   Box,
   Title,
   Paper,
-  TextInput,
   NumberInput,
-  Select,
   Badge,
-  ActionIcon,
-  Tooltip,
-  Radio,
 } from '@mantine/core';
 import { AspectRatio } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
@@ -36,12 +31,12 @@ import { IconCheck, IconClock, IconHelpCircle, IconSearch, IconSettings } from '
 import { useNavigate } from 'react-router-dom';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import VersionUpdateAlert from '../../components/VersionUpdateAlert';
+import EditFeedModal from '../../components/EditFeedModal';
 
 const Home = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isSmallScreen = useMediaQuery('(max-width: 36em)');
-  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
   const [feedSource, setFeedSource] = useState('');
   const [fetchFeedLoading, setFetchFeedLoading] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
@@ -53,30 +48,6 @@ const Home = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [editConfigOpened, { open: openEditConfig, close: closeEditConfig }] = useDisclosure(false);
   const isPlaylistFeed = String(feed?.type || '').toLowerCase() === 'playlist';
-
-  const renderAudioQualityLabel = () => (
-    <Group gap={4} align="center">
-      <Text>{t('audio_quality')}</Text>
-      <Tooltip label={t('audio_quality_help_tooltip')} withArrow>
-        <ActionIcon
-          component="a"
-          href={audioQualityDocUrl || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="subtle"
-          size="sm"
-          onClick={(event) => {
-            if (!audioQualityDocUrl) {
-              event.preventDefault();
-            }
-          }}
-          aria-label={t('audio_quality_help_tooltip')}
-        >
-          <IconHelpCircle size={16} />
-        </ActionIcon>
-      </Tooltip>
-    </Group>
-  );
 
   const fetchFeeds = async () => {
     const res = await API.get('/api/feed/list');
@@ -380,45 +351,16 @@ const Home = () => {
           </Box>
         </Stack>
       </Modal>
-      {/* Edit Feed Configuration Modal */}
-      <Modal
+      <EditFeedModal
         opened={editConfigOpened}
         onClose={closeEditConfig}
         title={t('edit_feed_configuration')}
-        size={isSmallScreen ? '100%' : 'md'}
-        fullScreen={isSmallScreen}
-      >
-        <Stack>
-          <TextInput
-            label={t('title_contain_keywords')}
-            name="containKeywords"
-            placeholder={t('multiple_keywords_space_separated')}
-            value={feed.containKeywords}
-            onChange={(event) => {
-              setFeed({ ...feed, containKeywords: event.target.value });
-              setPreview(true);
-            }}
-          />
-          <TextInput
-            label={t('title_exclude_keywords')}
-            name="excludeKeywords"
-            placeholder={t('multiple_keywords_space_separated')}
-            value={feed.excludeKeywords}
-            onChange={(event) => {
-              setFeed({ ...feed, excludeKeywords: event.target.value });
-              setPreview(true);
-            }}
-          />
-          <NumberInput
-            label={t('minimum_duration_minutes')}
-            name="minimumDuration"
-            placeholder="0"
-            value={feed.minimumDuration}
-            onChange={(value) => {
-              setFeed({ ...feed, minimumDuration: value });
-              setPreview(true);
-            }}
-          />
+        feed={feed}
+        onFeedChange={setFeed}
+        isPlaylist={isPlaylistFeed}
+        onPreview={() => setPreview(true)}
+        size="md"
+        initialEpisodesField={
           <NumberInput
             label={t('initial_episodes')}
             name="initialEpisodes"
@@ -426,85 +368,8 @@ const Home = () => {
             value={feed.initialEpisodes}
             onChange={(value) => setFeed({ ...feed, initialEpisodes: value })}
           />
-          <NumberInput
-            label={t('maximum_episodes')}
-            name="maximumEpisodes"
-            placeholder={t('unlimited')}
-            value={feed.maximumEpisodes}
-            onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
-          />
-          {isPlaylistFeed ? (
-            <Select
-              label={t('episode_sort_label')}
-              name="episodeSort"
-              data={[
-                { value: 'default', label: t('episode_sort_default') },
-                { value: '1', label: t('episode_sort_desc') },
-              ]}
-              value={feed.episodeSort === 1 ? '1' : 'default'}
-              onChange={(value) => {
-                setFeed({ ...feed, episodeSort: value === '1' ? 1 : null });
-                setPreview(true);
-              }}
-            />
-          ) : null}
-
-          <Radio.Group
-            name="downloadType"
-            label={t('download_type')}
-            value={feed.downloadType || 'AUDIO'}
-            onChange={(value) => {
-              setFeed({ 
-                ...feed, 
-                downloadType: value,
-                audioQuality: value === 'VIDEO' ? null : feed.audioQuality,
-                videoQuality: value === 'AUDIO' ? null : feed.videoQuality
-              });
-              setPreview(true);
-            }}
-          >
-            <Group mt="xs">
-              <Radio value="AUDIO" label={t('audio')} />
-              <Radio value="VIDEO" label={t('video')} />
-            </Group>
-          </Radio.Group>
-
-          {(feed.downloadType || 'AUDIO') === 'AUDIO' ? (
-            <NumberInput
-              label={renderAudioQualityLabel()}
-              description={t('audio_quality_description')}
-              name="audioQuality"
-              placeholder=""
-              min={0}
-              max={10}
-              clampBehavior="strict"
-              value={feed.audioQuality}
-              onChange={(value) => {
-                setFeed({ ...feed, audioQuality: value === '' ? null : value });
-                setPreview(true);
-              }}
-            />
-          ) : (
-            <Select
-              label={t('video_quality')}
-              description={t('video_quality_description')}
-              name="videoQuality"
-              data={[
-                { value: '', label: t('best') },
-                { value: '2160', label: '2160p' },
-                { value: '1440', label: '1440p' },
-                { value: '1080', label: '1080p' },
-                { value: '720', label: '720p' },
-                { value: '480', label: '480p' },
-              ]}
-              value={feed.videoQuality || ''}
-              onChange={(value) => {
-                setFeed({ ...feed, videoQuality: value });
-                setPreview(true);
-              }}
-            />
-          )}
-
+        }
+        actionButtons={
           <Group mt="md" justify={isSmallScreen ? 'stretch' : 'flex-end'}>
             <Button
               variant="filled"
@@ -515,8 +380,8 @@ const Home = () => {
               {t('confirm')}
             </Button>
           </Group>
-        </Stack>
-      </Modal>
+        }
+      />
     </Container>
   );
 };

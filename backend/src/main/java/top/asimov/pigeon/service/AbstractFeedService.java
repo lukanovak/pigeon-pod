@@ -101,6 +101,7 @@ public abstract class AbstractFeedService<F extends Feed> {
     existingFeed.setCustomCoverExt(configuration.getCustomCoverExt());
     existingFeed.setDownloadType(configuration.getDownloadType());
     existingFeed.setVideoQuality(configuration.getVideoQuality());
+    existingFeed.setVideoEncoding(configuration.getVideoEncoding());
     applyAdditionalMutableFields(existingFeed, configuration);
   }
 

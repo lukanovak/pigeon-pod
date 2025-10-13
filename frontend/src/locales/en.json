@@ -144,5 +144,8 @@
   "video": "Video",
   "video_quality": "Video Quality",
   "video_quality_description": "Leave blank for best available quality.",
-  "best": "Best"
+  "best": "Best",
+  "video_encoding": "Video Encoding",
+  "video_encoding_description": "Leave blank for default; see docs for details on H.264/H.265.",
+  "default": "Default"
 }

@@ -48,7 +48,7 @@ public class MediaController {
     }
   }
 
-  @GetMapping({"/{episodeId}.mp3", "/{episodeId}.mp4"})
+  @GetMapping({"/{episodeId}.mp3", "/{episodeId}.mp4","/{episodeId}.m4a"})
   public ResponseEntity<Resource> getMediaFile(@PathVariable String episodeId) {
     try {
       log.info("请求媒体文件，episode ID: {}", episodeId);
@@ -84,7 +84,7 @@ public class MediaController {
     String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
     return switch (extension) {
       case "mp3" -> MediaType.valueOf("audio/mpeg");
-      case "m4a" -> MediaType.valueOf("audio/mp4");
+      case "m4a" -> MediaType.valueOf("audio/aac");
       case "wav" -> MediaType.valueOf("audio/wav");
       case "ogg" -> MediaType.valueOf("audio/ogg");
       case "mp4" -> MediaType.valueOf("video/mp4");

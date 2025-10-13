@@ -47,6 +47,7 @@ import {
 } from '../../helpers/index.js';
 import { useTranslation } from 'react-i18next';
 import CopyModal from '../../components/CopyModal';
+import EditFeedModal from '../../components/EditFeedModal';
 import './episode-image.css';
 
 // 需要跟踪状态变化的节目状态常量（移到组件外部避免重复创建）
@@ -80,7 +81,6 @@ const FeedDetail = () => {
   const [customCoverFile, setCustomCoverFile] = useState(null);
   const [refreshTimer, setRefreshTimer] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  const audioQualityDocUrl = 'https://github.com/aizhimou/pigeon-pod/blob/3aac6f9fefe4a974a80d02df321ec4d1a1438cce/documents/audio-quality-guide/audio-quality-guide-en.md';
 
   // 添加验证函数
   const validateInitialEpisodes = (value) => {
@@ -117,30 +117,6 @@ const FeedDetail = () => {
       if (node) observerRef.current.observe(node);
     },
     [hasMoreEpisodes],
-  );
-
-  const renderAudioQualityLabel = () => (
-    <Group gap={4} align="center">
-      <Text>{t('audio_quality')}</Text>
-      <Tooltip label={t('audio_quality_help_tooltip')} withArrow>
-        <ActionIcon
-          component="a"
-          href={audioQualityDocUrl || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="subtle"
-          size="sm"
-          onClick={(event) => {
-            if (!audioQualityDocUrl) {
-              event.preventDefault();
-            }
-          }}
-          aria-label={t('audio_quality_help_tooltip')}
-        >
-          <IconHelpCircle size={16} />
-        </ActionIcon>
-      </Tooltip>
-    </Group>
   );
 
   const fetchFeedDetail = useCallback(async () => {
@@ -806,35 +782,15 @@ const FeedDetail = () => {
         </Group>
       </Modal>
 
-      {/* Edit Channel Configuration Modal */}
-      <Modal
+      <EditFeedModal
         opened={editConfigOpened}
         onClose={closeEditConfig}
-        size="lg"
         title={t('edit_channel_configuration')}
-      >
-        <Stack>
-          <TextInput
-            label={t('title_contain_keywords')}
-            name="containKeywords"
-            placeholder={t('multiple_keywords_space_separated')}
-            value={feed?.containKeywords}
-            onChange={(event) => setFeed({ ...feed, containKeywords: event.target.value })}
-          />
-          <TextInput
-            label={t('title_exclude_keywords')}
-            name="excludeKeywords"
-            placeholder={t('multiple_keywords_space_separated')}
-            value={feed?.excludeKeywords}
-            onChange={(event) => setFeed({ ...feed, excludeKeywords: event.target.value })}
-          />
-          <NumberInput
-            label={t('minimum_duration_minutes')}
-            name="minimumDuration"
-            placeholder="0"
-            value={feed?.minimumDuration}
-            onChange={(value) => setFeed({ ...feed, minimumDuration: value })}
-          />
+        feed={feed}
+        onFeedChange={setFeed}
+        isPlaylist={isPlaylist}
+        size="lg"
+        initialEpisodesField={
           <NumberInput
             label={t('initial_episodes_channel')}
             name="initialEpisodes"
@@ -848,80 +804,8 @@ const FeedDetail = () => {
               }
             }}
           />
-          <NumberInput
-            label={t('maximum_episodes')}
-            name="maximumEpisodes"
-            placeholder={t('unlimited')}
-            value={feed?.maximumEpisodes}
-            onChange={(value) => setFeed({ ...feed, maximumEpisodes: value })}
-          />
-          {type?.toLowerCase() === 'playlist' ? (
-            <Select
-              label={t('episode_sort_label')}
-              name="episodeSort"
-              data={[
-                { value: 'default', label: t('episode_sort_default') },
-                { value: '1', label: t('episode_sort_desc') },
-              ]}
-              value={feed?.episodeSort === 1 ? '1' : 'default'}
-              onChange={(value) =>
-                setFeed({ ...feed, episodeSort: value === '1' ? 1 : null })
-              }
-            />
-          ) : null}
-
-          <Radio.Group
-            name="downloadType"
-            label={t('download_type')}
-            value={feed?.downloadType || 'AUDIO'}
-            onChange={(value) => {
-              setFeed({ 
-                ...feed, 
-                downloadType: value,
-                audioQuality: value === 'VIDEO' ? null : feed.audioQuality,
-                videoQuality: value === 'AUDIO' ? null : feed.videoQuality
-              });
-            }}
-          >
-            <Group mt="xs">
-              <Radio value="AUDIO" label={t('audio')} />
-              <Radio value="VIDEO" label={t('video')} />
-            </Group>
-          </Radio.Group>
-
-          {(feed?.downloadType || 'AUDIO') === 'AUDIO' ? (
-            <NumberInput
-              label={renderAudioQualityLabel()}
-              description={t('audio_quality_description')}
-              name="audioQuality"
-              placeholder=""
-              value={feed?.audioQuality}
-              min={0}
-              max={10}
-              onChange={(value) =>
-                setFeed({ ...feed, audioQuality: value === '' ? null : value })
-              }
-            />
-          ) : (
-            <Select
-              label={t('video_quality')}
-              description={t('video_quality_description')}
-              name="videoQuality"
-              data={[
-                { value: '', label: t('best') },
-                { value: '2160', label: '2160p' },
-                { value: '1440', label: '1440p' },
-                { value: '1080', label: '1080p' },
-                { value: '720', label: '720p' },
-                { value: '480', label: '480p' },
-              ]}
-              value={feed?.videoQuality || ''}
-              onChange={(value) => {
-                setFeed({ ...feed, videoQuality: value });
-              }}
-            />
-          )}
-
+        }
+        actionButtons={
           <Group mt="md" justify="flex-end">
             <Button variant="default" onClick={closeEditConfig}>
               {t('cancel')}
@@ -930,8 +814,8 @@ const FeedDetail = () => {
               {t('save_changes')}
             </Button>
           </Group>
-        </Stack>
-      </Modal>
+        }
+      />
 
       {/* Copy Modal for manual copy */}
       <CopyModal
