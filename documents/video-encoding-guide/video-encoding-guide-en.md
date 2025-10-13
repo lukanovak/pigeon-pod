@@ -1,5 +1,7 @@
 When downloading videos, you can choose a specific video encoding format. This guide explains the options available.
 
+[![视频编码格式说明 中文](https://img.shields.io/badge/视频编码格式说明-%E4%B8%AD%E6%96%87-blue)](video-encoding-guide-zh.md)
+
 ### Default
 
 - **Description**: This option uses the video encoding format provided by YouTube itself (usually AV1 or VP9 for better quality videos). It does not perform any extra encoding or decoding processing.

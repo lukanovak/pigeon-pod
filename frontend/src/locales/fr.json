@@ -141,5 +141,6 @@
   "video": "Vidéo",
   "video_quality": "Qualité Vidéo",
   "video_quality_description": "Laissez vide pour la meilleure qualité disponible.",
-  "best": "Meilleure"
+  "best": "Meilleure",
+  "video_encoding_help_tooltip": "Découvrez comment le paramètre d'encodage vidéo affecte la taille du fichier et la compatibilité."
 }

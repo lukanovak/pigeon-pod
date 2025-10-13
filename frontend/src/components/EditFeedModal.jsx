@@ -30,6 +30,9 @@ const EditFeedModal = ({
   const audioQualityDocUrl =
     'https://github.com/aizhimou/pigeon-pod/blob/main/documents/audio-quality-guide/audio-quality-guide-en.md';
 
+  const vidoeEncodingDocUrl =
+    'https://github.com/aizhimou/pigeon-pod/blob/main/documents/video-encoding-guide/video-encoding-guide-en.md';
+
   const handleFieldChange = (field, value) => {
     const newFeed = { ...feed, [field]: value };
     onFeedChange(newFeed);
@@ -50,6 +53,25 @@ const EditFeedModal = ({
           variant="subtle"
           size="sm"
           aria-label={t('audio_quality_help_tooltip')}
+        >
+          <IconHelpCircle size={16} />
+        </ActionIcon>
+      </Tooltip>
+    </Group>
+  );
+
+  const renderVideoEncodingLabel = () => (
+    <Group gap={4} align="center">
+      <Text>{t('video_encoding')}</Text>
+      <Tooltip label={t('video_encoding_help_tooltip')} withArrow>
+        <ActionIcon
+          component="a"
+          href={vidoeEncodingDocUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="subtle"
+          size="sm"
+          aria-label={t('video_encoding_help_tooltip')}
         >
           <IconHelpCircle size={16} />
         </ActionIcon>
@@ -160,7 +182,7 @@ const EditFeedModal = ({
               onChange={(value) => handleFieldChange('videoQuality', value)}
             />
             <Select
-              label={t('video_encoding')}
+              label={renderVideoEncodingLabel()}
               description={t('video_encoding_description')}
               name="videoEncoding"
               data={[

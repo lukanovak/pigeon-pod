@@ -147,5 +147,6 @@
   "best": "Best",
   "video_encoding": "Video Encoding",
   "video_encoding_description": "Leave blank for default; see docs for details on H.264/H.265.",
-  "default": "Default"
+  "default": "Default",
+  "video_encoding_help_tooltip": "Learn how the video encoding setting impacts file size and compatibility."
 }
