@@ -23,3 +23,7 @@ ENV LANG=C.UTF-8
 ENV JAVA_OPTS="-Dfile.encoding=UTF-8"
 EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+COPY render-entrypoint.sh /usr/local/bin/render-entrypoint.sh
+RUN chmod +x /usr/local/bin/render-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/render-entrypoint.sh"]
+
