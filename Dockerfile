@@ -13,7 +13,7 @@ COPY backend/src ./src
 # copy the frontend build output to the backend resources
 COPY --from=frontend-build /app/dist ./src/main/resources/static
 RUN mvn clean package -DskipTests
-
+RUN mkdir -p /tmp/audio
 FROM cgr.dev/chainguard/wolfi-base:latest
 RUN apk add --update --no-cache ffmpeg openjdk-17-default-jvm python3 py3-pip sqlite \
     && pip3 install --no-cache-dir yt-dlp
@@ -25,5 +25,5 @@ EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 # tvoj obstoječi Dockerfile iz projekta pusti nedotaknjen
 # DODAJ le to vrstico nekje v final stage (pred CMD), da mapa obstaja:
-RUN mkdir -p /tmp/audio
+
 
